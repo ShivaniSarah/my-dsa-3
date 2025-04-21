@@ -1,0 +1,156 @@
+https://leetcode.com/problems/minimum-number-of-valid-strings-to-form-target-i/
+
+3291. Minimum Number of Valid Strings to Form Target I
+Medium
+Topics
+Companies
+Hint
+You are given an array of strings words and a string target.
+
+A string x is called valid if x is a prefix of any string in words.
+
+Return the minimum number of valid strings that can be concatenated to form target. If it is not possible to form target, return -1.
+
+ 
+
+Example 1:
+
+Input: words = ["abc","aaaaa","bcdef"], target = "aabcdabc"
+
+Output: 3
+
+Explanation:
+
+The target string can be formed by concatenating:
+
+Prefix of length 2 of words[1], i.e. "aa".
+Prefix of length 3 of words[2], i.e. "bcd".
+Prefix of length 3 of words[0], i.e. "abc".
+Example 2:
+
+Input: words = ["abababab","ab"], target = "ababaababa"
+
+Output: 2
+
+Explanation:
+
+The target string can be formed by concatenating:
+
+Prefix of length 5 of words[0], i.e. "ababa".
+Prefix of length 5 of words[0], i.e. "ababa".
+Example 3:
+
+Input: words = ["abcdef"], target = "xyz"
+
+Output: -1
+
+ 
+
+Constraints:
+
+1 <= words.length <= 100
+1 <= words[i].length <= 5 * 103
+The input is generated such that sum(words[i].length) <= 105.
+words[i] consists only of lowercase English letters.
+1 <= target.length <= 5 * 103
+target consists only of lowercase English letters.
+
+
+
+# java
+
+
+class Solution {
+  public int minValidStrings(String[] words, String target) {
+    int ans = 0;
+    int unmatchedPrefix = target.length();
+    int[][] lpsList = new int[words.length][];
+
+    for (int i = 0; i < words.length; ++i)
+      lpsList[i] = getLPS(words[i] + '#' + target);
+
+    while (unmatchedPrefix > 0) {
+      // Greedily choose the word that has the longest suffix match with the
+      // remaining unmatched prefix.
+      int maxMatchSuffix = 0;
+      for (int i = 0; i < words.length; ++i)
+        maxMatchSuffix = Math.max(maxMatchSuffix, lpsList[i][words[i].length() + unmatchedPrefix]);
+      if (maxMatchSuffix == 0)
+        return -1;
+      ++ans;
+      unmatchedPrefix -= maxMatchSuffix;
+    }
+
+    return ans;
+  }
+
+  // Returns the lps array, where lps[i] is the length of the longest prefix of
+  // pattern[0..i] which is also a suffix of this substring.
+  private int[] getLPS(final String pattern) {
+    int[] lps = new int[pattern.length()];
+    for (int i = 1, j = 0; i < pattern.length(); ++i) {
+      while (j > 0 && pattern.charAt(j) != pattern.charAt(i))
+        j = lps[j - 1];
+      if (pattern.charAt(i) == pattern.charAt(j))
+        lps[i] = ++j;
+    }
+    return lps;
+  }
+}
+
+
+or
+
+
+class Trie {
+    Trie[] children = new Trie[26];
+
+    void insert(String w) {
+        Trie node = this;
+        for (int i = 0; i < w.length(); ++i) {
+            int j = w.charAt(i) - 'a';
+            if (node.children[j] == null) {
+                node.children[j] = new Trie();
+            }
+            node = node.children[j];
+        }
+    }
+}
+
+class Solution {
+    private Integer[] f;
+    private char[] s;
+    private Trie trie;
+    private final int inf = 1 << 30;
+
+    public int minValidStrings(String[] words, String target) {
+        trie = new Trie();
+        for (String w : words) {
+            trie.insert(w);
+        }
+        s = target.toCharArray();
+        f = new Integer[s.length];
+        int ans = dfs(0);
+        return ans < inf ? ans : -1;
+    }
+
+    private int dfs(int i) {
+        if (i >= s.length) {
+            return 0;
+        }
+        if (f[i] != null) {
+            return f[i];
+        }
+        Trie node = trie;
+        f[i] = inf;
+        for (int j = i; j < s.length; ++j) {
+            int k = s[j] - 'a';
+            if (node.children[k] == null) {
+                break;
+            }
+            f[i] = Math.min(f[i], 1 + dfs(j + 1));
+            node = node.children[k];
+        }
+        return f[i];
+    }
+}
