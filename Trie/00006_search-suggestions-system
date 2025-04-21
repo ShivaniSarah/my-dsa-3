@@ -1,0 +1,234 @@
+https://leetcode.com/problems/search-suggestions-system/editorial/
+
+
+class Solution {
+    // Equivalent code for lower_bound in Java
+    int lower_bound(String[] products, int start, String word) {
+        int i = start, j = products.length, mid;
+        while (i < j) {
+            mid = (i + j) / 2;
+            if (products[mid].compareTo(word) >= 0)
+                j = mid;
+            else
+                i = mid + 1;
+        }
+        return i;
+    }
+public
+    List<List<String>> suggestedProducts(String[] products, String searchWord) {
+        Arrays.sort(products);
+        List<List<String>> result = new ArrayList<>();
+        int start = 0, bsStart = 0, n = products.length;
+        String prefix = new String();
+        for (char c : searchWord.toCharArray()) {
+            prefix += c;
+
+            // Get the starting index of word starting with `prefix`.
+            start = lower_bound(products, bsStart, prefix);
+
+            // Add empty vector to result.
+            result.add(new ArrayList<>());
+
+            // Add the words with the same prefix to the result.
+            // Loop runs until `i` reaches the end of input or 3 times or till the
+            // prefix is same for `products[i]` Whichever comes first.
+            for (int i = start; i < Math.min(start + 3, n); i++) {
+                if (products[i].length() < prefix.length() || !products[i].substring(0, prefix.length()).equals(prefix))
+                    break;
+                result.get(result.size() - 1).add(products[i]);
+            }
+
+            // Reduce the size of elements to binary search on since we know
+            bsStart = Math.abs(start);
+        }
+        return result;
+    }
+}
+
+
+
+or
+
+
+
+// Custom class Trie with function to get 3 words starting with given prefix
+class Trie {
+
+    // Node definition of a trie
+    class Node {
+        boolean isWord = false;
+        List<Node> children = Arrays.asList(new Node[26]);
+    };
+    Node Root, curr;
+    List<String> resultBuffer;
+
+    // Runs a DFS on trie starting with given prefix and adds all the words in the resultBuffer, limiting result size to 3
+    void dfsWithPrefix(Node curr, String word) {
+        if (resultBuffer.size() == 3)
+            return;
+        if (curr.isWord)
+            resultBuffer.add(word);
+
+        // Run DFS on all possible paths.
+        for (char c = 'a'; c <= 'z'; c++)
+            if (curr.children.get(c - 'a') != null)
+                dfsWithPrefix(curr.children.get(c - 'a'), word + c);
+    }
+    Trie() {
+        Root = new Node();
+    }
+
+    // Inserts the string in trie.
+    void insert(String s) {
+
+        // Points curr to the root of trie.
+        curr = Root;
+        for (char c : s.toCharArray()) {
+            if (curr.children.get(c - 'a') == null)
+                curr.children.set(c - 'a', new Node());
+            curr = curr.children.get(c - 'a');
+        }
+
+        // Mark this node as a completed word.
+        curr.isWord = true;
+    }
+    List<String> getWordsStartingWith(String prefix) {
+        curr = Root;
+        resultBuffer = new ArrayList<String>();
+        // Move curr to the end of prefix in its trie representation.
+        for (char c : prefix.toCharArray()) {
+            if (curr.children.get(c - 'a') == null)
+                return resultBuffer;
+            curr = curr.children.get(c - 'a');
+        }
+        dfsWithPrefix(curr, prefix);
+        return resultBuffer;
+    }
+};
+class Solution {
+    List<List<String>> suggestedProducts(String[] products,
+                                         String searchWord) {
+        Trie trie = new Trie();
+        List<List<String>> result = new ArrayList<>();
+        // Add all words to trie.
+        for (String w : products)
+            trie.insert(w);
+        String prefix = new String();
+        for (char c : searchWord.toCharArray()) {
+            prefix += c;
+            result.add(trie.getWordsStartingWith(prefix));
+        }
+        return result;
+    }
+};
+
+
+or
+
+
+class TrieNode {
+  public TrieNode[] children = new TrieNode[26];
+  public String word;
+}
+
+class Solution {
+  public List<List<String>> suggestedProducts(String[] products, String searchWord) {
+    List<List<String>> ans = new ArrayList<>();
+
+    for (final String product : products)
+      insert(product);
+
+    TrieNode node = root;
+
+    for (final char c : searchWord.toCharArray()) {
+      if (node == null || node.children[c - 'a'] == null) {
+        node = null;
+        ans.add(new ArrayList<>());
+        continue;
+      }
+      node = node.children[c - 'a'];
+      ans.add(search(node));
+    }
+
+    return ans;
+  }
+
+  private TrieNode root = new TrieNode();
+
+  private void insert(final String word) {
+    TrieNode node = root;
+    for (final char c : word.toCharArray()) {
+      final int i = c - 'a';
+      if (node.children[i] == null)
+        node.children[i] = new TrieNode();
+      node = node.children[i];
+    }
+    node.word = word;
+  }
+
+  private List<String> search(TrieNode node) {
+    List<String> res = new ArrayList<>();
+    dfs(node, res);
+    return res;
+  }
+
+  private void dfs(TrieNode node, List<String> ans) {
+    if (ans.size() == 3)
+      return;
+    if (node == null)
+      return;
+    if (node.word != null)
+      ans.add(node.word);
+    for (TrieNode child : node.children)
+      dfs(child, ans);
+  }
+}
+
+
+or
+
+
+class Solution {
+        public List<List<String>> suggestedProducts(String[] products, String searchWord) {
+        //sort words so they will be added in a sorted order to nodes 
+        Arrays.sort(products);
+        
+        Trie root = new Trie();
+        for (String prod : products) {
+            Trie n = root;
+            for (char ch : prod.toCharArray()) {
+                int i = ch - 'a';
+                if (n.next[i] == null) {
+                    n.next[i] = new Trie();
+                }
+                n = n.next[i];
+                if (n.words.size() < 3)
+                    n.words.add(prod);
+            }
+        }
+        
+        List<List<String>> res = new ArrayList();
+        Trie n = root;
+		//start going over the search word char by char
+        for (int i = 0; i < searchWord.length(); i++) {
+            n = n.next[searchWord.charAt(i) - 'a'];
+			//if we met null - means no more matches possible, the result of result can be filled by empty lists
+            if (n == null) {
+                for (int j = i; j < searchWord.length(); j++)
+                    res.add(Collections.EMPTY_LIST);    
+                break;
+            }
+            res.add(n.words);
+        }
+        return res;
+    }
+    //trie node
+    class Trie {
+        Trie[] next;
+        List<String> words;
+        Trie() {
+            words = new ArrayList();
+            next = new Trie[26];
+        }
+    }
+}
