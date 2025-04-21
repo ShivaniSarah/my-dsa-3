@@ -1,0 +1,258 @@
+https://leetcode.com/problems/longest-word-in-dictionary/
+
+720. Longest Word in Dictionary
+Medium
+Topics
+Companies
+Hint
+Given an array of strings words representing an English Dictionary, return the longest word in words that can be built one character at a time by other words in words.
+
+If there is more than one possible answer, return the longest word with the smallest lexicographical order. If there is no answer, return the empty string.
+
+Note that the word should be built from left to right with each additional character being added to the end of a previous word. 
+
+ 
+
+Example 1:
+
+Input: words = ["w","wo","wor","worl","world"]
+Output: "world"
+Explanation: The word "world" can be built one character at a time by "w", "wo", "wor", and "worl".
+Example 2:
+
+Input: words = ["a","banana","app","appl","ap","apply","apple"]
+Output: "apple"
+Explanation: Both "apply" and "apple" can be built from other words in the dictionary. However, "apple" is lexicographically smaller than "apply".
+ 
+
+Constraints:
+
+1 <= words.length <= 1000
+1 <= words[i].length <= 30
+words[i] consists of lowercase English letters.
+
+
+# java
+
+class TrieNode {
+  public TrieNode[] children = new TrieNode[26];
+  public String word;
+}
+
+class Solution {
+  public String longestWord(String[] words) {
+    for (final String word : words)
+      insert(word);
+    return longestWordFrom(root);
+  }
+
+  private TrieNode root = new TrieNode();
+
+  private void insert(final String word) {
+    TrieNode node = root;
+    for (char c : word.toCharArray()) {
+      final int i = c - 'a';
+      if (node.children[i] == null)
+        node.children[i] = new TrieNode();
+      node = node.children[i];
+    }
+    node.word = word;
+  }
+
+  private String longestWordFrom(TrieNode node) {
+    String ans = node.word == null ? "" : node.word;
+
+    for (TrieNode child : node.children)
+      if (child != null && child.word != null) {
+        String childWord = longestWordFrom(child);
+        if (childWord.length() > ans.length())
+          ans = childWord;
+      }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+    private Set<String> s;
+
+    public String longestWord(String[] words) {
+        s = new HashSet<>(Arrays.asList(words));
+        int cnt = 0;
+        String ans = "";
+        for (String w : s) {
+            int n = w.length();
+            if (check(w)) {
+                if (cnt < n) {
+                    cnt = n;
+                    ans = w;
+                } else if (cnt == n && w.compareTo(ans) < 0) {
+                    ans = w;
+                }
+            }
+        }
+        return ans;
+    }
+
+    private boolean check(String word) {
+        for (int i = 1, n = word.length(); i < n; ++i) {
+            if (!s.contains(word.substring(0, i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public String longestWord(String[] words) {
+        String ans = "";
+        Set<String> wordset = new HashSet();
+        for (String word: words) {
+            wordset.add(word);
+        }
+        for (String word: words) {
+            if (word.length() > ans.length() ||
+                    word.length() == ans.length() && word.compareTo(ans) < 0) {
+                boolean good = true;
+                for (int k = 1; k < word.length(); ++k) {
+                    if (!wordset.contains(word.substring(0, k))) {
+                        good = false;
+                        break;
+                    }
+                }
+                if (good) {
+                    ans = word;
+                }
+            }    
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public String longestWord(String[] words) {
+        Trie trie = new Trie();
+        int index = 0;
+        for (String word: words) {
+            trie.insert(word, ++index); //indexed by 1
+        }
+        trie.words = words;
+        return trie.dfs();
+    }
+}
+class Node {
+    char c;
+    HashMap<Character, Node> children = new HashMap();
+    int end;
+    public Node(char c){
+        this.c = c;
+    }
+}
+
+class Trie {
+    Node root;
+    String[] words;
+    public Trie() {
+        root = new Node('0');
+    }
+
+    public void insert(String word, int index) {
+        Node cur = root;
+        for (char c: word.toCharArray()) {
+            cur.children.putIfAbsent(c, new Node(c));
+            cur = cur.children.get(c);
+        }
+        cur.end = index;
+    }
+
+    public String dfs() {
+        String ans = "";
+        Stack<Node> stack = new Stack();
+        stack.push(root);
+        while (!stack.empty()) {
+            Node node = stack.pop();
+            if (node.end > 0 || node == root) {
+                if (node != root) {
+                    String word = words[node.end - 1];
+                    if (word.length() > ans.length() ||
+                            word.length() == ans.length() && word.compareTo(ans) < 0) {
+                        ans = word;
+                    }
+                }
+                for (Node nei: node.children.values()) {
+                    stack.push(nei);
+                }
+            }
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+	private TreeNode root;
+	private String result = "";
+
+	public String longestWord(String[] words) {
+		root = new TreeNode();
+
+		for (String w : words)
+			insert(w);
+
+		dfs(root);
+
+		return result;
+	}
+
+	private void dfs(TreeNode node) {
+		if (node == null)
+			return;
+
+		if (node.word != null) {
+			if (node.word.length() > result.length())
+				result = node.word;
+			else if (node.word.length() == result.length() && node.word.compareTo(result) < 0)
+				result = node.word;
+		}
+
+		for (TreeNode child : node.children)
+			if (child != null && child.word != null)
+				dfs(child);
+	}
+
+	private void insert(String word) {
+		TreeNode current = root;
+		for (char c : word.toCharArray()) {
+			if (current.children[c - 'a'] == null)
+				current.children[c - 'a'] = new TreeNode();
+			current = current.children[c - 'a'];
+		}
+		current.word = word;
+	}
+
+}
+
+class TreeNode {
+	TreeNode[] children = new TreeNode[26];
+	String word;
+
+	TreeNode () {}
+}
