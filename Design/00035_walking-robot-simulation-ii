@@ -1,0 +1,127 @@
+https://leetcode.com/problems/walking-robot-simulation-ii/description/
+
+2069. Walking Robot Simulation II
+Medium
+Topics
+Companies
+Hint
+A width x height grid is on an XY-plane with the bottom-left cell at (0, 0) and the top-right cell at (width - 1, height - 1). The grid is aligned with the four cardinal directions ("North", "East", "South", and "West"). A robot is initially at cell (0, 0) facing direction "East".
+
+The robot can be instructed to move for a specific number of steps. For each step, it does the following.
+
+Attempts to move forward one cell in the direction it is facing.
+If the cell the robot is moving to is out of bounds, the robot instead turns 90 degrees counterclockwise and retries the step.
+After the robot finishes moving the number of steps required, it stops and awaits the next instruction.
+
+Implement the Robot class:
+
+Robot(int width, int height) Initializes the width x height grid with the robot at (0, 0) facing "East".
+void step(int num) Instructs the robot to move forward num steps.
+int[] getPos() Returns the current cell the robot is at, as an array of length 2, [x, y].
+String getDir() Returns the current direction of the robot, "North", "East", "South", or "West".
+ 
+
+Example 1:
+
+example-1
+Input
+["Robot", "step", "step", "getPos", "getDir", "step", "step", "step", "getPos", "getDir"]
+[[6, 3], [2], [2], [], [], [2], [1], [4], [], []]
+Output
+[null, null, null, [4, 0], "East", null, null, null, [1, 2], "West"]
+
+Explanation
+Robot robot = new Robot(6, 3); // Initialize the grid and the robot at (0, 0) facing East.
+robot.step(2);  // It moves two steps East to (2, 0), and faces East.
+robot.step(2);  // It moves two steps East to (4, 0), and faces East.
+robot.getPos(); // return [4, 0]
+robot.getDir(); // return "East"
+robot.step(2);  // It moves one step East to (5, 0), and faces East.
+                // Moving the next step East would be out of bounds, so it turns and faces North.
+                // Then, it moves one step North to (5, 1), and faces North.
+robot.step(1);  // It moves one step North to (5, 2), and faces North (not West).
+robot.step(4);  // Moving the next step North would be out of bounds, so it turns and faces West.
+                // Then, it moves four steps West to (1, 2), and faces West.
+robot.getPos(); // return [1, 2]
+robot.getDir(); // return "West"
+
+ 
+
+Constraints:
+
+2 <= width, height <= 100
+1 <= num <= 105
+At most 104 calls in total will be made to step, getPos, and getDir.
+
+
+
+# java
+
+
+class Robot {
+  public Robot(int width, int height) {
+    pos.add(new Pair<>(new int[] {0, 0}, "South"));
+    for (int i = 1; i < width; ++i)
+      pos.add(new Pair<>(new int[] {i, 0}, "East"));
+    for (int j = 1; j < height; ++j)
+      pos.add(new Pair<>(new int[] {width - 1, j}, "North"));
+    for (int i = width - 2; i >= 0; --i)
+      pos.add(new Pair<>(new int[] {i, height - 1}, "West"));
+    for (int j = height - 2; j > 0; --j)
+      pos.add(new Pair<>(new int[] {0, j}, "South"));
+  }
+
+  public void step(int num) {
+    isOrigin = false;
+    i = (i + num) % pos.size();
+  }
+
+  public int[] getPos() {
+    return pos.get(i).getKey();
+  }
+
+  public String getDir() {
+    return isOrigin ? "East" : pos.get(i).getValue();
+  }
+
+  private boolean isOrigin = true;
+  private int i = 0;
+  private List<Pair<int[], String>> pos = new ArrayList<>();
+}
+
+
+or
+
+
+class Robot {
+    private final int width, height, perimeter, rightTop, leftTop, rightBottom;
+    private int steps = 0;
+    private boolean started = false; //
+    public Robot(int width, int height) {
+        this.width = width;
+        this.height = height;
+        this.perimeter = (width + height - 2) * 2; // Number of steps to go around a circle.
+        this.rightBottom = width - 1; // Number of steps to reach bottom right corner.
+        this.rightTop = width + height - 2; // Number of steps to reach top right corner.
+        this.leftTop = width * 2 + height - 3; // Number of steps to reach top left corner.
+    }
+    public void step(int num) {
+        if(num == 0) return;
+        steps = (steps + num) % perimeter;
+        started = true; // Since the initial direction is different from later direction at 0/0, a boolean is needed.
+    }
+    public int[] getPos() {
+        if(steps == 0) return new int[]{0, 0};
+        if(steps > 0 && steps <= rightBottom) return new int[]{steps, 0};
+        if(steps > rightBottom && steps <= rightTop) return new int[]{width -1, steps - rightBottom};
+        if(steps > rightTop && steps <= leftTop) return new int[]{leftTop - steps , height - 1};
+        return new int[]{0, perimeter - steps};
+    }
+    public String getDir() {
+        if(steps > 0 && steps < width) return "East";
+        if(steps >= width && steps <= rightTop) return "North";
+        if(steps > rightTop && steps <= leftTop) return "West";
+        if(steps == 0 && !started) return "East"; // If it's the initial state.
+        return "South";
+    }
+}
