@@ -1,0 +1,213 @@
+https://leetcode.com/problems/implement-magic-dictionary/description/
+
+
+676. Implement Magic Dictionary
+Medium
+Topics
+Companies
+Design a data structure that is initialized with a list of different words. Provided a string, you should determine if you can change exactly one character in this string to match any word in the data structure.
+
+Implement the MagicDictionary class:
+
+MagicDictionary() Initializes the object.
+void buildDict(String[] dictionary) Sets the data structure with an array of distinct strings dictionary.
+bool search(String searchWord) Returns true if you can change exactly one character in searchWord to match any string in the data structure, otherwise returns false.
+ 
+
+Example 1:
+
+Input
+["MagicDictionary", "buildDict", "search", "search", "search", "search"]
+[[], [["hello", "leetcode"]], ["hello"], ["hhllo"], ["hell"], ["leetcoded"]]
+Output
+[null, null, false, true, false, false]
+
+Explanation
+MagicDictionary magicDictionary = new MagicDictionary();
+magicDictionary.buildDict(["hello", "leetcode"]);
+magicDictionary.search("hello"); // return False
+magicDictionary.search("hhllo"); // We can change the second 'h' to 'e' to match "hello" so we return True
+magicDictionary.search("hell"); // return False
+magicDictionary.search("leetcoded"); // return False
+ 
+
+Constraints:
+
+1 <= dictionary.length <= 100
+1 <= dictionary[i].length <= 100
+dictionary[i] consists of only lower-case English letters.
+All the strings in dictionary are distinct.
+1 <= searchWord.length <= 100
+searchWord consists of only lower-case English letters.
+buildDict will be called only once before search.
+At most 100 calls will be made to search.
+
+
+# java
+
+class MagicDictionary {
+  public void buildDict(String[] dictionary) {
+    for (final String word : dictionary)
+      for (int i = 0; i < word.length(); ++i) {
+        final String replaced = getReplaced(word, i);
+        dict.put(replaced, dict.containsKey(replaced) ? '*' : word.charAt(i));
+      }
+  }
+
+  public boolean search(final String searchWord) {
+    for (int i = 0; i < searchWord.length(); ++i) {
+      final String replaced = getReplaced(searchWord, i);
+      if (dict.getOrDefault(replaced, searchWord.charAt(i)) != searchWord.charAt(i))
+        return true;
+    }
+    return false;
+  }
+
+  private Map<String, Character> dict = new HashMap<>();
+
+  private String getReplaced(final String s, int i) {
+    return s.substring(0, i) + '*' + s.substring(i + 1);
+  }
+}
+
+
+or
+
+class TrieNode {
+  public TrieNode[] children = new TrieNode[26];
+  public boolean isWord = false;
+}
+
+class MagicDictionary {
+  public void buildDict(String[] dictionary) {
+    for (final String word : dictionary)
+      insert(word);
+  }
+
+  public boolean search(final String searchWord) {
+    TrieNode node = root;
+    for (int i = 0; i < searchWord.length(); ++i) {
+      final int index = searchWord.charAt(i) - 'a';
+      for (int j = 0; j < 26; ++j) {
+        if (j == index)
+          continue;
+        TrieNode child = node.children[j];
+        if (child == null)
+          continue;
+        // Replace the searchWord[i] with ('a' + j), then check if
+        // searchWord[i + 1..n) matches `child`.
+        if (find(child, searchWord, i + 1))
+          return true;
+      }
+      if (node.children[index] == null)
+        return false;
+      node = node.children[index];
+    }
+    return false;
+  }
+
+  private TrieNode root = new TrieNode();
+
+  private void insert(final String word) {
+    TrieNode node = root;
+    for (final char c : word.toCharArray()) {
+      final int i = c - 'a';
+      if (node.children[i] == null)
+        node.children[i] = new TrieNode();
+      node = node.children[i];
+    }
+    node.isWord = true;
+  }
+
+  private boolean find(TrieNode node, final String word, int s) {
+    for (int i = s; i < word.length(); ++i) {
+      final int index = word.charAt(i) - 'a';
+      if (node.children[index] == null)
+        return false;
+      node = node.children[index];
+    }
+    return node.isWord;
+  }
+}
+
+
+or
+
+
+public class MagicDictionary {
+    Set<String> words;
+    Map<String, Integer> count;
+
+    public MagicDictionary() {
+        words = new HashSet();
+        count = new HashMap();
+    }
+
+    private ArrayList<String> generalizedNeighbors(String word) {
+        ArrayList<String> ans = new ArrayList();
+        char[] ca = word.toCharArray();
+        for (int i = 0; i < word.length(); ++i) {
+            char letter = ca[i];
+            ca[i] = '*';
+            String magic = new String(ca);
+            ans.add(magic);
+            ca[i] = letter;
+        }
+        return ans;
+    }
+
+    public void buildDict(String[] words) {
+        for (String word: words) {
+            this.words.add(word);
+            for (String nei: generalizedNeighbors(word)) {
+                count.put(nei, count.getOrDefault(nei, 0) + 1);
+            }
+        }
+    }
+
+    public boolean search(String word) {
+        for (String nei: generalizedNeighbors(word)) {
+            int c = count.getOrDefault(nei, 0);
+            if (c > 1 || c == 1 && !words.contains(word)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+or
+
+
+class MagicDictionary {
+    Map<Integer, ArrayList<String>> buckets;
+    public MagicDictionary() {
+        buckets = new HashMap();
+    }
+
+    public void buildDict(String[] words) {
+        for (String word: words) {
+            buckets.computeIfAbsent(word.length(), x -> new ArrayList()).add(word);
+        }
+    }
+
+    public boolean search(String word) {
+        if (!buckets.containsKey(word.length())) return false;
+        for (String candidate: buckets.get(word.length())) {
+            int mismatch = 0;
+            for (int i = 0; i < word.length(); ++i) {
+                if (word.charAt(i) != candidate.charAt(i)) {
+                    if (++mismatch > 1) {
+                        break;
+                    }
+                }
+            }
+            if (mismatch == 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+
