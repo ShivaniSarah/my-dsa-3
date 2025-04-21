@@ -1,0 +1,131 @@
+https://leetcode.com/problems/iterator-for-combination/description/
+
+1286. Iterator for Combination
+Medium
+Topics
+Companies
+Hint
+Design the CombinationIterator class:
+
+CombinationIterator(string characters, int combinationLength) Initializes the object with a string characters of sorted distinct lowercase English letters and a number combinationLength as arguments.
+next() Returns the next combination of length combinationLength in lexicographical order.
+hasNext() Returns true if and only if there exists a next combination.
+ 
+
+Example 1:
+
+Input
+["CombinationIterator", "next", "hasNext", "next", "hasNext", "next", "hasNext"]
+[["abc", 2], [], [], [], [], [], []]
+Output
+[null, "ab", true, "ac", true, "bc", false]
+
+Explanation
+CombinationIterator itr = new CombinationIterator("abc", 2);
+itr.next();    // return "ab"
+itr.hasNext(); // return True
+itr.next();    // return "ac"
+itr.hasNext(); // return True
+itr.next();    // return "bc"
+itr.hasNext(); // return False
+ 
+
+Constraints:
+
+1 <= combinationLength <= characters.length <= 15
+All the characters of characters are unique.
+At most 104 calls will be made to next and hasNext.
+It is guaranteed that all calls of the function next are valid.
+
+
+# java
+
+class CombinationIterator {
+    private int n;
+    private int combinationLength;
+    private String characters;
+    private StringBuilder t = new StringBuilder();
+    private List<String> cs = new ArrayList<>();
+    private int idx = 0;
+
+    public CombinationIterator(String characters, int combinationLength) {
+        n = characters.length();
+        this.combinationLength = combinationLength;
+        this.characters = characters;
+        dfs(0);
+    }
+
+    public String next() {
+        return cs.get(idx++);
+    }
+
+    public boolean hasNext() {
+        return idx < cs.size();
+    }
+
+    private void dfs(int i) {
+        if (t.length() == combinationLength) {
+            cs.add(t.toString());
+            return;
+        }
+        if (i == n) {
+            return;
+        }
+        t.append(characters.charAt(i));
+        dfs(i + 1);
+        t.deleteCharAt(t.length() - 1);
+        dfs(i + 1);
+    }
+}
+
+/**
+ * Your CombinationIterator object will be instantiated and called as such:
+ * CombinationIterator obj = new CombinationIterator(characters, combinationLength);
+ * String param_1 = obj.next();
+ * boolean param_2 = obj.hasNext();
+ */
+
+
+
+or
+
+
+
+class CombinationIterator {
+  public CombinationIterator(String characters, int combinationLength) {
+    final int n = characters.length();
+    final int k = combinationLength;
+
+    // Generate bitmasks from 0..00 to 1..11
+    for (int mask = 0; mask < 1 << n; mask++) {
+      // Use bitmasks with k 1-bits
+      if (Integer.bitCount(mask) == k) {
+        // Convert bitmask into combination
+        // 111 --> "abc", 000 --> ""
+        // 110 --> "ab", 101 --> "ac", 011 --> "bc"
+        StringBuilder curr = new StringBuilder();
+        for (int j = 0; j < n; j++) {
+          if ((mask & (1 << n - j - 1)) != 0) {
+            curr.append(characters.charAt(j));
+          }
+        }
+        combinations.push(curr.toString());
+      }
+    }
+  }
+
+  public String next() {
+    return combinations.pop();
+  }
+
+  public boolean hasNext() {
+    return (!combinations.isEmpty());
+  }
+
+  private Deque<String> combinations = new ArrayDeque<String>();
+}
+
+
+or
+
+
