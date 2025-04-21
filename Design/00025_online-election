@@ -1,0 +1,225 @@
+https://leetcode.com/problems/online-election/description/
+
+911. Online Election
+Medium
+Topics
+Companies
+You are given two integer arrays persons and times. In an election, the ith vote was cast for persons[i] at time times[i].
+
+For each query at a time t, find the person that was leading the election at time t. Votes cast at time t will count towards our query. In the case of a tie, the most recent vote (among tied candidates) wins.
+
+Implement the TopVotedCandidate class:
+
+TopVotedCandidate(int[] persons, int[] times) Initializes the object with the persons and times arrays.
+int q(int t) Returns the number of the person that was leading the election at time t according to the mentioned rules.
+ 
+
+Example 1:
+
+Input
+["TopVotedCandidate", "q", "q", "q", "q", "q", "q"]
+[[[0, 1, 1, 0, 0, 1, 0], [0, 5, 10, 15, 20, 25, 30]], [3], [12], [25], [15], [24], [8]]
+Output
+[null, 0, 1, 1, 0, 0, 1]
+
+Explanation
+TopVotedCandidate topVotedCandidate = new TopVotedCandidate([0, 1, 1, 0, 0, 1, 0], [0, 5, 10, 15, 20, 25, 30]);
+topVotedCandidate.q(3); // return 0, At time 3, the votes are [0], and 0 is leading.
+topVotedCandidate.q(12); // return 1, At time 12, the votes are [0,1,1], and 1 is leading.
+topVotedCandidate.q(25); // return 1, At time 25, the votes are [0,1,1,0,0,1], and 1 is leading (as ties go to the most recent vote.)
+topVotedCandidate.q(15); // return 0
+topVotedCandidate.q(24); // return 0
+topVotedCandidate.q(8); // return 1
+
+ 
+
+Constraints:
+
+1 <= persons.length <= 5000
+times.length == persons.length
+0 <= persons[i] < persons.length
+0 <= times[i] <= 109
+times is sorted in a strictly increasing order.
+times[0] <= t <= 109
+At most 104 calls will be made to q.
+
+
+# java
+
+class TopVotedCandidate {
+    List<List<Vote>> A;
+    public TopVotedCandidate(int[] persons, int[] times) {
+        A = new ArrayList();
+        Map<Integer, Integer> count = new HashMap();
+        for (int i = 0; i < persons.length; ++i) {
+            int p = persons[i], t = times[i];
+            int c = count.getOrDefault(p, 0) + 1;
+
+            count.put(p, c);
+            while (A.size() <= c)
+                A.add(new ArrayList<Vote>());
+            A.get(c).add(new Vote(p, t));
+        }
+    }
+
+    public int q(int t) {
+        // Binary search on A[i][0].time for smallest i
+        // such that A[i][0].time > t
+        int lo = 1, hi = A.size();
+        while (lo < hi) {
+            int mi = lo + (hi - lo) / 2;
+            if (A.get(mi).get(0).time <= t)
+                lo = mi + 1;
+            else
+                hi = mi;
+        }
+        int i = lo - 1;
+
+        // Binary search on A[i][j].time for smallest j
+        // such that A[i][j].time > t
+        lo = 0; hi = A.get(i).size();
+        while (lo < hi) {
+            int mi = lo + (hi - lo) / 2;
+            if (A.get(i).get(mi).time <= t)
+                lo = mi + 1;
+            else
+                hi = mi;
+        }
+        int j = Math.max(lo-1, 0);
+        return A.get(i).get(j).person;
+    }
+}
+
+class Vote {
+    int person, time;
+    Vote(int p, int t) {
+        person = p;
+        time = t;
+    }
+}
+
+/**
+ * Your TopVotedCandidate object will be instantiated and called as such:
+ * TopVotedCandidate obj = new TopVotedCandidate(persons, times);
+ * int param_1 = obj.q(t);
+ */
+
+
+or
+
+
+class TopVotedCandidate {
+    List<Vote> A;
+    public TopVotedCandidate(int[] persons, int[] times) {
+        A = new ArrayList();
+        Map<Integer, Integer> count = new HashMap();
+        int leader = -1;  // current leader
+        int m = 0;  // current number of votes for leader
+
+        for (int i = 0; i < persons.length; ++i) {
+            int p = persons[i], t = times[i];
+            int c = count.getOrDefault(p, 0) + 1;
+            count.put(p, c);
+
+            if (c >= m) {
+                if (p != leader) {  // lead change
+                    leader = p;
+                    A.add(new Vote(leader, t));
+                }
+
+                if (c > m) m = c;
+            }
+        }
+    }
+
+    public int q(int t) {
+        int lo = 1, hi = A.size();
+        while (lo < hi) {
+            int mi = lo + (hi - lo) / 2;
+            if (A.get(mi).time <= t)
+                lo = mi + 1;
+            else
+                hi = mi;
+        }
+
+        return A.get(lo - 1).person;
+    }
+}
+
+class Vote {
+    int person, time;
+    Vote(int p, int t) {
+        person = p;
+        time = t;
+    }
+}
+
+
+or
+
+
+class TopVotedCandidate {
+  public TopVotedCandidate(int[] persons, int[] times) {
+    this.times = times;
+    int lead = -1;
+    Map<Integer, Integer> count = new HashMap<>(); // {person: voted}
+
+    for (int i = 0; i < persons.length; ++i) {
+      if (count.merge(persons[i], 1, Integer::sum) >= count.getOrDefault(lead, 0))
+        lead = persons[i];
+      timeToLead.put(times[i], lead);
+    }
+  }
+
+  public int q(int t) {
+    final int i = Arrays.binarySearch(times, t);
+    return i < 0 ? timeToLead.get(times[-i - 2]) : timeToLead.get(times[i]);
+  }
+
+  private final int[] times;
+  private Map<Integer, Integer> timeToLead = new HashMap<>();
+}
+
+
+or
+
+
+class TopVotedCandidate {
+    private int[] times;
+    private int[] wins;
+
+    public TopVotedCandidate(int[] persons, int[] times) {
+        int n = persons.length;
+        int mx = 0, cur = 0;
+        this.times = times;
+        wins = new int[n];
+        int[] counter = new int[n];
+        for (int i = 0; i < n; ++i) {
+            int p = persons[i];
+            if (++counter[p] >= mx) {
+                mx = counter[p];
+                cur = p;
+            }
+            wins[i] = cur;
+        }
+    }
+
+    public int q(int t) {
+        int left = 0, right = wins.length - 1;
+        while (left < right) {
+            int mid = (left + right + 1) >>> 1;
+            if (times[mid] <= t) {
+                left = mid;
+            } else {
+                right = mid - 1;
+            }
+        }
+        return wins[left];
+    }
+}
+
+/**
+ * Your TopVotedCandidate object will be instantiated and called as such:
+ * TopVotedCandidate obj = new TopVotedCandidate(persons, times);
+ * int param_1 = obj.q(t);
+ */
