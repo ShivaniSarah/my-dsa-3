@@ -1,0 +1,166 @@
+https://leetcode.com/problems/word-break/description/
+
+
+139. Word Break
+Medium
+Topics
+Companies
+Given a string s and a dictionary of strings wordDict, return true if s can be segmented into a space-separated sequence of one or more dictionary words.
+
+Note that the same word in the dictionary may be reused multiple times in the segmentation.
+
+ 
+
+Example 1:
+
+Input: s = "leetcode", wordDict = ["leet","code"]
+Output: true
+Explanation: Return true because "leetcode" can be segmented as "leet code".
+Example 2:
+
+Input: s = "applepenapple", wordDict = ["apple","pen"]
+Output: true
+Explanation: Return true because "applepenapple" can be segmented as "apple pen apple".
+Note that you are allowed to reuse a dictionary word.
+Example 3:
+
+Input: s = "catsandog", wordDict = ["cats","dog","sand","and","cat"]
+Output: false
+ 
+
+Constraints:
+
+1 <= s.length <= 300
+1 <= wordDict.length <= 1000
+1 <= wordDict[i].length <= 20
+s and wordDict[i] consist of only lowercase English letters.
+All the strings of wordDict are unique.
+
+
+
+# java
+
+class Solution {
+    public boolean wordBreak(String s, List<String> wordDict) {
+        Set<String> words = new HashSet<>(wordDict);
+        int n = s.length();
+        boolean[] dp = new boolean[n + 1];
+        dp[0] = true;
+        for (int i = 1; i <= n; ++i) {
+            for (int j = 0; j < i; ++j) {
+                if (dp[j] && words.contains(s.substring(j, i))) {
+                    dp[i] = true;
+                    break;
+                }
+            }
+        }
+        return dp[n];
+    }
+}
+
+
+or
+
+class Solution {
+    public boolean wordBreak(String s, List<String> wordDict) {
+        return recWay1(s, wordDict);
+    }
+
+    boolean recWay2(String s, List<String> wordDict) {
+        Boolean[] memo = new Boolean[s.length() + 1];
+        return wordBreak2(s, new HashSet<>(wordDict), 0, memo);
+    }
+
+    boolean wordBreak2(String s, Set<String> wordDict, int k, Boolean[] memo) {
+        int n = s.length();
+        if (k == n) return true;
+
+        if (memo[k] != null) return memo[k];
+
+        for (int i=k + 1; i<=n; i++) {
+            String word = s.substring(k, i);
+            if (wordDict.contains(word) && wordBreak2(s, wordDict, i, memo)) {
+                return memo[k] = true;
+            }
+        }
+
+        return memo[k] = false;
+    }
+
+    boolean recWay1(String s, List<String> wordDict) {
+        Boolean[] memo = new Boolean[s.length() + 1];
+        return wordBreak(s, wordDict, 0, memo);
+    }
+    
+    boolean wordBreak(String s, List<String> wordDict, int k, Boolean[] memo) {
+        if (k == s.length()) {
+            return true;
+        }
+        
+        if (memo[k] != null) {
+            return memo[k];
+        }
+        
+        for (int i=0; i<wordDict.size(); i++) {
+            String word = wordDict.get(i);
+            if (s.startsWith(word, k)) {
+                if(wordBreak(s, wordDict, k + word.length(), memo)) return memo[k] = true;
+            }
+        }
+                   
+        return memo[k] = false;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public boolean wordBreak(String s, List<String> wordDict) {
+        int n = s.length();
+        boolean[] dp = new boolean[n + 1];
+        dp[0] = true;
+        int max_len = 0;
+        for (String word : wordDict) {
+            max_len = Math.max(max_len, word.length());
+        }
+
+        for (int i = 1; i <= n; i++) {
+            for (int j = i - 1; j >= Math.max(i - max_len - 1, 0); j--) {
+                if (dp[j] && wordDict.contains(s.substring(j, i))) {
+                    dp[i] = true;
+                    break;
+                }
+            }
+        }
+
+        return dp[n];
+    }
+}
+
+
+or
+
+
+class Solution {
+    public boolean wordBreak(String s, List<String> wordDict) {
+        Map<String, Boolean> memo = new HashMap<>();
+        Set<String> wordSet = new HashSet<>(wordDict);
+        return dfs(s, wordSet, memo);
+    }
+    
+    private boolean dfs(String s, Set<String> wordSet, Map<String, Boolean> memo) {
+        if (memo.containsKey(s)) return memo.get(s);
+        if (wordSet.contains(s)) return true;
+        for (int i = 1; i < s.length(); i++) {
+            String prefix = s.substring(0, i);
+            if (wordSet.contains(prefix) && dfs(s.substring(i), wordSet, memo)) {
+                memo.put(s, true);
+                return true;
+            }
+        }
+        memo.put(s, false);
+        return false;
+    }
+}
