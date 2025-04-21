@@ -1,0 +1,250 @@
+https://leetcode.com/problems/top-k-frequent-words/description/
+
+692. Top K Frequent Words
+Medium
+Topics
+Companies
+Given an array of strings words and an integer k, return the k most frequent strings.
+
+Return the answer sorted by the frequency from highest to lowest. Sort the words with the same frequency by their lexicographical order.
+
+ 
+
+Example 1:
+
+Input: words = ["i","love","leetcode","i","love","coding"], k = 2
+Output: ["i","love"]
+Explanation: "i" and "love" are the two most frequent words.
+Note that "i" comes before "love" due to a lower alphabetical order.
+Example 2:
+
+Input: words = ["the","day","is","sunny","the","the","the","sunny","is","is"], k = 4
+Output: ["the","is","sunny","day"]
+Explanation: "the", "is", "sunny" and "day" are the four most frequent words, with the number of occurrence being 4, 3, 2 and 1 respectively.
+ 
+
+Constraints:
+
+1 <= words.length <= 500
+1 <= words[i].length <= 10
+words[i] consists of lowercase English letters.
+k is in the range [1, The number of unique words[i]]
+ 
+
+Follow-up: Could you solve it in O(n log(k)) time and O(n) extra space?
+
+
+# java
+
+
+
+class Solution {
+  public List<String> topKFrequent(String[] words, int k) {
+    final int n = words.length;
+    List<String> ans = new ArrayList<>();
+    List<String>[] bucket = new List[n + 1];
+    Map<String, Integer> count = new HashMap<>();
+
+    for (final String word : words)
+      count.merge(word, 1, Integer::sum);
+
+    for (final String word : count.keySet()) {
+      final int freq = count.get(word);
+      if (bucket[freq] == null)
+        bucket[freq] = new ArrayList<>();
+      bucket[freq].add(word);
+    }
+
+    for (int freq = n; freq > 0; --freq)
+      if (bucket[freq] != null) {
+        Collections.sort(bucket[freq]);
+        for (final String word : bucket[freq]) {
+          ans.add(word);
+          if (ans.size() == k)
+            return ans;
+        }
+      }
+
+    throw new IllegalArgumentException();
+  }
+}
+
+or
+
+
+class Solution {
+  public List<String> topKFrequent(String[] words, int k) {
+    record T(String word, int freq) {}
+    List<String> ans = new ArrayList<>();
+    Map<String, Integer> count = new HashMap<>();
+    // Words with higher frequency and lower alphabetical order are in the
+    // bottom of the heap because we'll pop words with lower frequency and
+    // higher alphabetical order if the heap's size > k.
+    Queue<T> heap = new PriorityQueue<>(
+        Comparator.comparingInt(T::freq).thenComparing(T::word, Comparator.reverseOrder()));
+
+    for (final String word : words)
+      count.merge(word, 1, Integer::sum);
+
+    for (final String word : count.keySet()) {
+      heap.offer(new T(word, count.get(word)));
+      if (heap.size() > k)
+        heap.poll();
+    }
+
+    while (!heap.isEmpty())
+      ans.add(heap.poll().word);
+
+    Collections.reverse(ans);
+    return ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public List<String> topKFrequent(String[] words, int k) {
+        Map<String, Integer> cnt = new HashMap<>();
+        for (String v : words) {
+            cnt.put(v, cnt.getOrDefault(v, 0) + 1);
+        }
+        PriorityQueue<String> q = new PriorityQueue<>((a, b) -> {
+            int d = cnt.get(a) - cnt.get(b);
+            return d == 0 ? b.compareTo(a) : d;
+        });
+        for (String v : cnt.keySet()) {
+            q.offer(v);
+            if (q.size() > k) {
+                q.poll();
+            }
+        }
+        LinkedList<String> ans = new LinkedList<>();
+        while (!q.isEmpty()) {
+            ans.addFirst(q.poll());
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+        public List<String> topKFrequent(String[] words, int k) {
+            Map<String, Integer> count = new HashMap<>();
+            for (String word: words) {
+                count.put(word, count.getOrDefault(word, 0) + 1);
+            }
+            PriorityQueue<String> heap = new PriorityQueue<String>(
+                (w1, w2) -> count.get(w1).equals(count.get(w2)) ?
+                    w2.compareTo(w1) : count.get(w1) - count.get(w2)
+            );
+
+            for (String word: count.keySet()) {
+                heap.offer(word);
+                if (heap.size() > k) heap.poll();
+            }
+
+            List<String> result = new ArrayList<>();
+            while (!heap.isEmpty()) result.add(heap.poll());
+            Collections.reverse(result);
+
+            return result;
+
+//            // below also working
+//            List<String> result = new ArrayList<>();
+//            for (int i = k - 1; i >= 0; i--) {
+//                result.add(0, heap.poll());
+//            }
+//
+//            return result;
+        }
+    }
+
+
+or
+
+
+
+class Solution {
+    class Pair{
+        String word;
+        int freq;
+        Pair(String word, int freq){
+            this.word=word;
+            this.freq=freq;
+        }
+    }
+    public List<String> topKFrequent(String[] words, int k) {
+        HashMap<String, Integer>map=new HashMap<>();
+        for(String w:words){
+            map.put(w,map.getOrDefault(w,0)+1);
+        }
+        PriorityQueue<Pair> maxheap=new PriorityQueue<>(new Comparator<Pair>(){
+            public int compare(Pair a, Pair b){
+                if(a.freq==b.freq)
+                    return a.word.compareTo(b.word);
+                else 
+                    return b.freq-a.freq;
+            }
+        });
+      
+
+        for(Map.Entry<String, Integer>entry:map.entrySet()){
+            maxheap.add(new Pair(entry.getKey(),entry.getValue()));
+        }
+            List<String> res = new ArrayList<>();
+            for(int i=0;i<k;i++){
+                Pair rem=maxheap.poll();
+                res.add(rem.word);
+            }
+        return res;
+        }
+        
+    }
+
+
+
+or
+
+
+class Solution {
+  public List<String> topKFrequent(String[] words, int k) {
+        
+        // map hold the word: counts
+        HashMap<String, Integer> map = new HashMap();
+        
+        // sort the map by frequency high->low order, sort words lexi order
+        PriorityQueue<Map.Entry<String, Integer>> heap = new PriorityQueue<>(
+            (a,b)->{
+                if(a.getValue() != b.getValue())
+                    return a.getValue().compareTo(b.getValue());
+                return -a.getKey().compareTo(b.getKey());
+            }
+        );
+        
+        // fill the map
+        for(String word: words){
+            map.merge(word, 1, Integer::sum);
+        }
+        
+        // put into heap
+        for(Map.Entry<String, Integer> entry: map.entrySet()){
+            heap.offer(entry);
+            if(heap.size() > k)
+                heap.poll();
+        }
+        
+        // pop out the answer
+        List<String> ans = new ArrayList();
+        while(heap.size() > 0)
+            ans.add(heap.poll().getKey());
+        
+        // check the order
+        Collections.reverse(ans);
+        return ans;
+    }
+}
