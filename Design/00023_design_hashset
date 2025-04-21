@@ -1,0 +1,116 @@
+✅ Requirements of a HashSet
+A HashSet is a data structure that supports:
+
+Functional Requirements:
+Add(element): Add an element if it’s not already present.
+
+Remove(element): Remove an element if it’s present.
+
+Contains(element): Check if an element exists in the set.
+
+Non-Functional Requirements:
+Average-case O(1) time complexity for add, remove, and contains.
+
+Space-efficient storage.
+
+Scalability with large number of elements.
+
+Avoid duplicates.
+
+🧠 Best Implementation Strategy
+✅ Use Hash Table with Chaining (LinkedList/TreeSet)
+text
+Copy
+Edit
+- Backing array of buckets (fixed-size, resizeable)
+- Hash function maps keys to indices
+- Handle collisions via chaining (linked list or tree)
+
+
+
+
+# java
+
+
+class MyHashSet {
+    private static final int SIZE = 10000;
+    private List<Integer>[] buckets;
+
+    public MyHashSet() {
+        buckets = new List[SIZE];
+    }
+
+    private int hash(int key) {
+        return key % SIZE;
+    }
+
+    public void add(int key) {
+        int index = hash(key);
+        if (buckets[index] == null)
+            buckets[index] = new LinkedList<>();
+        if (!buckets[index].contains(key))
+            buckets[index].add(key);
+    }
+
+    public void remove(int key) {
+        int index = hash(key);
+        if (buckets[index] != null)
+            buckets[index].remove((Integer) key);
+    }
+
+    public boolean contains(int key) {
+        int index = hash(key);
+        return buckets[index] != null && buckets[index].contains(key);
+    }
+}
+
+
+
+
+or
+
+
+class MyHashSet {
+    private boolean[] set;
+
+    public MyHashSet() {
+        set = new boolean[1_000_001];
+    }
+
+    public void add(int key) {
+        set[key] = true;
+    }
+
+    public void remove(int key) {
+        set[key] = false;
+    }
+
+    public boolean contains(int key) {
+        return set[key];
+    }
+}
+
+
+or
+
+
+class MyHashSet<E> {
+    private static final Object DUMMY = new Object();
+    private HashMap<E, Object> map;
+
+    public MyHashSet() {
+        map = new HashMap<>();
+    }
+
+    public void add(E key) {
+        map.put(key, DUMMY);
+    }
+
+    public void remove(E key) {
+        map.remove(key);
+    }
+
+    public boolean contains(E key) {
+        return map.containsKey(key);
+    }
+}
