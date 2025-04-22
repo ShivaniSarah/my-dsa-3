@@ -1,0 +1,167 @@
+https://leetcode.com/problems/minimum-non-zero-product-of-the-array-elements/description/
+
+
+1969. Minimum Non-Zero Product of the Array Elements
+Medium
+Topics
+Companies
+Hint
+You are given a positive integer p. Consider an array nums (1-indexed) that consists of the integers in the inclusive range [1, 2p - 1] in their binary representations. You are allowed to do the following operation any number of times:
+
+Choose two elements x and y from nums.
+Choose a bit in x and swap it with its corresponding bit in y. Corresponding bit refers to the bit that is in the same position in the other integer.
+For example, if x = 1101 and y = 0011, after swapping the 2nd bit from the right, we have x = 1111 and y = 0001.
+
+Find the minimum non-zero product of nums after performing the above operation any number of times. Return this product modulo 109 + 7.
+
+Note: The answer should be the minimum product before the modulo operation is done.
+
+ 
+
+Example 1:
+
+Input: p = 1
+Output: 1
+Explanation: nums = [1].
+There is only one element, so the product equals that element.
+Example 2:
+
+Input: p = 2
+Output: 6
+Explanation: nums = [01, 10, 11].
+Any swap would either make the product 0 or stay the same.
+Thus, the array product of 1 * 2 * 3 = 6 is already minimized.
+Example 3:
+
+Input: p = 3
+Output: 1512
+Explanation: nums = [001, 010, 011, 100, 101, 110, 111]
+- In the first operation we can swap the leftmost bit of the second and fifth elements.
+    - The resulting array is [001, 110, 011, 100, 001, 110, 111].
+- In the second operation we can swap the middle bit of the third and fourth elements.
+    - The resulting array is [001, 110, 001, 110, 001, 110, 111].
+The array product is 1 * 6 * 1 * 6 * 1 * 6 * 7 = 1512, which is the minimum possible product.
+ 
+
+Constraints:
+
+1 <= p <= 60
+
+
+ # java
+
+
+class Solution {
+  public int minNonZeroProduct(int p) {
+    // Can always turn [1..2^p - 1] to [1, 1, ..., 2^p - 2, 2^p - 2, 2^p - 1].
+    final long n = 1L << p;
+    final long halfCount = n / 2 - 1;
+    return (int) (modPow(n - 2, halfCount) * ((n - 1) % MOD) % MOD);
+  }
+
+  private static final int MOD = 1_000_000_007;
+
+  private long modPow(long x, long n) {
+    if (n == 0)
+      return 1L;
+    x %= MOD;
+    if (n % 2 == 1)
+      return x * modPow(x, n - 1) % MOD;
+    return modPow(x * x, n / 2) % MOD;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public int minNonZeroProduct(int p) {
+        final int mod = (int) 1e9 + 7;
+        long a = ((1L << p) - 1) % mod;
+        long b = qpow(((1L << p) - 2) % mod, (1L << (p - 1)) - 1, mod);
+        return (int) (a * b % mod);
+    }
+
+    private long qpow(long a, long n, int mod) {
+        long ans = 1;
+        for (; n > 0; n >>= 1) {
+            if ((n & 1) == 1) {
+                ans = ans * a % mod;
+            }
+            a = a * a % mod;
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int mod = 1_000_000_007;
+    public int minNonZeroProduct(int p) {
+        if (p == 1) return 1;
+        
+        long mx = (long)(Math.pow(2, p)) - 1;
+        long sm = mx - 1;
+        long n = sm/2;
+        long sum = rec(sm, n);
+        
+        return (int)(sum * (mx % mod) % mod); 
+    }
+    
+    public long rec(long val, long n) {
+        if (n == 0) return 1;
+        if (n == 1) return (val % mod);
+        
+        long newVal = ((val % mod) * (val % mod)) % mod;
+        
+        if (n % 2 != 0) {
+            return ((rec(newVal, n/2) % mod) * (val % mod)) % mod;
+        }
+        
+        return rec(newVal, n/2) % mod;
+    }
+}
+
+
+or
+
+
+import java.util.*;
+class Solution {
+    static int Mod = (int) (Math.pow(10, 9) + 7);
+    public int minNonZeroProduct(int p) {
+        long maxLength = (long) Math.pow(2, p) - 1;
+
+        long lastPrev = (long) maxLength - 1;
+
+        long mul = (long) lastPrev / 2;
+
+        long result1 = (long) power(lastPrev, mul);
+        long result = (long) ((result1 % Mod * (maxLength % Mod)) % Mod);
+
+        return (int) result;
+    }
+
+    static long power(long x, long y){
+
+        if(y == 0){
+            return 1;
+        }
+
+        long half = (long) power(x, y / 2);
+        half =(half) % Mod;
+
+        if(y % 2 == 0){
+            return (half * half) % Mod;
+        } else {
+            return ((half* half) % Mod * (x % Mod)) % Mod;
+        }
+
+
+    }
+}
