@@ -1,0 +1,230 @@
+https://leetcode.com/problems/number-of-good-ways-to-split-a-string/description/
+
+
+1525. Number of Good Ways to Split a String
+Medium
+Topics
+Companies
+Hint
+You are given a string s.
+
+A split is called good if you can split s into two non-empty strings sleft and sright where their concatenation is equal to s (i.e., sleft + sright = s) and the number of distinct letters in sleft and sright is the same.
+
+Return the number of good splits you can make in s.
+
+ 
+
+Example 1:
+
+Input: s = "aacaba"
+Output: 2
+Explanation: There are 5 ways to split "aacaba" and 2 of them are good. 
+("a", "acaba") Left string and right string contains 1 and 3 different letters respectively.
+("aa", "caba") Left string and right string contains 1 and 3 different letters respectively.
+("aac", "aba") Left string and right string contains 2 and 2 different letters respectively (good split).
+("aaca", "ba") Left string and right string contains 2 and 2 different letters respectively (good split).
+("aacab", "a") Left string and right string contains 3 and 1 different letters respectively.
+Example 2:
+
+Input: s = "abcd"
+Output: 1
+Explanation: Split the string as follows ("ab", "cd").
+ 
+
+Constraints:
+
+1 <= s.length <= 105
+s consists of only lowercase English letters.
+
+
+
+# java
+
+
+
+class Solution {
+    public int numSplits(String s) {
+        
+        HashMap<Character, Integer> left = new HashMap<>(); 
+        HashMap<Character, Integer> right = new HashMap<>(); 
+        
+		// put all the characters in the right hashmap and keep track of the count 
+        for(int i = 0; i < s.length(); i++){
+            right.put(s.charAt(i), right.getOrDefault(s.charAt(i), 0) + 1); 
+        }
+        
+		// count the number of times the right is equal to the left, which is the result 
+        int count = 0; 
+        
+		// loop through all the characters and add them to the left and remove them from the right 
+        for(int i = 0; i < s.length(); i++){
+            char curr = s.charAt(i); 
+            
+            left.put(curr, left.getOrDefault(curr, 0) + 1); 
+            
+            // I put a getOrDefault() here instead of just get() as a "just in case"
+            //  but the "right" should have all the characters
+            //  since we added all characters at the beginning 
+            //  adding an if statement increases runtime but getOrDefault() did not 
+            right.put(curr, right.getOrDefault(curr, 0) - 1); 
+                
+			// if the count is equal to zero then remove the key/value pair 
+            if(right.get(curr) <= 0){
+                right.remove(curr); 
+            }
+                        
+			// if the two hashmaps are equal in size, 
+			// which means they have the same amount of keys,
+			// which means they have the same amount of distinct characters 
+			// increment the count for the result 
+            if(left.size() == right.size()){
+                count++; 
+            }
+        }
+        
+        return count;   
+    }
+}
+
+or
+
+
+class Solution {
+    public int numSplits(String s) {
+        int[] freq = new int[26];
+        int count = 0, ans = 0, i = 0;
+        int[] leftToRight = new int[s.length()];
+        int[] rightToLeft = new int[s.length()];
+
+        for (char c : s.toCharArray()) {
+            if (freq[c - 97] == 0) { //check if already visited from left
+                freq[c - 97]++; //mark visited alphabets 0 to 1
+                count++; //keep track of total distinct alphabets till now
+            }
+            leftToRight[i++] = count; //keep track of distinct alphabets at every position at left
+        }
+        freq = new int[26];
+        count = 0;
+        char c;
+        for (int j = s.length() - 1; j >= 0; j--) {
+            c = s.charAt(j);
+            if (freq[c - 97] == 0) { //check if already visited from right
+                freq[c - 97]++;
+                count++;
+            }
+            rightToLeft[j] = count;//keep track of distinct alphabets at every position to right of it
+        }
+
+        //now we have two arrays 
+        // one array having count of distinct letters to left
+        // another array having count of distinct letters to right
+        for (int j = 0; j < leftToRight.length - 1; j++) {
+            //check if left and right have same count of distinct alphabets
+            if (leftToRight[j] == rightToLeft[j + 1]) ans++;
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int numSplits(String s) {
+        int a[] = new int[26];
+        int b[] = new int[26];
+        int ds1=0,ds2=0;
+        int count=0;
+        for(int i=0;i<s.length();i++)
+        {
+            b[s.charAt(i)-97]++;
+            if(b[s.charAt(i)-97] == 1)
+                ds2++;
+        }
+        for(int i=0;i<s.length();i++)
+        {
+            a[s.charAt(i)-97]++;
+            b[s.charAt(i)-97]--;
+            if(b[s.charAt(i)-97] == 0)
+                ds2--;
+            if(a[s.charAt(i)-97] == 1)
+                ds1++;
+            if(ds1 == ds2)
+                count++;
+        }
+        return count;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int numSplits(String s) {
+        
+        int len = s.length()-1;
+
+        int[] checkLeftDistinct = new int[26];
+        int[] checkRightDistinct = new int[26];
+
+        int leftDistinctCount = 0;
+        int rightDistinctCount = 0;
+
+        int[] leftDistinct = new int[len];
+        int[] rightDistinct = new int[len];
+
+        char[] c = s.toCharArray();
+
+        for (int i = 0; i < len; i++) {
+
+            if(checkLeftDistinct[c[i] - 'a'] != 1){
+                checkLeftDistinct[c[i] - 'a'] = 1;
+                leftDistinctCount++;
+            }
+
+            if(checkRightDistinct[c[len - i] - 'a'] != 1){
+                checkRightDistinct[c[len - i] - 'a'] = 1;
+                rightDistinctCount++;
+            }
+
+            leftDistinct[i] = leftDistinctCount;
+            rightDistinct[len - 1 - i] = rightDistinctCount;
+        }
+
+        int count = 0;
+        for (int i = 0; i < len; i++) {
+            if (leftDistinct[i] == rightDistinct[i])
+                count++;
+        }
+
+        return count;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int numSplits(String s) {
+        int[] alphL = new int[26], alphR = new int[26];
+        for (int i = 0; i < s.length(); i++) alphR[s.charAt(i) - 'a']++;
+        int count = 0;
+        for (int i = 0; i < s.length(); i++) {
+            alphL[s.charAt(i) - 'a']++;
+            alphR[s.charAt(i) - 'a']--;
+            if (numOfDistinct(alphL) == numOfDistinct(alphR)) count++;
+        }
+        return count;
+    }
+
+    private int numOfDistinct(int[] arr) {
+        int count = 0;
+        for (int i = 0; i < arr.length; i++) if (arr[i] > 0) count++;
+        return count;
+    }
+}
