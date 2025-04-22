@@ -1,0 +1,177 @@
+https://leetcode.com/problems/minimum-number-of-operations-to-make-x-and-y-equal/description/
+
+2998. Minimum Number of Operations to Make X and Y Equal
+Medium
+Topics
+Companies
+Hint
+You are given two positive integers x and y.
+
+In one operation, you can do one of the four following operations:
+
+Divide x by 11 if x is a multiple of 11.
+Divide x by 5 if x is a multiple of 5.
+Decrement x by 1.
+Increment x by 1.
+Return the minimum number of operations required to make x and y equal.
+
+ 
+
+Example 1:
+
+Input: x = 26, y = 1
+Output: 3
+Explanation: We can make 26 equal to 1 by applying the following operations: 
+1. Decrement x by 1
+2. Divide x by 5
+3. Divide x by 5
+It can be shown that 3 is the minimum number of operations required to make 26 equal to 1.
+Example 2:
+
+Input: x = 54, y = 2
+Output: 4
+Explanation: We can make 54 equal to 2 by applying the following operations: 
+1. Increment x by 1
+2. Divide x by 11 
+3. Divide x by 5
+4. Increment x by 1
+It can be shown that 4 is the minimum number of operations required to make 54 equal to 2.
+Example 3:
+
+Input: x = 25, y = 30
+Output: 5
+Explanation: We can make 25 equal to 30 by applying the following operations: 
+1. Increment x by 1
+2. Increment x by 1
+3. Increment x by 1
+4. Increment x by 1
+5. Increment x by 1
+It can be shown that 5 is the minimum number of operations required to make 25 equal to 30.
+ 
+
+Constraints:
+
+1 <= x, y <= 104
+
+
+# java
+
+class Solution {
+    private int[] dp;
+public int solve(int x, int y) {
+    if (x <= y) return y - x;
+    if (dp[x] != -1) return dp[x];
+    int res = Math.abs(x - y);
+    res = Math.min(res, 1 + x % 5 + solve(x / 5, y));
+    res = Math.min(res, 1 + (5 - x % 5) + solve(x / 5 + 1, y));
+    res = Math.min(res, 1 + x % 11 + solve(x / 11, y));
+    res = Math.min(res, 1 + (11 - x % 11) + solve(x / 11 + 1, y));
+    return dp[x] = res;
+}
+public int minimumOperationsToMakeEqual(int x, int y) {
+    dp = new int[10011];
+    Arrays.fill(dp, -1);
+    return solve(x, y);
+}
+}
+
+
+or
+
+
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Set;
+
+public class Solution {
+    public int minimumOperationsToMakeEqual(int x, int y) {
+        Set<Integer> vis = new HashSet<>();
+        Queue<int[]> q = new LinkedList<>();
+        q.add(new int[]{x, 0});
+        vis.add(x);
+
+        while (!q.isEmpty()) {
+            int[] curr = q.poll();
+            int num = curr[0];
+            int turn = curr[1];
+
+            if (num == y) {
+                return turn;
+            }
+
+            if (!vis.contains(num + 1)) {
+                q.add(new int[]{num + 1, turn + 1});
+                vis.add(num + 1);
+            }
+
+            if (num - 1 >= 0 && !vis.contains(num - 1)) {
+                q.add(new int[]{num - 1, turn + 1});
+                vis.add(num - 1);
+            }
+
+            if (num % 11 == 0 && !vis.contains(num / 11)) {
+                q.add(new int[]{num / 11, turn + 1});
+                vis.add(num / 11);
+            }
+
+            if (num % 5 == 0 && !vis.contains(num / 5)) {
+                q.add(new int[]{num / 5, turn + 1});
+                vis.add(num / 5);
+            }
+        }
+
+        return -1;
+    }
+}
+
+
+or
+
+import java.util.*;
+
+class Solution {
+    public int minimumOperationsToMakeEqual(int x, int y) {
+        if (x <= y)
+            return y - x;
+
+        Queue<int[]> q = new LinkedList<>();
+        q.offer(new int[]{x, 0});
+        Set<Integer> visited = new HashSet<>();
+        visited.add(x);
+
+        while (!q.isEmpty()) {
+            Queue<int[]> temp = new LinkedList<>();
+            while (!q.isEmpty()) {
+                int[] curr = q.poll();
+                int a = curr[0], b = curr[1];
+
+                if (a == y)
+                    return b;
+
+                if (!visited.contains(a - 1)) {
+                    temp.offer(new int[]{a - 1, b + 1});
+                    visited.add(a - 1);
+                }
+
+                if (!visited.contains(a + 1)) {
+                    temp.offer(new int[]{a + 1, b + 1});
+                    visited.add(a + 1);
+                }
+
+                if (a % 5 == 0 && !visited.contains(a / 5)) {
+                    temp.offer(new int[]{a / 5, b + 1});
+                    visited.add(a / 5);
+                }
+
+                if (a % 11 == 0 && !visited.contains(a / 11)) {
+                    temp.offer(new int[]{a / 11, b + 1});
+                    visited.add(a / 11);
+                }
+            }
+            q = temp;
+        }
+
+        return -1; // unreachable
+    }
+}
