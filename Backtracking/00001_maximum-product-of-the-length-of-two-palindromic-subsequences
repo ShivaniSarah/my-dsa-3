@@ -1,0 +1,292 @@
+https://leetcode.com/problems/maximum-product-of-the-length-of-two-palindromic-subsequences/description/
+
+2002. Maximum Product of the Length of Two Palindromic Subsequences
+Medium
+Topics
+Companies
+Hint
+Given a string s, find two disjoint palindromic subsequences of s such that the product of their lengths is maximized. The two subsequences are disjoint if they do not both pick a character at the same index.
+
+Return the maximum possible product of the lengths of the two palindromic subsequences.
+
+A subsequence is a string that can be derived from another string by deleting some or no characters without changing the order of the remaining characters. A string is palindromic if it reads the same forward and backward.
+
+ 
+
+Example 1:
+
+example-1
+Input: s = "leetcodecom"
+Output: 9
+Explanation: An optimal solution is to choose "ete" for the 1st subsequence and "cdc" for the 2nd subsequence.
+The product of their lengths is: 3 * 3 = 9.
+Example 2:
+
+Input: s = "bb"
+Output: 1
+Explanation: An optimal solution is to choose "b" (the first character) for the 1st subsequence and "b" (the second character) for the 2nd subsequence.
+The product of their lengths is: 1 * 1 = 1.
+Example 3:
+
+Input: s = "accbcaxxcxx"
+Output: 25
+Explanation: An optimal solution is to choose "accca" for the 1st subsequence and "xxcxx" for the 2nd subsequence.
+The product of their lengths is: 5 * 5 = 25.
+ 
+
+Constraints:
+
+2 <= s.length <= 12
+s consists of lowercase English letters only.
+
+
+# java
+
+
+class Solution {
+    public int maxProduct(String s) {
+    int[] dp = new int[4096];
+    int res = 0, mask = (1 << s.length()) - 1;
+    for (int m = 1; m <= mask; ++m)
+        dp[m] = palSize(s, m);
+    for (int m1 = mask; m1 > 0; --m1)
+        if (dp[m1] * (s.length() - dp[m1]) > res)
+            for(int m2 = mask ^ m1; m2 > 0; m2 = (m2 - 1) & (mask ^ m1))
+                res = Math.max(res, dp[m1] * dp[m2]);
+    return res;
+}
+private int palSize(String s, int mask) {
+    int p1 = 0, p2 = s.length(), res = 0;
+    while (p1 <= p2) {
+        if ((mask & (1 << p1)) == 0)
+            ++p1;
+        else if ((mask & (1 << p2)) == 0)
+            --p2;
+        else if (s.charAt(p1) != s.charAt(p2))
+            return 0;
+        else
+            res += 1 + (p1++ != p2-- ? 1 : 0);
+    }
+    return res;
+}
+}
+
+
+or
+
+
+class Solution {
+    public int maxProduct(String s) {
+        // 2^n total possible subsequences
+        // first calculate longest palindrome subseq for each possible subsequence
+        // then calculate product
+
+        int length = s.length();    // this is n
+        int count = (int)(Math.pow(2, length)); // this is 2^n
+
+        // the memoization table to store longest palindrome subseq, of all possible subseq
+        // for example, for s="leetcode", palSubSeq[00001011] stores the longest palindrome subseq of sequence "cde"
+        // because there are totally 2^n possible subsequences, the table size is 2^n (note n<=12 so this size <= 4096)
+        int[] palSubSeq = new int[count];
+        // base case: single characters
+        for (int bitIndex = 1; bitIndex < count; bitIndex *= 2) {
+            palSubSeq[bitIndex] = 1;
+        }
+
+        // use bitmask to do backtracking
+        boolean[] bitmask = new boolean[length];
+        for (int i = 0; i < length; i++) {
+            bitmask[i] = false;
+        }
+        // calculate the palSubSeq[] table
+        palSubSeqBacktrack(s, bitmask, 0, palSubSeq);
+
+        // get max product using palSubSeq[]
+        // for any subsequence mask, its flip is 2^n - 1 - mask
+        // for example, 00001011's flip is 11110100
+        int maxProduct = 0;
+        for (int i = 0; i < count / 2; i++) {
+            int product = palSubSeq[i] * palSubSeq[count - i - 1];
+            if (product > maxProduct) {
+                maxProduct = product;
+            }
+        }
+        return maxProduct;
+    }
+
+    // 2 stages of recursion calls
+    // stage 1. use backtracking just to get to all 2^n subsequences
+    private static void palSubSeqBacktrack(String s, boolean[] bitmask, int processingIndex, int[] palSubSeq) {
+        if (processingIndex < bitmask.length) {
+            // backtrack to bottom
+            bitmask[processingIndex] = true;
+            palSubSeqBacktrack(s, bitmask, processingIndex + 1, palSubSeq);
+            bitmask[processingIndex] = false;
+            palSubSeqBacktrack(s, bitmask, processingIndex + 1, palSubSeq);
+            return;
+        }
+
+        // at bottom, call stage 2
+        palSubSeqRecur(s, bitmask, palSubSeq);
+    }
+
+    // stage 2, for all subsequences, do recursion call + memoization. this could be changed to iterative
+    private static int palSubSeqRecur(String s, boolean[] bitmask, int[] palSubSeq) {
+        int bitIndex = bitmaskToIndex(bitmask);
+        if (bitIndex == 0) {
+            return 0;
+        }
+        if (palSubSeq[bitIndex] != 0) {
+            return palSubSeq[bitIndex];
+        }
+
+        // all-0's should be handled above
+        // single characters should have been filled in as base case
+        // starting here it should have at least 2 characters (2 one's in the bitmask)
+        int firstOneIndex;
+        for (firstOneIndex = 0; firstOneIndex < bitmask.length; firstOneIndex++) {
+            if (bitmask[firstOneIndex]) {
+                break;
+            }
+        }
+        int lastOneIndex;
+        for (lastOneIndex = bitmask.length - 1; lastOneIndex >= 0; lastOneIndex--) {
+            if (bitmask[lastOneIndex]) {
+                break;
+            }
+        }
+
+        int max = 0;
+        // maxPalSubseq(001110011) = max{
+        //   2 + maxPalSubseq(000110010) if s[2]==s[8],
+        //   maxPalSubseq(000110011),
+        //   maxPalSubseq(001110010),
+        // }
+        if (s.charAt(firstOneIndex) == s.charAt(lastOneIndex)) {
+            bitmask[firstOneIndex] = false;
+            bitmask[lastOneIndex] = false;
+            max = 2 + palSubSeqRecur(s, bitmask, palSubSeq);
+        }
+
+        bitmask[firstOneIndex] = false;
+        bitmask[lastOneIndex] = true;
+        int altMax1 = palSubSeqRecur(s, bitmask, palSubSeq);
+
+        bitmask[firstOneIndex] = true;
+        bitmask[lastOneIndex] = false;
+        int altMax2 = palSubSeqRecur(s, bitmask, palSubSeq);
+
+        bitmask[firstOneIndex] = true;
+        bitmask[lastOneIndex] = true;
+        if (altMax1 > max) {
+            max = altMax1;
+        }
+        if (altMax2 > max) {
+            max = altMax2;
+        }
+        palSubSeq[bitIndex] = max;
+        return max;
+    }
+
+    private static int bitmaskToIndex(boolean[] bitmask) {
+        int length = bitmask.length;
+        int number = 0;
+        for (int i = 0; i < length; i++) {
+            number = bitmask[i] ? (number * 2 + 1) : (number * 2);
+        }
+        return number;
+    }
+}
+
+
+or
+
+
+class Solution {
+	int max=Integer.MIN_VALUE;
+	void recur(String str,int n,int ind,String s,List<Integer> list)
+	{
+		if(ind==n)
+        {   
+           if(isPallin(str))
+           {
+	           	String st="";
+	           	for(int i=0;i<n;i++)
+	           		if(!list.contains(i))
+	           			st+=s.charAt(i);
+                recur1("", st.length(), 0, st,str);
+           }
+           return;
+        }
+		recur(str,n,ind+1,s,new ArrayList(list));
+		str+=s.charAt(ind);
+		list.add(ind);
+		recur(str,n,ind+1,s,new ArrayList(list));
+	}
+	void recur1(String str,int n,int ind,String s,String st)
+	{
+		if(ind==n)
+        {
+            if(isPallin(str))
+                max=Math.max(max,st.length()*str.length());
+            return;
+        }
+		recur1(str,n,ind+1,s,st);
+		str+=s.charAt(ind);
+		recur1(str,n,ind+1,s,st);
+	}
+	boolean isPallin(String s)
+	{
+		int i=0,j=s.length()-1;
+		while(i<j)
+		{
+			if(s.charAt(i)!=s.charAt(j))
+				return false;
+            i++;
+            j--;
+		}
+		return true;
+	}
+    public int maxProduct(String s) {
+    	
+        recur("",s.length(),0,s,new ArrayList());
+        return max;
+    }
+}
+
+or
+
+
+class Solution {
+	public int maxProduct(String s) {
+        solve(s, "", "", 0);
+        return ans;
+    }
+    int ans;
+    void solve(String s, String s1, String s2, int start) {
+        if(start == s.length()) {
+            if(isPal(s1) && isPal(s2)) {
+                int val = s1.length()*s2.length();
+                ans = Math.max(ans, val);
+            }
+            return;
+        }
+        char ch = s.charAt(start);
+        solve(s, s1+ch, s2, start+1);
+        solve(s, s1, s2+ch, start+1);
+        solve(s, s1, s2, start+1);
+    }
+    
+    boolean isPal(String s) {
+        int i = 0;
+        int j = s.length() -1;
+        while(i<j) {
+            if(s.charAt(i) != s.charAt(j)) {
+                return false;
+            }
+            i++;
+            j--;
+        }
+        return true;
+    }
+}
