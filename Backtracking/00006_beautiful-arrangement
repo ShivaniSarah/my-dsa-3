@@ -1,0 +1,232 @@
+https://leetcode.com/problems/beautiful-arrangement/description/
+
+526. Beautiful Arrangement
+Medium
+Topics
+Companies
+Suppose you have n integers labeled 1 through n. A permutation of those n integers perm (1-indexed) is considered a beautiful arrangement if for every i (1 <= i <= n), either of the following is true:
+
+perm[i] is divisible by i.
+i is divisible by perm[i].
+Given an integer n, return the number of the beautiful arrangements that you can construct.
+
+ 
+
+Example 1:
+
+Input: n = 2
+Output: 2
+Explanation: 
+The first beautiful arrangement is [1,2]:
+    - perm[1] = 1 is divisible by i = 1
+    - perm[2] = 2 is divisible by i = 2
+The second beautiful arrangement is [2,1]:
+    - perm[1] = 2 is divisible by i = 1
+    - i = 2 is divisible by perm[2] = 1
+Example 2:
+
+Input: n = 1
+Output: 1
+ 
+
+Constraints:
+
+1 <= n <= 15
+
+
+
+# java
+
+
+// 137 ms. 16.18%
+class Solution {
+    private boolean okay(int a, int b) {
+        return a % b == 0 || b % a == 0;
+    }
+    public int countArrangement(int n) {
+        List<Integer> A = new ArrayList<>();
+        for(int i = 0; i < n; i++) A.add(i + 1);
+        Set<List<Integer>> visited = new HashSet<>();
+        Deque<List<Integer>> Q = new LinkedList<>();
+        visited.add(A);
+        Q.add(A);
+        while(!Q.isEmpty()) {
+            A = Q.poll();
+            for(int i = 0; i < n; i++) {
+                for(int j = i + 1; j < n; j++) {
+                    if(okay(A.get(i), j + 1) && okay(A.get(j), i + 1)) {
+                        List<Integer> next = new ArrayList<>(A);
+                        next.set(i, A.get(j));
+                        next.set(j, A.get(i));
+                        if(visited.add(next)) {
+                            Q.add(next);
+                        }
+                    }
+                }
+            }
+        }
+        return visited.size();
+    }
+}
+
+
+or
+
+
+public class Solution {
+
+    int count = 0;
+
+    public int countArrangement(int N) {
+        boolean[] visited = new boolean[N + 1];
+        calculate(N, 1, visited);
+        return count;
+    }
+
+    public void calculate(int N, int pos, boolean[] visited) {
+        if (pos > N) {
+            count++;
+            return;
+        }
+
+        for (int i = 1; i <= N; i++) {
+            if (!visited[i] && (pos % i == 0 || i % pos == 0)) {
+                visited[i] = true;
+                calculate(N, pos + 1, visited);
+                visited[i] = false;
+            }
+        }
+    }
+}
+
+
+or
+
+
+// tle
+
+public class Solution {
+
+    int count = 0;
+
+    public int countArrangement(int N) {
+        int[] nums = new int[N];
+        for (int i = 1; i <= N; i++) nums[i - 1] = i;
+        permute(nums, 0);
+        return count;
+    }
+
+    public void permute(int[] nums, int l) {
+        if (l == nums.length - 1) {
+            int i;
+            for (i = 1; i <= nums.length; i++) {
+                if (nums[i - 1] % i != 0 && i % nums[i - 1] != 0) break;
+            }
+            if (i == nums.length + 1) {
+                count++;
+            }
+        }
+        for (int i = l; i < nums.length; i++) {
+            swap(nums, i, l);
+            permute(nums, l + 1);
+            swap(nums, i, l);
+        }
+    }
+
+    public void swap(int[] nums, int x, int y) {
+        int temp = nums[x];
+        nums[x] = nums[y];
+        nums[y] = temp;
+    }
+}
+
+
+or
+
+
+
+// 2 ms. 98.99%
+class Solution {
+    private void swap(int[] A, int i, int j) {
+        int temp = A[i];
+        A[i] = A[j];
+        A[j] = temp;
+    }
+    private int permute(int[] A, int i) {
+        if(i == 0) return 1;
+        int count = 0;
+        for(int j = i; j >= 0; j--) {
+            swap(A, i, j);
+            if(A[i] % (i + 1) == 0 || (i + 1) % A[i] == 0) {
+                count += permute(A, i - 1);
+            }
+            swap(A, i, j);
+        }
+        return count;
+    }
+    public int countArrangement(int n) {
+        int[] A = new int[n];
+        for(int i = 0; i < n; i++) {
+            A[i] = i + 1;
+        }
+        return permute(A, n - 1);
+    }
+}
+
+
+or
+
+
+// 7 ms. 93.38%
+class Solution {
+    private int backtrack(boolean[] placed, int i) {
+        if(i == 1) return 1;
+        int count = 0;
+        for(int j = placed.length; j >= 1; j--) {
+            if(!placed[j - 1] && (i % j == 0 || j % i == 0)) {
+                placed[j - 1] = true;
+                count += backtrack(placed, i - 1);
+                placed[j - 1] = false;
+            }
+        }
+        return count;
+    }
+    public int countArrangement(int n) {
+        return backtrack(new boolean[n], n);
+    }
+}
+
+
+or
+
+
+// 1 ms. 99.34%
+class Solution {
+    private int n;
+    private int get(int i, int placed, Integer[] dp) {
+        if(i == 1) return 1;
+        if(dp[placed] != null) return dp[placed];
+        int count = 0;
+        for(int j = n; j >= 1; j--) {
+            if((placed & (1 << (j - 1))) == 0 && (i % j == 0 || j % i == 0)) {
+                count += get(i - 1, placed | (1 << (j - 1)), dp);
+            }
+        }
+        return dp[placed] = count;
+    }
+    public int countArrangement(int n) {
+        return get(this.n = n, 0, new Integer[1 << n]);
+    }
+}
+
+
+or
+
+
+// 0 ms. 100%
+class Solution {
+    private static final int[] res = {1, 2, 3, 8, 10, 36, 41, 132, 250, 700, 750, 4010, 4237, 10680, 24679};
+    public int countArrangement(int n) {
+        return res[n - 1];
+    }
+}
