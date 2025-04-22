@@ -1,0 +1,205 @@
+https://leetcode.com/problems/maximum-points-in-an-archery-competition/description/
+
+
+2212. Maximum Points in an Archery Competition
+Medium
+Topics
+Companies
+Hint
+Alice and Bob are opponents in an archery competition. The competition has set the following rules:
+
+Alice first shoots numArrows arrows and then Bob shoots numArrows arrows.
+The points are then calculated as follows:
+The target has integer scoring sections ranging from 0 to 11 inclusive.
+For each section of the target with score k (in between 0 to 11), say Alice and Bob have shot ak and bk arrows on that section respectively. If ak >= bk, then Alice takes k points. If ak < bk, then Bob takes k points.
+However, if ak == bk == 0, then nobody takes k points.
+For example, if Alice and Bob both shot 2 arrows on the section with score 11, then Alice takes 11 points. On the other hand, if Alice shot 0 arrows on the section with score 11 and Bob shot 2 arrows on that same section, then Bob takes 11 points.
+
+You are given the integer numArrows and an integer array aliceArrows of size 12, which represents the number of arrows Alice shot on each scoring section from 0 to 11. Now, Bob wants to maximize the total number of points he can obtain.
+
+Return the array bobArrows which represents the number of arrows Bob shot on each scoring section from 0 to 11. The sum of the values in bobArrows should equal numArrows.
+
+If there are multiple ways for Bob to earn the maximum total points, return any one of them.
+
+ 
+
+Example 1:
+
+
+Input: numArrows = 9, aliceArrows = [1,1,0,1,0,0,2,1,0,1,2,0]
+Output: [0,0,0,0,1,1,0,0,1,2,3,1]
+Explanation: The table above shows how the competition is scored. 
+Bob earns a total point of 4 + 5 + 8 + 9 + 10 + 11 = 47.
+It can be shown that Bob cannot obtain a score higher than 47 points.
+Example 2:
+
+
+Input: numArrows = 3, aliceArrows = [0,0,1,0,0,0,0,0,0,0,0,2]
+Output: [0,0,0,0,0,0,0,0,1,1,1,0]
+Explanation: The table above shows how the competition is scored.
+Bob earns a total point of 8 + 9 + 10 = 27.
+It can be shown that Bob cannot obtain a score higher than 27 points.
+ 
+
+Constraints:
+
+1 <= numArrows <= 105
+aliceArrows.length == bobArrows.length == 12
+0 <= aliceArrows[i], bobArrows[i] <= numArrows
+sum(aliceArrows[i]) == numArrows
+
+
+
+# java
+
+
+   class Solution {
+		int bobPoint = 0;
+		int[] maxbob = new int[12];
+		public int[] maximumBobPoints(int numArrows, int[] aliceArrows) {
+			int[] bob = new int[12];
+			calculate(aliceArrows, bob, 11, numArrows, 0);  //Start with max point that is 11
+			return maxbob;
+		}
+		public void calculate(int[] alice, int[] bob, int index, int remainArr, int point) {
+			if(index < 0 || remainArr <= 0) {
+				if(remainArr > 0)
+					bob[0] += remainArr;
+				if(point > bobPoint) { // Update the max points and result output
+					bobPoint = point;
+					maxbob = bob.clone();
+				}
+				return;
+			}
+			//part 1: assign 1 more arrow than alice
+			if(remainArr >= alice[index]+1) {
+				bob[index] = alice[index] + 1;
+				calculate(alice, bob, index-1, remainArr-(alice[index]+1), point + index);
+				bob[index] = 0;
+			}
+			//part 2: assign no arrow and move to next point
+			calculate(alice, bob, index-1, remainArr, point);
+			bob[index] = 0;
+		}
+	}
+
+
+or
+
+
+class Solution {
+    public int[] maximumBobPoints(int numArrows, int[] aliceArrows) {
+        int[][] dp = new int[13][numArrows+1];
+        
+        for(int i=0; i<=12; i++){
+            for(int j=0; j<=numArrows; j++){
+                if(i==0 || j==0){
+                    dp[i][j] = 0;
+                } else if(j>=(aliceArrows[i-1]+1)){
+                    dp[i][j] = Math.max(dp[i-1][j], dp[i-1][j-(aliceArrows[i-1]+1)]+(i-1));
+                } else {
+                    dp[i][j] = dp[i-1][j];
+                }
+            }
+        }
+        
+        int[] ans = new int[12];
+        int result = dp[12][numArrows];
+        int total = 0; // to count total arrows used by bob
+        for (int i=12, j=numArrows; i > 0 && result > 0; i--) {
+            if (result == dp[i-1][j])
+                continue;
+            else {
+                // This item is included.
+                ans[i-1] = aliceArrows[i-1]+1;
+                result -=  (i-1);  // subtracting profit
+                j -= (aliceArrows[i-1]+1); // subtracting weight
+                total += aliceArrows[i-1]+1; 
+            }
+        }
+        
+		// as bob has to fire numArrows, remaining can be of 0 value
+        if(total<numArrows){
+            ans[0] = numArrows-total;
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    int maxScore = 0;
+    int[] maxStore = null;
+
+    // I m starting from index 0 
+    public int[] maximumBobPoints(int numArrows, int[] aliceArrows) {
+        helper(numArrows , 0 , 0 , aliceArrows , new int[12]);
+        return maxStore;
+    }
+    // These are base conditions 
+    // If numArrows reduces to 0 that means we have used all the arrows 
+    // and also when index i reaches to 12 means you have completed all the 12 rounds 
+   
+    // At Base condition 
+    // check if score > maxScore if yes update maxScore and store this storeArray
+    // into maxStore because we want to return this maxStore array.
+
+    public void helper(int numArrows , int i , int score , int[] arr , int[] store){
+        if (i == 12 || numArrows == 0) {
+            if (score > maxScore) {
+                maxScore = score; // storing the maxScore
+                maxStore = store.clone(); // storing the maxStore array 
+                maxStore[0] += numArrows;
+            }
+            return;
+        }
+        int val = arr[i];
+        if(numArrows - (val + 1) >= 0){ 
+            store[i] = val + 1; 
+            helper(numArrows - (val + 1) , i + 1 , score + i , arr , store);
+            store[i] = 0; 
+        }
+        helper(numArrows , i + 1 , score , arr , store);
+    }
+}
+          
+
+
+
+or
+
+
+class Solution {
+    int[] optimalStrategy; // optimal strategy for Bob, in terms of number of arrows used for each round
+    int maxPoints = 0; // maximum number of points Bob can earn
+    public int[] maximumBobPoints(int bobArrows, int[] aliceArrows) {
+        // initialize optimalStrategy array and set all elements to 0
+        optimalStrategy = new int[aliceArrows.length];
+        compute(bobArrows, aliceArrows, new int[aliceArrows.length], aliceArrows.length - 1, 0);
+        return optimalStrategy;
+    }
+
+    private void compute(int bobArrows, int[] aliceArrows, int[] currentStrategy, int currentRound, int currentPoints) {
+        // base case: if we've reached the last round, check if this is the best strategy so far
+        if (currentRound == 0) {
+            if (currentPoints > maxPoints) {
+                maxPoints = currentPoints;
+                currentStrategy[currentRound] = bobArrows;
+                optimalStrategy = currentStrategy.clone();
+            }
+            return;
+        }
+        // try not using any arrows in this round
+        compute(bobArrows, aliceArrows, currentStrategy, currentRound - 1, currentPoints);
+        // if Bob has enough arrows to beat Alice's score in this round, try using some arrows
+        if (bobArrows > aliceArrows[currentRound]) {
+            currentStrategy[currentRound] = aliceArrows[currentRound] + 1;
+            compute(bobArrows - currentStrategy[currentRound], aliceArrows, currentStrategy, currentRound - 1, currentPoints + currentRound);
+            currentStrategy[currentRound] = 0;
+        }
+    }
+}
