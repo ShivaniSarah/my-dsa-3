@@ -1,0 +1,257 @@
+https://leetcode.com/problems/minimum-number-of-work-sessions-to-finish-the-tasks/description/
+
+1986. Minimum Number of Work Sessions to Finish the Tasks
+Medium
+Topics
+Companies
+Hint
+There are n tasks assigned to you. The task times are represented as an integer array tasks of length n, where the ith task takes tasks[i] hours to finish. A work session is when you work for at most sessionTime consecutive hours and then take a break.
+
+You should finish the given tasks in a way that satisfies the following conditions:
+
+If you start a task in a work session, you must complete it in the same work session.
+You can start a new task immediately after finishing the previous one.
+You may complete the tasks in any order.
+Given tasks and sessionTime, return the minimum number of work sessions needed to finish all the tasks following the conditions above.
+
+The tests are generated such that sessionTime is greater than or equal to the maximum element in tasks[i].
+
+ 
+
+Example 1:
+
+Input: tasks = [1,2,3], sessionTime = 3
+Output: 2
+Explanation: You can finish the tasks in two work sessions.
+- First work session: finish the first and the second tasks in 1 + 2 = 3 hours.
+- Second work session: finish the third task in 3 hours.
+Example 2:
+
+Input: tasks = [3,1,3,1,1], sessionTime = 8
+Output: 2
+Explanation: You can finish the tasks in two work sessions.
+- First work session: finish all the tasks except the last one in 3 + 1 + 3 + 1 = 8 hours.
+- Second work session: finish the last task in 1 hour.
+Example 3:
+
+Input: tasks = [1,2,3,4,5], sessionTime = 15
+Output: 1
+Explanation: You can finish all the tasks in one work session.
+ 
+
+Constraints:
+
+n == tasks.length
+1 <= n <= 14
+1 <= tasks[i] <= 10
+max(tasks[i]) <= sessionTime <= 15
+
+
+
+# java
+
+
+// Java Solution
+class Solution {
+    public int minSessions(int[] tasks, int sessionTime) {
+        int n = tasks.length, MAX = Integer.MAX_VALUE;
+        int[][] dp = new int[1<<n][2];
+        dp[0][0] = 1;
+        dp[0][1] = 0;
+        
+        for(int i = 1; i < (1 << n); i++) {
+            dp[i][0] = MAX;
+            dp[i][1] = 0;
+            
+            for(int t = 0; t < n; t++) {
+                if(((1<<t) & i) == 0) continue;
+                
+                int[] prev = dp[(1<<t) ^ i];
+                if(prev[1] + tasks[t] <= sessionTime) {
+                    dp[i] = min(dp[i], new int[]{prev[0], prev[1] + tasks[t]});
+                }else{
+                    dp[i] = min(dp[i], new int[]{prev[0] + 1, tasks[t]});
+                }
+            }            
+        }
+        
+        return dp[(1<<n) - 1][0];
+    }
+    
+    private int[] min(int[] d1, int[] d2) {
+        if(d1[0] > d2[0]) return d2;
+        if(d1[0] < d2[0]) return d1;
+        if(d1[1] > d2[1]) return d2;
+        
+        return d1;
+    }
+}
+
+
+
+or
+
+
+//Approach -1
+class Solution {
+    private int minSessions;
+
+    public int minSessions(int[] tasks, int sessionTime) {
+        minSessions = tasks.length;
+        int[] sessions = new int[tasks.length];
+        backtrack(tasks.length - 1, tasks, sessions, sessionTime);
+        return minSessions;
+    }
+
+    private void backtrack(int index, int[] tasks, int[] sessions, int sessionTime) {
+        if (index < 0) {
+            int usedSessions = 0;
+            for (int session : sessions) {
+                if (session > 0) usedSessions++;
+            }
+            minSessions = Math.min(minSessions, usedSessions);
+            return;
+        }
+        for (int i = 0; i < sessions.length; i++) {
+            if (i > 0 && sessions[i] == sessions[i-1]) continue;
+            if (sessions[i] + tasks[index] <= sessionTime) {
+                sessions[i] += tasks[index];
+                backtrack(index - 1, tasks, sessions, sessionTime);
+                sessions[i] -= tasks[index];
+            }
+            if (sessions[i] == 0) break;
+        }
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minSessions(int[] tasks, int sessionTime) {
+        // Sort tasks in descending order to prioritize longer tasks
+        Arrays.sort(tasks);
+        reverse(tasks);
+
+        int left = 1; // Minimum session count
+        int right = tasks.length; // Maximum session count
+        int answer = 0; // Minimum number of sessions required
+
+        // Binary search on the range of possible session counts
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            int[] workSessions = new int[mid]; // Array to track tasks assigned to each session
+
+            // Check if it's possible to complete all tasks within the given session count
+            if (isPossible(0, mid, sessionTime, 0, tasks, workSessions, mid)) {
+                answer = mid; // Update the answer
+                right = mid - 1; // Continue searching for a smaller session count
+            } else {
+                left = mid + 1; // Increase the session count
+            }
+        }
+
+        return answer;
+    }
+
+    // Backtracking function to simulate the distribution of tasks among sessions
+    private static boolean isPossible(int idx, int k, int maxLen, int max, int[] tasks, int[] workSessions, int zeroCount) {
+        if (tasks.length - idx < zeroCount) {
+            return false; // Not enough tasks remaining to fill all sessions
+        }
+
+        if (idx == tasks.length) {
+            if (max > maxLen) {
+                return false; // Current session duration exceeds the maximum session time
+            }
+            return true; // All tasks have been assigned to sessions successfully
+        }
+
+        int currentTask = tasks[idx];
+
+        for (int i = 0; i < k; i++) {
+            if (workSessions[i] + currentTask > maxLen) {
+                continue; // Current task cannot be assigned to this session
+            }
+
+            zeroCount -= workSessions[i] == 0 ? 1 : 0; // Decrement zeroCount if a session becomes non-empty
+            workSessions[i] += currentTask; // Assign the task to the current session
+
+            // Recursively check if it's possible to complete remaining tasks with the updated sessions
+            if (isPossible(idx + 1, k, maxLen, Math.max(max, workSessions[i]), tasks, workSessions, zeroCount)) {
+                return true; // Tasks can be completed with the current distribution of sessions
+            }
+
+            workSessions[i] -= currentTask; // Backtrack: Remove the task from the current session
+            zeroCount += workSessions[i] == 0 ? 1 : 0; // Increment zeroCount if a session becomes empty again
+
+            if (workSessions[i] == 0) {
+                break; // Skip empty sessions to avoid redundant iterations
+            }
+        }
+
+        return false; // Unable to complete all tasks with the current distribution of sessions
+    }
+
+    // Utility function to reverse an array
+    private void reverse(int[] arr) {
+        int i = 0, j = arr.length - 1;
+
+        while (i < j) {
+            int temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+            i++;
+            j--;
+        }
+    }
+}
+
+
+or
+
+
+class Solution {
+    int minBucket = Integer.MAX_VALUE;
+    public void helper(int[] tasks, int time, int index, List<Integer> buckets){
+        
+        //there has already been a setting when less buckets could satisfy requirements
+        if(buckets.size() >= minBucket) 
+            return;
+        if(index == tasks.length){
+            minBucket = Math.min(minBucket, buckets.size());
+            return;
+        }
+        
+        buckets.add(tasks[index]);
+        helper(tasks, time, index+1, buckets);
+        buckets.remove(buckets.size() - 1);
+        
+        //now iterate over all the buckets and if there is space, put and backtrack again
+        for(int i=0; i<buckets.size(); i++){
+            if(tasks[index] + buckets.get(i) <= time){
+                buckets.set(i, buckets.get(i) + tasks[index]);
+                helper(tasks, time, index+1, buckets);
+                buckets.set(i, buckets.get(i) - tasks[index]);
+            }
+        }    
+    }
+    
+    private void reverse(int[] tasks){
+        int i=0, j=tasks.length-1;
+        while(i < j){
+            int temp = tasks[i];
+            tasks[i] = tasks[j];
+            tasks[j] = temp;
+            i++;
+            j--;
+        }
+    }
+    public int minSessions(int[] tasks, int sessionTime) {
+        Arrays.sort(tasks);
+        reverse(tasks);
+        helper(tasks, sessionTime, 0, new ArrayList<Integer>());
+        return minBucket;
+    }
+}
