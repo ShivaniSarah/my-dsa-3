@@ -1,0 +1,222 @@
+https://leetcode.com/problems/subsets-ii/solutions/
+
+90. Subsets II
+Medium
+Topics
+Companies
+Given an integer array nums that may contain duplicates, return all possible subsets (the power set).
+
+The solution set must not contain duplicate subsets. Return the solution in any order.
+
+ 
+
+Example 1:
+
+Input: nums = [1,2,2]
+Output: [[],[1],[1,2],[1,2,2],[2],[2,2]]
+Example 2:
+
+Input: nums = [0]
+Output: [[],[0]]
+ 
+
+Constraints:
+
+1 <= nums.length <= 10
+-10 <= nums[i] <= 10
+
+
+# java
+
+
+class Solution {
+   public List<List<Integer>> subsetsWithDup(int[] nums) {
+  // sort
+  Arrays.sort(nums);
+  
+  List<List<Integer>> result = new ArrayList<>();
+  result.add(new ArrayList<>());  // empty set
+  
+  int cachedSize = 0, startIdx = 0;
+  for (int i = 0; i < nums.length; ++i) {
+    List<List<Integer>> newResult = new ArrayList<>();  // used for new lists
+    // set startIdx first before we update cachedSize
+    startIdx = (i > 0 && nums[i - 1] == nums[i]) ? cachedSize : 0; // if duplicate occurs
+    cachedSize = result.size(); // cache the size for startIdx in the next round
+    for (int j = startIdx; j < result.size(); ++j) {
+      List<Integer> L = result.get(j);
+      L = new ArrayList<>(L);  // copy
+      L.add(nums[i]);
+      newResult.add(L);
+    }
+    result.addAll(newResult);  // concatenate
+  }
+  return result;
+}
+}
+
+or
+
+
+class Solution {
+    List<List<Integer>> output;
+    public List<List<Integer>> subsetsWithDup(int[] nums) {
+        Arrays.sort( nums ); //To handle duplicate first we sort the array ( adjacent elements will be similar )
+        output = new ArrayList();
+        backTracking( 0, nums, new ArrayList() );
+        return output;
+    }
+    
+    public void backTracking( int index, int[] nums, List<Integer> list )
+    {
+        output.add( new ArrayList(list) );
+        for( int i = index;i < nums.length; i++ )
+        {
+            if( i != index && nums[i] == nums[i-1] ) //skip the duplicates, except for the first time
+                continue;
+            list.add( nums[i]); //include
+            backTracking(i+1,nums,list); //explore
+            list.remove( list.size()-1);//backtrack, remove the element
+        }
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    private void f(int index, int[] nums, List<Integer> t, List<List<Integer>> ans) {
+        ans.add(new ArrayList<>(t));
+
+        for (int i = index; i < nums.length; i++) {
+            if (i != index && nums[i] == nums[i - 1])
+                continue;
+            t.add(nums[i]);
+            f(i + 1, nums, t, ans);
+            t.remove(t.size() - 1);
+        }
+    }
+
+    public List<List<Integer>> subsetsWithDup(int[] nums) {
+        List<List<Integer>> ans = new ArrayList<>();
+        List<Integer> t = new ArrayList<>();
+
+        Arrays.sort(nums);
+        f(0, nums, t, ans);
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    private void f(int index, int[] nums, List<Integer> t, List<List<Integer>> ans) {
+        ans.add(new ArrayList<>(t));
+
+        for (int i = index; i < nums.length; i++) {
+            if (i != index && nums[i] == nums[i - 1])
+                continue;
+            t.add(nums[i]);
+            f(i + 1, nums, t, ans);
+            t.remove(t.size() - 1);
+        }
+    }
+
+    public List<List<Integer>> subsetsWithDup(int[] nums) {
+        List<List<Integer>> ans = new ArrayList<>();
+        List<Integer> t = new ArrayList<>();
+
+        Arrays.sort(nums);
+        f(0, nums, t, ans);
+        return ans;
+    }
+}
+
+or
+
+
+public class Solution {
+    public List<List<Integer>> subsetsWithDup(int[] nums) {
+        List<List<Integer>> res = new ArrayList<>();
+        List<Integer> temp = new ArrayList<>();
+        res.add(temp);
+        Arrays.sort(nums);
+        int l = 0, k;
+        for (int i = 0; i < nums.length; i++) {
+            if (i == 0 || nums[i] != nums[i-1])
+                l = res.size();
+            k = res.size();
+            for (int j = k-l; j < k; j++) {
+                temp = new ArrayList<>(res.get(j));
+                temp.add(nums[i]);
+                res.add(temp);
+            }
+        }
+        return res;
+    }
+}
+
+
+or
+
+
+public class Solution {
+    Set<Integer> hash = new HashSet<>();
+    List<List<Integer>> res = new ArrayList<>();
+    int n;
+    int[] nums;
+    
+    public void search(List<Integer> l, int p) {
+        if (p == n) {
+            int h = l.hashCode();
+            if (!hash.contains(h)) {
+                hash.add(h);
+                res.add(new ArrayList<>(l));
+            }
+            return;
+        }
+        l.add(nums[p]);
+        search(l, p+1);
+        l.remove(l.size()-1);
+        search(l, p+1);
+    }
+    
+    public List<List<Integer>> subsetsWithDup(int[] nums) {
+        this.n = nums.length; this.nums = nums;
+        Arrays.sort(nums);
+        search(new ArrayList<Integer>(), 0);
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public List<List<Integer>> subsetsWithDup(int[] nums) {
+        Arrays.sort(nums);
+        List<List<Integer>> ans = new ArrayList<>();
+        List<Integer> ds = new ArrayList<>();
+        int i=0;
+        rec(i,nums,ds,ans);
+        return ans;       
+    }
+    static void rec(int i,int[] nums,List<Integer> ds,List<List<Integer>> ans){
+        if(i==nums.length){
+            if(!ans.contains(ds))
+            ans.add(new ArrayList<>(ds));
+            return;
+        }
+        rec(i+1,nums,ds,ans);
+        ds.add(nums[i]);
+        rec(i+1,nums,ds,ans);
+        ds.remove(ds.size()-1);
+    }
+}
