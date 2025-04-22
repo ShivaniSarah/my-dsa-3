@@ -1,0 +1,198 @@
+https://leetcode.com/problems/numbers-with-same-consecutive-differences/description/
+
+
+967. Numbers With Same Consecutive Differences
+Medium
+Topics
+Companies
+Given two integers n and k, return an array of all the integers of length n where the difference between every two consecutive digits is k. You may return the answer in any order.
+
+Note that the integers should not have leading zeros. Integers as 02 and 043 are not allowed.
+
+ 
+
+Example 1:
+
+Input: n = 3, k = 7
+Output: [181,292,707,818,929]
+Explanation: Note that 070 is not a valid number, because it has leading zeroes.
+Example 2:
+
+Input: n = 2, k = 1
+Output: [10,12,21,23,32,34,43,45,54,56,65,67,76,78,87,89,98]
+ 
+
+Constraints:
+
+2 <= n <= 9
+0 <= k <= 9
+
+
+
+# java
+
+
+class Solution {
+       public int[] numsSameConsecDiff(int N, int K) {
+        List<Integer> cur = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9);
+        for (int i = 2; i <= N; ++i) {
+            List<Integer> cur2 = new ArrayList<>();
+            for (int x : cur) {
+                int y = x % 10;
+                if (y + K < 10)
+                    cur2.add(x * 10 + y + K);
+                if (K > 0 && y - K >= 0)
+                    cur2.add(x * 10 + y - K);
+            }
+            cur = cur2;
+        }
+        return cur.stream().mapToInt(j->j).toArray();
+    }
+}
+
+
+or
+
+class Solution {
+    
+    List<Integer> res = new ArrayList<>();
+    public int[] numsSameConsecDiff(int n, int k) {
+        
+        for(int ans = 1; ans < 10; ans++){ // first digit can't be 0
+            find(ans, n-1, k); // find remaining n-1 digits using backtrack
+        }
+        
+        return res.stream().mapToInt(Integer::intValue).toArray();  // convert list to int arr
+    }
+    
+    private void find(int ans, int n, int k){
+        
+        if(n == 0){
+            res.add(ans); // if got length n number then put that into res
+            return;
+        }
+        
+        for(int i = 0; i < 10; i++){
+            if(Math.abs(ans%10-i) == k) // find digit that have k difference with last digit
+                find(ans*10+i, n-1, k);
+        }
+        ans /= 10; // remove last digit while backtrack
+    }
+}
+
+
+or
+
+
+class Solution {
+    List<Integer> res;
+    public int[] numsSameConsecDiff(int n, int k) {
+        res = new ArrayList<>();
+        
+        // Taking all possible cases for first digit from 1-9
+        for(int i=1; i<=9; i++)solve(i,1,n,k);
+        
+        // Converting List to Array
+        int len = res.size();
+        int[] arr  = new int[len];
+        for(int i=0; i<len; i++)arr[i] = res.get(i);
+        return arr;
+    }
+    
+    private void solve(int item, int i, int n, int k){
+        if(i==n){
+            res.add(item);
+            return;
+        }
+        
+        // To check for +k and -k results with the last digit
+        int a = item % 10;
+        
+        // If the absolute difference is zero, then should be single recursive call else there will be duplicate values in the result
+        if(k == 0){
+            int temp = (item*10) + a;
+            solve(temp,i+1,n,k);
+        }
+        else{
+            
+            // Check for +k and -k values and proceed accordingly
+            if((a+k)<=9){
+                int temp = (item*10) + (a+k);
+                solve(temp,i+1,n,k);
+            }
+            if((a-k)>=0){
+                int temp = (item*10) + (a-k);
+                solve(temp,i+1,n,k);
+            }    
+        }
+        
+    }
+}
+
+
+or
+
+
+class Solution {
+        public int[] numsSameConsecDiff(int n, int k) {
+        
+        HashSet<Integer> output = new HashSet<>(); // Hashset to avoid dupes (e.g k == 0)
+        Queue<Integer> queue = new LinkedList(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9));
+        
+        while(!queue.isEmpty()){
+            int currVal = queue.poll();
+            int lastDigit = currVal % 10;
+            int numDigits = (int)Math.log10(currVal) + 1;
+            
+            if(numDigits == n){
+                output.add(currVal);
+                continue;
+            }
+            
+            int nextAddDigit = lastDigit + k;
+            int nextSubDigit = lastDigit - k;
+
+            if(nextAddDigit >= 0 && nextAddDigit <= 9) queue.add((currVal*10) + nextAddDigit);
+            if(nextSubDigit >= 0 && nextSubDigit <= 9) queue.add((currVal*10) + nextSubDigit); 
+        }
+        
+        int ind = 0;
+        int[] outputarr = new int[output.size()];
+        for(int i: output){ outputarr[ind++] = i; }
+        
+        return outputarr;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    ArrayList<Integer> al = new ArrayList<Integer>();
+    public int[] numsSameConsecDiff(int n, int k) {
+        for(int i = 1 ; i < 10 ; i ++){
+            permute(0,i,0,n,k);
+        }
+        int num[] = new int[al.size()];
+        for(int i = 0 ; i < al.size(); i ++){
+            num[i] = al.get(i);
+        }
+        return num;
+    }
+    public void permute(int num,int digit,int size,int n,int k){
+        if(n == size){
+            if(!al.contains(num)){
+                al.add(num);
+            }
+            return;
+        }
+        if(digit < 10 && digit >= 0){
+            num = (num*10) + digit;
+            permute(num,digit+k,size+1,n,k);
+            permute(num,digit-k,size+1,n,k);
+        }
+    }
+}
