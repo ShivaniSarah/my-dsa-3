@@ -1,0 +1,196 @@
+https://leetcode.com/problems/minimum-time-to-break-locks-i/description/
+
+3376. Minimum Time to Break Locks I
+Medium
+Topics
+Companies
+Hint
+Bob is stuck in a dungeon and must break n locks, each requiring some amount of energy to break. The required energy for each lock is stored in an array called strength where strength[i] indicates the energy needed to break the ith lock.
+
+To break a lock, Bob uses a sword with the following characteristics:
+
+The initial energy of the sword is 0.
+The initial factor x by which the energy of the sword increases is 1.
+Every minute, the energy of the sword increases by the current factor x.
+To break the ith lock, the energy of the sword must reach at least strength[i].
+After breaking a lock, the energy of the sword resets to 0, and the factor x increases by a given value k.
+Your task is to determine the minimum time in minutes required for Bob to break all n locks and escape the dungeon.
+
+Return the minimum time required for Bob to break all n locks.
+
+ 
+
+Example 1:
+
+Input: strength = [3,4,1], k = 1
+
+Output: 4
+
+Explanation:
+
+Time	Energy	x	Action	Updated x
+0	0	1	Nothing	1
+1	1	1	Break 3rd Lock	2
+2	2	2	Nothing	2
+3	4	2	Break 2nd Lock	3
+4	3	3	Break 1st Lock	3
+The locks cannot be broken in less than 4 minutes; thus, the answer is 4.
+
+Example 2:
+
+Input: strength = [2,5,4], k = 2
+
+Output: 5
+
+Explanation:
+
+Time	Energy	x	Action	Updated x
+0	0	1	Nothing	1
+1	1	1	Nothing	1
+2	2	1	Break 1st Lock	3
+3	3	3	Nothing	3
+4	6	3	Break 2nd Lock	5
+5	5	5	Break 3rd Lock	7
+The locks cannot be broken in less than 5 minutes; thus, the answer is 5.
+
+ 
+
+Constraints:
+
+n == strength.length
+1 <= n <= 8
+1 <= K <= 10
+1 <= strength[i] <= 106
+
+
+# java
+
+
+class Solution {
+    private int ans;
+    private void helper(List<Integer> list, int len, int x, int k, int result, boolean used[]){
+        if(result >= ans) return;
+        
+        if(len == 0){
+            ans = Math.min(ans, result);
+            return;
+        }
+
+        int size = list.size();
+        for(int i = 0; i < size; i++){
+            if(used[i]) continue;
+            int t = (int)(Math.ceil(list.get(i) * 1.0 / x));
+            used[i] = true;
+            helper(list, len - 1, x + k, k, result + t, used);
+            used[i] = false;
+        }
+    }
+
+    public int findMinimumTime(List<Integer> strength, int k) {
+        int len = strength.size();
+        ans = Integer.MAX_VALUE;
+        helper(strength, len, 1, k, 0, new boolean[len]);
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int findMinimumTime(List<Integer> strength, int K) {
+        return go(strength, K, new HashMap<>(), 0);
+    }
+
+    static int go(List<Integer> strength, int K, 
+                  Map<Integer, Integer> dp, int state) {
+        if (Integer.bitCount(state) == strength.size()) {
+            return 0;
+        }
+        if (dp.containsKey(state)) {
+            return dp.get(state);
+        }
+        int res = Integer.MAX_VALUE, factor = K * Integer.bitCount(state) + 1;
+        for (int i = 0; i < strength.size(); i++) {
+            if (((1 << i) & state) == 0) {
+                int diff = strength.get(i) / factor + (strength.get(i) % factor == 0 ? 0 : 1);
+                res = Math.min(res, diff + go(strength, K, dp, state | (1 << i)));
+            }
+        }
+        dp.put(state, res);
+        return res;
+    }
+}
+
+
+or
+
+
+import java.util.*;
+
+class Solution {
+    public int findMinimumTime(List<Integer> strength, int K) {
+        int n = strength.size();
+        List<Integer> perm = new ArrayList<>(strength);
+        Collections.sort(perm);
+        int minTime = Integer.MAX_VALUE;
+
+        do {
+            int time = 0, factor = 1;
+            for (int required : perm) {
+                int neededTime = (required + factor - 1) / factor;
+                time += neededTime;
+                factor += K;
+            }
+            minTime = Math.min(minTime, time);
+        } while (nextPermutation(perm));
+
+        return minTime;
+    }
+
+    private boolean nextPermutation(List<Integer> nums) {
+        int i = nums.size() - 2;
+        while (i >= 0 && nums.get(i) >= nums.get(i + 1)) {
+            i--;
+        }
+        if (i < 0) {
+            return false;
+        }
+        int j = nums.size() - 1;
+        while (nums.get(j) <= nums.get(i)) {
+            j--;
+        }
+        Collections.swap(nums, i, j);
+        Collections.reverse(nums.subList(i + 1, nums.size()));
+        return true;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int findMinimumTime(List<Integer> strength, int K) {
+        int n = strength.size();
+        int[] dp = new int[1 << n];
+        Arrays.fill(dp, Integer.MAX_VALUE);
+        dp[0] = 0;
+
+        for (int mask = 0; mask < (1 << n); mask++) {
+            int time = dp[mask];
+            int factor = 1 + K * Integer.bitCount(mask);
+
+            for (int i = 0; i < n; i++) {
+                if ((mask & (1 << i)) == 0) {
+                    int nextMask = mask | (1 << i);
+                    int requiredTime = (strength.get(i) + factor - 1) / factor; 
+                    dp[nextMask] = Math.min(dp[nextMask], time + requiredTime);
+                }
+            }
+        }
+
+        return dp[(1 << n) - 1];
+    }
+}
