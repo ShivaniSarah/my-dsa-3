@@ -1,0 +1,188 @@
+https://leetcode.com/problems/next-greater-numerically-balanced-number/description/
+
+2048. Next Greater Numerically Balanced Number
+Medium
+Topics
+Companies
+Hint
+An integer x is numerically balanced if for every digit d in the number x, there are exactly d occurrences of that digit in x.
+
+Given an integer n, return the smallest numerically balanced number strictly greater than n.
+
+ 
+
+Example 1:
+
+Input: n = 1
+Output: 22
+Explanation: 
+22 is numerically balanced since:
+- The digit 2 occurs 2 times. 
+It is also the smallest numerically balanced number strictly greater than 1.
+Example 2:
+
+Input: n = 1000
+Output: 1333
+Explanation: 
+1333 is numerically balanced since:
+- The digit 1 occurs 1 time.
+- The digit 3 occurs 3 times. 
+It is also the smallest numerically balanced number strictly greater than 1000.
+Note that 1022 cannot be the answer because 0 appeared more than 0 times.
+Example 3:
+
+Input: n = 3000
+Output: 3133
+Explanation: 
+3133 is numerically balanced since:
+- The digit 1 occurs 1 time.
+- The digit 3 occurs 3 times.
+It is also the smallest numerically balanced number strictly greater than 3000.
+ 
+
+Constraints:
+
+0 <= n <= 106
+
+
+
+# java
+
+
+class Solution {
+
+    int ans = Integer.MAX_VALUE;
+
+    public int nextBeautifulNumber(int n) {
+        int arr[] = new int[10];
+        for (int i = 1; i <= 6; i++) {
+            arr[i] = i;
+        }
+        find(arr, 0L, n);
+        return ans;
+
+    }
+
+    void find(int arr[], long num, int n) {
+
+        if (num > n && check(arr)) {
+            if (ans > num)
+                ans = (int) num;
+            return;
+        }
+        if (num > 100 * n)
+            return;
+
+        for (int i = 1; i <= 6; i++) {
+            if (arr[i] != 0) {
+                arr[i]--;
+                find(arr, num * 10 + i, n);
+                arr[i]++;
+            }
+        }
+    }
+
+    boolean check(int arr[]) {
+        for (int i = 1; i <= 6; i++) {
+            if (arr[i] != 0 && arr[i] != i)
+                return false;
+        }
+        return true;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int nextBeautifulNumber(int n) {
+        int num = n + 1;
+
+        while (!isNumericallyBalanced(num)) {
+            num++;
+        }
+
+        return num;
+    }
+
+    private boolean isNumericallyBalanced(int num) {
+        int[] digitCount = new int[10];
+
+        while (num > 0) {
+            int digit = num % 10;
+            digitCount[digit]++;
+            num /= 10;
+        }
+
+        for (int i = 0; i < 10; i++) {
+            if (digitCount[i] != 0 && digitCount[i] != i) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+
+
+
+or
+
+
+class Solution {
+    public int nextBeautifulNumber(int n) {
+        int i=1;
+        while(true){
+            if(solve(n+i)){
+                return n+i;
+            }
+            i++;
+        }
+    }
+
+    private boolean solve(int i) {
+        String s=String.valueOf(i);
+        Map<Character,Integer> map=new HashMap<>();
+        for(char c:s.toCharArray()){
+            map.put(c,map.getOrDefault(c,0)+1);
+        }
+        
+        for(char c:map.keySet()){
+            if(c=='0') return false;
+            if(c-'0'==map.get(c)){
+                continue;
+            }else{
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+
+or
+
+class Solution {
+    public int nextBeautifulNumber(int n) {
+        while(true){
+            n++;
+            if(pos(Integer.toString(n))==true) return n;
+        }
+    }
+    static boolean pos(String s){
+        HashMap<Integer,Integer> h=new HashMap<>();
+        for(int i=0;i<s.length();i++){
+            if(!h.containsKey(s.charAt(i)-'0')){
+                h.put(s.charAt(i)-'0',1);
+            }
+            else{
+                h.put(s.charAt(i)-'0',h.get(s.charAt(i)-'0')+1);
+            }
+        }
+        for(Map.Entry<Integer,Integer> e:h.entrySet()){
+            if(e.getKey()!=e.getValue()) return false;
+        }
+        return true;
+    }
+}
