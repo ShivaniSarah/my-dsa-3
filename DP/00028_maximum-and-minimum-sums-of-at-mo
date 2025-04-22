@@ -1,0 +1,420 @@
+https://leetcode.com/problems/maximum-and-minimum-sums-of-at-most-size-k-subsequences/description/
+
+3428. Maximum and Minimum Sums of at Most Size K Subsequences
+Medium
+Topics
+Companies
+Hint
+You are given an integer array nums and a positive integer k. Return the sum of the maximum and minimum elements of all subsequences of nums with at most k elements.
+
+Since the answer may be very large, return it modulo 109 + 7.
+
+ 
+
+Example 1:
+
+Input: nums = [1,2,3], k = 2
+
+Output: 24
+
+Explanation:
+
+The subsequences of nums with at most 2 elements are:
+
+Subsequence	Minimum	Maximum	Sum
+[1]	1	1	2
+[2]	2	2	4
+[3]	3	3	6
+[1, 2]	1	2	3
+[1, 3]	1	3	4
+[2, 3]	2	3	5
+Final Total	 	 	24
+The output would be 24.
+
+Example 2:
+
+Input: nums = [5,0,6], k = 1
+
+Output: 22
+
+Explanation:
+
+For subsequences with exactly 1 element, the minimum and maximum values are the element itself. Therefore, the total is 5 + 5 + 0 + 0 + 6 + 6 = 22.
+
+Example 3:
+
+Input: nums = [1,1,1], k = 2
+
+Output: 12
+
+Explanation:
+
+The subsequences [1, 1] and [1] each appear 3 times. For all of them, the minimum and maximum are both 1. Thus, the total is 12.
+
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+0 <= nums[i] <= 109
+1 <= k <= min(70, nums.length)
+
+
+
+# java
+
+class Solution {
+    static final int mod = (int) 1e9 + 7;
+    static long[] fact;
+    static long[] inv;
+    
+    static void precomputeFactorials(int n) {
+        fact = new long[n + 1];
+        inv = new long[n + 1];
+        fact[0] = 1;
+        for (int i = 1; i <= n; i++) {
+            fact[i] = (fact[i - 1] * i) % mod;
+        }
+        inv[n] = power(fact[n], mod - 2, mod);
+        for (int i = n - 1; i >= 0; i--) {
+            inv[i] = (inv[i + 1] * (i + 1)) % mod;
+        }
+    }
+    
+    static long power(long a, long b, int m) {
+        long val = 1;
+        a = a % m;
+        while (b > 0) {
+            if ((b & 1) == 1) val = (val * a) % m;
+            b = b >> 1;
+            a = (a * a) % m;
+        }
+        return val;
+    }
+    
+    static long nCr(int n, int r) {
+        if (r < 0 || r > n) return 0;
+        return (fact[n] * inv[r] % mod * inv[n - r]) % mod;
+    }
+    
+    public int minMaxSums(int[] nums, int k) {
+        int n = nums.length;
+        Arrays.sort(nums);
+        precomputeFactorials(n);
+        
+        long sum = 0;
+        for (int i = 0; i < n; i++) {
+            long val = 0;
+            int a = i;
+            int b = n - 1 - i;
+            
+            for (int j = 0; j < k && j <= a; j++) {
+                val = (val + nCr(a, j)) % mod;
+            }
+            sum = (sum + (val * nums[i]) % mod) % mod;
+            
+            val = 0;
+            for (int j = 0; j < k && j <= b; j++) {
+                val = (val + nCr(b, j)) % mod;
+            }
+            sum = (sum + (val * nums[i]) % mod) % mod;
+        }
+        
+        return (int) sum;
+    }
+}
+
+
+or
+
+
+class Solution {
+    private int mod = 1_000_000_007;
+    private long[] fact;
+    private long pow(long a, long b, int mod) {
+        long res = 1;
+        while (b > 0) {
+            if ((b & 1) == 1)
+                res = res * a % mod;
+            a = a * a % mod;
+            b >>= 1;
+        }
+        return res;
+    }
+    private long comb(int n, int k) {
+        if (n < k)
+            return 0;
+        return fact[n] * pow(fact[k], mod - 2, mod) % mod * pow(fact[n - k], mod - 2, mod) % mod;
+    }
+    public int minMaxSums(int[] nums, int k) {
+        int n = nums.length;
+        fact = new long[n + 1];
+        fact[0] = 1;
+        for (int i = 1; i <= n; i++)
+            fact[i] = fact[i - 1] * i % mod;
+        Arrays.sort(nums);
+        long ans = 0;
+        long cur = 1;
+        for (int i = 0; i < n; i++) {
+            ans = (ans + (nums[i] + nums[n - i - 1]) * cur) % mod;
+            cur = (2 * cur - comb(i, k - 1) + mod) % mod;
+        }
+        return (int) ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    static final long mod = 1_000_000_007L;
+    static long[] fact;
+    static long[] invFact;
+
+    static void fill() {
+        fact[0] = 1;
+        for (int i = 1; i < fact.length; i++) {
+            fact[i] = (fact[i - 1] * i) % mod;
+        }
+
+        invFact[fact.length - 1] = modPow(fact[fact.length - 1], mod - 2, mod);
+        for (int i = fact.length - 2; i >= 0; i--) {
+            invFact[i] = (invFact[i + 1] * (i + 1)) % mod;
+        }
+    }
+
+    static long modPow(long base, long exp, long mod) {
+        long result = 1;
+        while (exp > 0) {
+            if ((exp & 1) == 1) {
+                result = (result * base) % mod;
+            }
+            base = (base * base) % mod;
+            exp >>= 1;
+        }
+        return result;
+    }
+
+    static long nCr(int n, int r) {
+        return fact[n] * invFact[r] % mod * invFact[n - r] % mod;
+    }
+
+    static long count(int n, int k) {
+        long res = 0L;
+        for (int i = 1; i <= Math.min(k, n); i++) {
+            res = (res + nCr(n, i)) % mod;
+        }
+        return res;
+    }
+    
+    public int minMaxSums(int[] nums, int k) {
+        if (fact == null) {
+            fact = new long[100_001];
+            invFact = new long[100_001];
+            fill();
+        }
+        Arrays.sort(nums);
+        long res = 0L;
+        for (int i = 0; i < nums.length; i++) {
+            int len = nums.length - i - 1;
+            long count = count(len, k - 1) + 1L;
+            res = (res + (nums[i] * count) % mod) % mod;
+            res = (res + (nums[len] * count) % mod) % mod;
+        }
+        return (int) res;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minMaxSums(int[] nums, int k) {
+        long ans = 0;
+        int n = nums.length;
+        fact = new long[n+1];
+        invFact = new long[n+1];
+        List<Integer> list = new ArrayList<>();
+        for(int x : nums)list.add(x);
+        Collections.sort(list);
+        for(int i=0;i<n;i++)nums[i] = list.get(i);
+        fact[0] = 1;
+        invFact[0] = 1;
+        for(int i=1;i<=n;i++){
+            fact[i] = (fact[i-1] * i) % mod;
+            invFact[i] = modExpo(fact[i],mod-2);
+        }
+
+        
+        for(int i=0;i<n;i++){
+            int sC = i;
+            int lC= n - i -1;
+            for(int j = 0;j<=Math.min(k-1,Math.max(sC,lC));j++) {
+                if(j<=sC){
+                    ans += (ncr(sC,j) * nums[i]) % mod;
+                    ans %=mod;
+                }
+                if(j<=lC){
+                    ans += (ncr(lC,j) * nums[i])%mod;
+                    ans %=mod;
+                }
+                
+            }
+        }
+        return (int)ans;
+
+
+    }
+    long[] fact;
+    long[] invFact;
+    int mod = (int)1e9 + 7;
+    Map<Long,Long> map = new HashMap<>();
+    private long ncr(int n,int r){
+        if(r>n)return 0;
+        return (fact[n] * invFact[r]) % mod * invFact[n-r] % mod;
+    }
+    private long modExpo(long x, long n){
+        if(x == 1)return 1;
+        long ans = 1;
+        while(n>0){
+            if((n&1)==1){
+                ans *=x;
+                ans%=mod;
+                n--;
+            }else {
+                x*=x;
+                n>>=1;
+                x%=mod;
+            }
+        }
+        return ans;
+    }
+
+}
+
+
+or
+
+
+class Solution {
+    public int minMaxSums(int[] nums, int k) {
+        Arrays.sort(nums);
+        int n = nums.length, mod = 1000000007;
+        long sum = 0;
+        long[][] count = new long[n][k+1];
+        long[][] preSum = new long[n][k+1];
+        for(int i=0;i<n;i++){
+            for(int j=1;j<=Math.min(i+1,k);j++){
+                if(j== 1){
+                    count[i][j] = 1;
+                }else{
+                    count[i][j] = (i>0?preSum[i-1][j-1]:0);
+                }
+                
+                sum = (sum + nums[i]*count[i][j])%mod;
+                preSum[i][j] = ((i>0?preSum[i-1][j]:0) + count[i][j])%mod;
+            }
+        }
+        count = new long[n][k+1];
+        long[][] suffixSum = new long[n][k+1];
+        for(int i=n-1;i>=0;i--){
+            for(int j=1;j<=Math.min(n-i,k);j++){
+                if(j==1){
+                    count[i][j] = 1;
+                }else{
+                    count[i][j] = (i<n-1?suffixSum[i+1][j-1]:0);
+                }
+                sum = (sum + nums[i]*count[i][j])%mod;
+                suffixSum[i][j] = ((i<n-1?suffixSum[i+1][j]:0) + count[i][j])%mod;
+            }
+        }
+        return (int)sum;
+    }
+}
+
+
+or
+
+
+import java.util.Arrays;
+
+class Solution {
+    static final int MOD = 1_000_000_007;
+    static long[] fact, inv;
+
+    // Precompute factorials and modular inverses
+    static void precomputeFactorials(int n) {
+        fact = new long[n + 1];
+        inv = new long[n + 1];
+        fact[0] = 1;
+
+        for (int i = 1; i <= n; i++) {
+            fact[i] = (fact[i - 1] * i) % MOD;
+        }
+
+        // Compute the modular inverse of n! using Fermat's Little Theorem
+        inv[n] = modularExponentiation(fact[n], MOD - 2);
+        for (int i = n - 1; i >= 0; i--) {
+            inv[i] = (inv[i + 1] * (i + 1)) % MOD;
+        }
+    }
+
+    // Efficient modular exponentiation (a^b % MOD)
+    static long modularExponentiation(long a, long b) {
+        long result = 1;
+        a %= MOD;
+
+        while (b > 0) {
+            if ((b & 1) == 1) {
+                result = (result * a) % MOD;
+            }
+            a = (a * a) % MOD;
+            b >>= 1;
+        }
+
+        return result;
+    }
+
+    // Compute nCr modulo MOD
+    static long nCr(int n, int r) {
+        if (r < 0 || r > n) return 0;
+        return (fact[n] * inv[r] % MOD * inv[n - r]) % MOD;
+    }
+
+    // Main function to calculate the sum of minimum and maximum contributions
+    public int minMaxSums(int[] nums, int k) {
+        int n = nums.length;
+
+        // Step 1: Sort the array
+        Arrays.sort(nums);
+
+        // Step 2: Precompute factorials and modular inverses
+        precomputeFactorials(n);
+
+        long totalSum = 0;
+
+        // Step 3: Calculate contributions for each number in the array
+        for (int i = 0; i < n; i++) {
+            int leftCount = i;         // Number of elements before nums[i]
+            int rightCount = n - 1 - i; // Number of elements after nums[i]
+
+            // Calculate contributions when nums[i] is the maximum
+            long maxContribution = 0;
+            for (int j = 0; j < k && j <= leftCount; j++) {
+                maxContribution = (maxContribution + nCr(leftCount, j)) % MOD;
+            }
+            totalSum = (totalSum + (maxContribution * nums[i]) % MOD) % MOD;
+
+            // Calculate contributions when nums[i] is the minimum
+            long minContribution = 0;
+            for (int j = 0; j < k && j <= rightCount; j++) {
+                minContribution = (minContribution + nCr(rightCount, j)) % MOD;
+            }
+            totalSum = (totalSum + (minContribution * nums[i]) % MOD) % MOD;
+        }
+
+        return (int) totalSum;
+    }
+}
