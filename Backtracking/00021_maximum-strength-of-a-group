@@ -1,0 +1,169 @@
+https://leetcode.com/problems/maximum-strength-of-a-group/
+
+2708. Maximum Strength of a Group
+Solved
+Medium
+Topics
+Companies
+Hint
+You are given a 0-indexed integer array nums representing the score of students in an exam. The teacher would like to form one non-empty group of students with maximal strength, where the strength of a group of students of indices i0, i1, i2, ... , ik is defined as nums[i0] * nums[i1] * nums[i2] * ... * nums[ik​].
+
+Return the maximum strength of a group the teacher can create.
+
+ 
+
+Example 1:
+
+Input: nums = [3,-1,-5,2,5,-9]
+Output: 1350
+Explanation: One way to form a group of maximal strength is to group the students at indices [0,2,3,4,5]. Their strength is 3 * (-5) * 2 * 5 * (-9) = 1350, which we can show is optimal.
+Example 2:
+
+Input: nums = [-4,-5,-4]
+Output: 20
+Explanation: Group the students at indices [0, 1] . Then, we’ll have a resulting strength of 20. We cannot achieve greater strength.
+ 
+
+Constraints:
+
+1 <= nums.length <= 13
+-9 <= nums[i] <= 9
+
+
+
+# java
+
+
+import java.util.*;
+
+class Solution {
+    public long maxStrength(int[] nums) {
+        int n = nums.length;
+        List<Long> negs = new ArrayList<>();
+        List<Long> pos = new ArrayList<>();
+        for (int num : nums) {
+            if (num < 0)
+                negs.add((long) num);
+            if (num > 0)
+                pos.add((long) num);
+        }
+        long prod = 1;
+        long x = Collections.frequency(Arrays.asList(nums), 0);
+        Collections.sort(negs);
+        if (negs.size() <= 1 && pos.size() == 0)
+            return Arrays.stream(nums).max().getAsInt();
+        if (negs.size() % 2 == 0) {
+            for (long num : negs)
+                prod = prod * num;
+            for (long num : pos)
+                prod = prod * num;
+            return prod;
+        } else {
+            for (int i = 0; i < negs.size() - 1; ++i)
+                prod = prod * negs.get(i);
+            for (long num : pos)
+                prod = prod * num;
+            return prod;
+        }
+    }
+}
+
+
+or
+
+
+class Solution {
+    long max = 0;
+    public long maxStrength(int[] nums) {
+        if (nums.length == 1)   return nums[0];
+        int pos = 0, neg = 0, z = 0;
+        for(int num : nums){
+            if(num > 0)    pos++;
+            else if(num < 0)   neg++;
+            else z++;
+        }
+        if (pos == 0 && neg == 1 && nums.length > 1)    return 0;
+        if(z == nums.length)  return 0;
+        group(nums, 0, 1);
+        return max;
+    }
+    void group(int[] nums, int i, long grp) {
+        if(i >= nums.length){
+            max = Math.max(max, grp);
+            return;
+        }
+        group(nums, i + 1, grp * nums[i]);
+        group(nums, i + 1, grp);
+    }
+}
+
+
+or
+
+
+class Solution {
+    public long maxStrength(int[] nums) {
+    long pod=1;
+    int largestNeg=Integer.MIN_VALUE;
+    int largest=Integer.MIN_VALUE;
+    int neg=0;
+
+    for(int num: nums){
+        if(num!=0){
+            pod*=num;
+        } 
+        if(num<0){
+            largestNeg=Math.max(largestNeg,num);
+            neg++;
+        }
+        largest =Math.max(largest,num);
+    }
+    if(largest ==0 && neg<2) return 0;
+    if(largest<0 && neg==1) return largestNeg;
+    if(pod>0) return pod;
+    return pod/largestNeg;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public long maxStrength(int[] nums) {
+        List<Integer> pos = new ArrayList<>();
+        List<Integer> neg = new ArrayList<>();
+        boolean containsZero =false;
+        
+        for(int i: nums){
+            if(i == 0) containsZero = true;
+            else if(i < 0){
+                neg.add(-i);
+            }
+            else{
+                pos.add(i);
+            }
+        }
+        long ans =1;
+        Collections.sort(neg);
+        if(neg.size() == 0 && pos.size() == 0) return 0;
+        if(pos.size() == 0 && neg.size() == 1 && containsZero) return 0;
+        if(pos.size() == 0 && neg.size() == 1 && !containsZero) return -neg.get(0);
+        if(neg.size() %2 != 0){
+            for(int i=1; i< neg.size(); i++){
+                ans *= neg.get(i);
+            }
+        }
+        else{
+            for(int i: neg){
+                ans *= i;
+            }
+        }
+        for(int i: pos){
+            ans *=i;
+        }
+        return ans;
+    }
+}
+
+
