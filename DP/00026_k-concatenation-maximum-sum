@@ -1,0 +1,91 @@
+https://leetcode.com/problems/k-concatenation-maximum-sum/description/
+
+1191. K-Concatenation Maximum Sum
+Medium
+Topics
+Companies
+Hint
+Given an integer array arr and an integer k, modify the array by repeating it k times.
+
+For example, if arr = [1, 2] and k = 3 then the modified array will be [1, 2, 1, 2, 1, 2].
+
+Return the maximum sub-array sum in the modified array. Note that the length of the sub-array can be 0 and its sum in that case is 0.
+
+As the answer can be very large, return the answer modulo 109 + 7.
+
+ 
+
+Example 1:
+
+Input: arr = [1,2], k = 3
+Output: 9
+Example 2:
+
+Input: arr = [1,-2,1], k = 5
+Output: 2
+Example 3:
+
+Input: arr = [-1,-2], k = 7
+Output: 0
+ 
+
+Constraints:
+
+1 <= arr.length <= 105
+1 <= k <= 105
+-104 <= arr[i] <= 104
+
+
+
+# java
+
+
+class Solution {
+    long mod = 1000000007;
+
+    public long kadanes(int[] arr) {
+        long csum = arr[0];
+        long msum = arr[0];
+        for (int i = 1; i < arr.length; i++) {
+            if (csum >= 0) {
+                csum = csum + arr[i];
+            } else {
+                csum = arr[i];
+            }
+            msum = Math.max(msum, csum);
+        }
+        return Math.max(0, msum); // Ensure non-negative result
+    }
+
+    public long kadanesTwo(int[] arr) {
+        long maxSum = 0;
+        long currSum = 0;
+        for (int i = 0; i < 2 * arr.length; i++) {
+            int val = arr[i % arr.length];
+            if (currSum < 0)
+                currSum = val;
+            else
+                currSum += val;
+            maxSum = Math.max(maxSum, currSum);
+        }
+        return Math.max(0, maxSum); // Ensure non-negative result
+    }
+
+    public int kConcatenationMaxSum(int[] arr, int k) {
+        long sum = 0;
+        for (int value : arr) {
+            sum += value;
+        }
+
+        if (k == 1) {
+            return (int) (kadanes(arr) % mod);
+        }
+
+        long maxDouble = kadanesTwo(arr);
+        if (sum > 0) {
+            return (int) ((maxDouble + ((k - 2) * sum) % mod) % mod);
+        } else {
+            return (int) (maxDouble % mod);
+        }
+    }
+}
