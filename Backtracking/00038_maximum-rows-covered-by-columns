@@ -1,0 +1,246 @@
+https://leetcode.com/problems/maximum-rows-covered-by-columns/description/
+
+2397. Maximum Rows Covered by Columns
+Medium
+Topics
+Companies
+Hint
+You are given an m x n binary matrix matrix and an integer numSelect.
+
+Your goal is to select exactly numSelect distinct columns from matrix such that you cover as many rows as possible.
+
+A row is considered covered if all the 1's in that row are also part of a column that you have selected. If a row does not have any 1s, it is also considered covered.
+
+More formally, let us consider selected = {c1, c2, ...., cnumSelect} as the set of columns selected by you. A row i is covered by selected if:
+
+For each cell where matrix[i][j] == 1, the column j is in selected.
+Or, no cell in row i has a value of 1.
+Return the maximum number of rows that can be covered by a set of numSelect columns.
+
+ 
+
+Example 1:
+
+
+
+Input: matrix = [[0,0,0],[1,0,1],[0,1,1],[0,0,1]], numSelect = 2
+
+Output: 3
+
+Explanation:
+
+One possible way to cover 3 rows is shown in the diagram above.
+We choose s = {0, 2}.
+- Row 0 is covered because it has no occurrences of 1.
+- Row 1 is covered because the columns with value 1, i.e. 0 and 2 are present in s.
+- Row 2 is not covered because matrix[2][1] == 1 but 1 is not present in s.
+- Row 3 is covered because matrix[2][2] == 1 and 2 is present in s.
+Thus, we can cover three rows.
+Note that s = {1, 2} will also cover 3 rows, but it can be shown that no more than three rows can be covered.
+
+Example 2:
+
+
+
+Input: matrix = [[1],[0]], numSelect = 1
+
+Output: 2
+
+Explanation:
+
+Selecting the only column will result in both rows being covered since the entire matrix is selected.
+
+ 
+
+Constraints:
+
+m == matrix.length
+n == matrix[i].length
+1 <= m, n <= 12
+matrix[i][j] is either 0 or 1.
+1 <= numSelect <= n
+
+
+# java
+
+
+class Solution {
+      public int maximumRows(int[][] mat, int cols) {
+
+        return helper(0, cols, mat);
+    }
+
+    Set<Integer> set = new HashSet<>();
+
+    int helper(int col, int cols, int[][] mat) {
+        if (cols == 0 || col == mat[0].length) {
+            int res = count(mat);
+            return res;
+        }
+        set.add(col);
+        int pick = helper(col + 1, cols-1, mat);
+        set.remove(col);
+        int notPick = helper(col + 1, cols, mat);
+        return Math.max(pick, notPick);
+    }
+
+    int count(int[][] mat) {
+        int m = mat.length;
+        int n = mat[0].length;
+        int res = 0;
+        for (int i = 0; i < m; i++) {
+            int ones = 0;
+            for (int j = 0; j < n; j++) {
+                if (mat[i][j] == 1 && !set.contains(j))
+                    ones++;
+            }
+            if (ones == 0)
+                res++;
+        }
+        return res;
+    }
+
+}
+
+
+or
+
+
+class Solution {
+     public int maximumRows(int[][] mat, int cols) {
+        boolean[] visited = new boolean[mat[0].length];
+        return solve(mat, cols, 0, 0, visited);
+    }
+    private static int solve(int[][] arr, int cols, int index, int curTotalPicked, boolean[] visited) {
+        if (index == arr[0].length) {
+            int count = 0;
+            for (int i = 0; i < arr.length; i++) {
+                boolean flag = true;
+                for (int j = 0; j < arr[0].length; j++) {
+                    if (arr[i][j] == 1) {
+                        if (!visited[j]) {
+                            flag = false;
+                        }
+                    }
+                }
+
+                if (flag) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        int pick = 0;
+        if (curTotalPicked < cols) {
+            visited[index] = true;
+            pick = solve(arr, cols, index + 1, curTotalPicked + 1, visited);
+            visited[index] = false;
+        }
+        int notPick = solve(arr, cols, index +1, curTotalPicked, visited);
+        return Math.max(pick, notPick);
+    }
+
+}
+
+
+or
+
+
+class Solution {
+    int result;
+    public int maximumRows(int[][] mat, int cols) {
+        int m = mat.length; // number of rows
+        int n = mat[0].length; // number of columns
+        result = -1;
+
+        // if cols is equal to number of columns andswer will be number of rows.
+        if(cols == n) return m;
+
+        // Map to store which column index covers which all rows having value 1.
+        Map<Integer, Set<Integer>> columnIndexToRowHavingOnes = new HashMap<>();
+
+        for(int i = 0; i < n; i++) columnIndexToRowHavingOnes.put(i, new HashSet<>());
+        for(int i = 0; i < m; i++){
+            for(int j = 0; j < n; j++){
+                if(mat[i][j] == 1) {
+                    Set<Integer> set = columnIndexToRowHavingOnes.get(j);
+                    set.add(i);
+                    columnIndexToRowHavingOnes.put(j, set);
+                }
+            }
+        }
+
+        getAnswer(0, new ArrayList<Integer>(), cols, columnIndexToRowHavingOnes, m, n);
+
+        return result;
+    }
+
+    // Backtracking function
+    private void getAnswer(int index, ArrayList<Integer> colChoosen, int cols, Map<Integer, Set<Integer>> columnIndexToRowHavingOnes, int m, int n){
+
+        // If we have chossed cols number of columns
+        if(colChoosen.size() == cols){
+            Set<Integer> rowNotCoveredByChoosenColumns = new HashSet<>();
+            // For each column
+            for(int i = 0; i < n; i++){
+                // find which all rows were missed which have value 1
+                if(!colChoosen.contains(i)){
+                    rowNotCoveredByChoosenColumns.addAll(columnIndexToRowHavingOnes.get(i));
+                }
+            }
+
+            result = Math.max(result, m - rowNotCoveredByChoosenColumns.size());
+            return;
+        }
+
+        if(index == n) return;
+
+        // pick the column
+        colChoosen.add(index);
+        getAnswer(index + 1, colChoosen, cols, columnIndexToRowHavingOnes, m, n);
+
+        // unpick the column
+        colChoosen.remove(colChoosen.size() - 1);
+        getAnswer(index + 1, colChoosen, cols, columnIndexToRowHavingOnes, m, n);
+
+    }
+}
+
+
+or
+
+
+class Solution {    
+    public int calculateNumberOfRows(int [][]mat,Set<Integer> cols){
+        int n=mat.length,m=mat[0].length;
+        int cnt=0;
+        int i,j;
+        for(i=0;i<n;i++){
+            for(j=0;j<m;j++) {
+                if(mat[i][j]==1 && !cols.contains(j)) break;
+            }
+            if(j==m) cnt+=1;
+        }
+        return cnt;
+    }
+    public int maximumRows(int[][] mat, int cols,Set<Integer> col,int colNum,int n) {
+        if(cols==0 ){
+            return calculateNumberOfRows(mat,col);            
+        }
+        if(colNum>=n) return Integer.MIN_VALUE;
+        
+        //pick
+        col.add(colNum);
+        int pick=maximumRows(mat,cols-1,col,colNum+1,n);        
+        col.remove(colNum);
+        
+        //not pick
+        int notPick=maximumRows(mat,cols,col,colNum+1,n);                
+        return Math.max(pick,notPick);
+    }
+    public int maximumRows(int[][] mat, int cols) {
+        Set<Integer> col=new HashSet<>();
+        return maximumRows(mat,cols,col,0,mat[0].length);
+    }
+}
