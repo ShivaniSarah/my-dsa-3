@@ -1,0 +1,236 @@
+https://leetcode.com/problems/split-array-into-fibonacci-sequence/description/
+
+842. Split Array into Fibonacci Sequence
+Medium
+Topics
+Companies
+You are given a string of digits num, such as "123456579". We can split it into a Fibonacci-like sequence [123, 456, 579].
+
+Formally, a Fibonacci-like sequence is a list f of non-negative integers such that:
+
+0 <= f[i] < 231, (that is, each integer fits in a 32-bit signed integer type),
+f.length >= 3, and
+f[i] + f[i + 1] == f[i + 2] for all 0 <= i < f.length - 2.
+Note that when splitting the string into pieces, each piece must not have extra leading zeroes, except if the piece is the number 0 itself.
+
+Return any Fibonacci-like sequence split from num, or return [] if it cannot be done.
+
+ 
+
+Example 1:
+
+Input: num = "1101111"
+Output: [11,0,11,11]
+Explanation: The output [110, 1, 111] would also be accepted.
+Example 2:
+
+Input: num = "112358130"
+Output: []
+Explanation: The task is impossible.
+Example 3:
+
+Input: num = "0123"
+Output: []
+Explanation: Leading zeroes are not allowed, so "01", "2", "3" is not valid.
+ 
+
+Constraints:
+
+1 <= num.length <= 200
+num contains only digits.
+
+
+
+# java
+
+
+class Solution {
+    public List<Integer> splitIntoFibonacci(String S) {
+        List<Integer> list = new ArrayList<Integer>();
+        if (S == null || S.length() == 0)
+            return list;
+        int length = S.length();
+        int firstMax = Math.min(length / 2, 10), secondMax = Math.min(length * 2 / 3, 20);
+        for (int i = 1; i <= firstMax; i++) {
+            if (i > 1 && S.charAt(0) == '0' || Long.parseLong(S.substring(0, i)) > Integer.MAX_VALUE)
+                break;
+            int secondMaxUpper = Math.min(secondMax, i + 11);
+            for (int j = i + 1; j <= secondMaxUpper; j++) {
+                List<Integer> splitIndices = new ArrayList<Integer>();
+                String firstNumStr = S.substring(0, i);
+                String secondNumStr = S.substring(i, j);
+                splitIndices.add(i);
+                splitIndices.add(j);
+                if (secondNumStr.length() > 1 && secondNumStr.charAt(0) == '0')
+                    break;
+                StringBuffer sb = new StringBuffer(firstNumStr + secondNumStr);
+                int prevIndex = j;
+                while (sb.length() < length) {
+                    long firstNum = Long.parseLong(firstNumStr);
+                    long secondNum = Long.parseLong(secondNumStr);
+                    long sum = firstNum + secondNum;
+                    if (sum > Integer.MAX_VALUE)
+                        break;
+                    String sumStr = String.valueOf(sum);
+                    sb.append(sumStr);
+                    int index = prevIndex + sumStr.length();
+                    if (index < length)
+                        splitIndices.add(index);
+                    prevIndex = index;
+                    firstNumStr = secondNumStr;
+                    secondNumStr = sumStr;
+                }
+                if (sb.toString().equals(S)) {
+                    int size = splitIndices.size();
+                    for (int k = size - 1; k >= 0; k--) {
+                        int splitIndex = splitIndices.get(k);
+                        sb.insert(splitIndex, ',');
+                    }
+                    String[] array = sb.toString().split(",");
+                    int sequenceLength = array.length;
+                    for (int k = 0; k < sequenceLength; k++)
+                        list.add(Integer.parseInt(array[k]));
+                    return list;
+                }
+            }
+        }
+        return list;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    List<Integer> result;
+
+public void traverse(List<Integer> current, String S, int prevIndex, int index) {
+    // 3. The sequence should has at least 3 elements
+	if( index == S.length() && current.size() > 2) 
+		result = new ArrayList<Integer>(current);
+	else{
+		for(int i = index; i < S.length(); i++) {
+		    // 1. Remove elements with leading zero
+			if( S.charAt(prevIndex) == '0' && i + 1 - prevIndex > 1 )
+				break;
+			
+			long longValue = Long.parseLong(S.substring(prevIndex, i + 1));
+			// 2. The element in the sequence should be at most Integer.MAX_VALUE
+			if( longValue > Integer.MAX_VALUE )
+				break;
+			int size = current.size();
+			if( current.size() < 2 ) {
+				current.add((int) longValue);
+				traverse(current, S, i + 1, i + 1);
+				// 5. If we find a valid sequence, stop backtracking
+				if( result != null )
+					break;
+				current.remove(current.size() - 1);   
+			}
+			else{
+				long sum = (long)current.get(size - 1) + (long)current.get(size - 2);
+				// 4. If current number is larger than the sum of previous two elements, stop backtracking
+				if( longValue > sum )
+					break;
+				else if( longValue < sum )
+					continue;
+				else {
+					current.add((int) longValue);
+					traverse(current, S, i + 1, i + 1);
+					if( result != null )
+						break;
+					current.remove(current.size() - 1);   
+				}
+			}
+		}
+	}
+}
+
+public List<Integer> splitIntoFibonacci(String S) {
+	List<Integer> current = new ArrayList<Integer>();
+	traverse(current, S, 0, 0);
+	return result != null ? result : new ArrayList<Integer>();
+}
+}
+
+
+or
+
+
+class Solution {
+    public List<Integer> splitIntoFibonacci(String num) {
+        List<Integer> list = new ArrayList<>();
+        dfs(num.toCharArray(), list, 0);
+        return list;
+    }
+    public boolean dfs(char[] digit, List<Integer> list, int index) {
+        if (index == digit.length && list.size() >= 3) {
+            return true;
+        }
+        for (int i = index; i < digit.length; i++) {
+            if (digit[index] == '0' && i > index) {
+                break;
+            }
+            long num = subDigit(digit, index, i + 1);
+            if (num > Integer.MAX_VALUE) {
+                break;
+            }
+            int size = list.size();
+            if (size >= 2 && num > list.get(size - 1) + list.get(size - 2)) {
+                break;
+            }
+            if (size <= 1 || num == list.get(size - 1) + list.get(size - 2)) {
+                list.add((int) num);
+                if (dfs(digit, list, i + 1))
+                    return true;
+                list.remove(list.size() - 1);
+            }
+        }
+        return false;
+    }
+    private long subDigit(char[] digit, int start, int end) {
+        long res = 0;
+        for (int i = start; i < end; i++) {
+            res = res * 10 + digit[i] - '0';
+        }
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution {
+    static boolean backtrack(String num, int index, List<Integer> result){
+        if(index== num.length() && result.size() >=3){
+            return true;
+        }
+        long numVal=0;
+        for(int i= index; i< num.length();i++){
+            if(i> index && num.charAt(index) =='0') break;
+            numVal= numVal * 10 + (num.charAt(i)-'0');
+            if(numVal > Integer.MAX_VALUE) break;
+            int size= result.size();
+            if(size >=2 && numVal > (long)result.get(size-1) +result.get(size-2)) break;
+            
+            if(size < 2 || numVal==(long)result.get(size-1)  + result.get(size-2)){
+                result.add((int)numVal);
+                if(backtrack(num,i+1, result)){
+                    return true;
+                }
+                result.remove(result.size()-1);
+            }
+        }
+        return false;
+    }
+
+        
+    public List<Integer> splitIntoFibonacci(String num) {
+       List<Integer> result = new ArrayList<>();
+        backtrack(num, 0, result);
+        return result; 
+    }
+}
