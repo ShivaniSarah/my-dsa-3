@@ -1,0 +1,251 @@
+https://leetcode.com/problems/ambiguous-coordinates/description/
+
+
+816. Ambiguous Coordinates
+Medium
+Topics
+Companies
+We had some 2-dimensional coordinates, like "(1, 3)" or "(2, 0.5)". Then, we removed all commas, decimal points, and spaces and ended up with the string s.
+
+For example, "(1, 3)" becomes s = "(13)" and "(2, 0.5)" becomes s = "(205)".
+Return a list of strings representing all possibilities for what our original coordinates could have been.
+
+Our original representation never had extraneous zeroes, so we never started with numbers like "00", "0.0", "0.00", "1.0", "001", "00.01", or any other number that can be represented with fewer digits. Also, a decimal point within a number never occurs without at least one digit occurring before it, so we never started with numbers like ".1".
+
+The final answer list can be returned in any order. All coordinates in the final answer have exactly one space between them (occurring after the comma.)
+
+ 
+
+Example 1:
+
+Input: s = "(123)"
+Output: ["(1, 2.3)","(1, 23)","(1.2, 3)","(12, 3)"]
+Example 2:
+
+Input: s = "(0123)"
+Output: ["(0, 1.23)","(0, 12.3)","(0, 123)","(0.1, 2.3)","(0.1, 23)","(0.12, 3)"]
+Explanation: 0.0, 00, 0001 or 00.01 are not allowed.
+Example 3:
+
+Input: s = "(00011)"
+Output: ["(0, 0.011)","(0.001, 1)"]
+ 
+
+Constraints:
+
+4 <= s.length <= 12
+s[0] == '(' and s[s.length - 1] == ')'.
+The rest of s are digits.
+
+
+
+# java
+
+class Solution { //aw
+    public List<String> ambiguousCoordinates(String S) {
+        List<String> ans = new ArrayList();
+        for (int i = 2; i < S.length()-1; ++i)
+            for (String left: make(S, 1, i))
+                for (String right: make(S, i, S.length()-1))
+                    ans.add("(" + left + ", " + right + ")");
+        return ans;
+    }
+
+    public List<String> make(String S, int i, int j) {
+        // Make on S.substring(i, j)
+        List<String> ans = new ArrayList();
+        for (int d = 1; d <= j-i; ++d) {
+            String left = S.substring(i, i+d);
+            String right = S.substring(i+d, j);
+            if ((!left.startsWith("0") || left.equals("0"))
+                    && !right.endsWith("0"))
+                ans.add(left + (d < j-i ? "." : "") + right);
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public List<String> ambiguousCoordinates(String s) {
+        char[] sc = s.toCharArray();
+        List<String> result = new ArrayList();
+        StringBuilder sb = new StringBuilder();
+        
+        // Loop through all possible index positions for the comma.
+        for (int commaPos = 2; commaPos < sc.length - 1; commaPos++) {
+            
+            // If first number if a valid integer without any decimal point.
+            if (isValidNum(sc, 1, commaPos - 1)) {
+                if (isValidNum(sc, commaPos, sc.length - 2))
+                    buildNums(result, sb, sc, 1, commaPos-1, 0, commaPos, sc.length-2, 0);
+                for (int dp2Idx = commaPos + 1; dp2Idx < sc.length - 1; dp2Idx++)
+                    if (isValidDPNum(sc, commaPos, sc.length - 2, dp2Idx))
+                        buildNums(result, sb, sc, 1, commaPos-1, 0, commaPos, sc.length-2, dp2Idx);
+            }
+            
+            // Check all possible decimal point positions for the first number.
+            for (int dp1Idx = 2; dp1Idx < commaPos; dp1Idx++) {
+                if (isValidDPNum(sc, 1, commaPos - 1, dp1Idx)) {
+                    if (isValidNum(sc, commaPos, sc.length - 2))
+                        buildNums(result, sb, sc, 1, commaPos-1, dp1Idx, commaPos, sc.length-2, 0);
+                    for (int dp2Idx = commaPos + 1; dp2Idx < sc.length - 1; dp2Idx++)
+                        if (isValidDPNum(sc, commaPos, sc.length - 2, dp2Idx))
+                            buildNums(result, sb, sc, 1, commaPos-1, dp1Idx, commaPos, sc.length-2, dp2Idx);
+                }
+            }
+        }
+        return result;
+    }
+    
+    
+    // Check if a number in the char[] array is a valid integer without any decimal point.
+    private boolean isValidNum(char[] sc, int startIdx, int lastIdx) {
+        if (sc[startIdx] == '0' && lastIdx - startIdx != 0)  return false;
+        return true;
+    }
+    
+    
+    // Check if a number in the char[] array is valid number with virtual decimal point at the specified index.
+    private boolean isValidDPNum(char[] sc, int startIdx, int lastIdx, int dpIdx) {
+        if ((sc[startIdx] == '0' && dpIdx - startIdx != 1) || sc[lastIdx] == '0')  return false;
+        return true;
+    }
+    
+    
+    // Build the result two number coordinate string and add to the List of results.
+    private void buildNums(List<String> result, StringBuilder sb, char[] sc, 
+                            int start1Idx, int last1Idx, int dp1Idx, 
+                            int start2Idx, int last2Idx, int dp2Idx) {
+        sb.setLength(0);
+        sb.append('(');
+        if (dp1Idx == 0)
+            sb.append(sc, start1Idx, last1Idx - start1Idx + 1);
+        else
+            sb.append(sc, start1Idx, dp1Idx - start1Idx).append('.').append(sc, dp1Idx, last1Idx - dp1Idx + 1);
+        sb.append(',').append(' ');
+        if (dp2Idx == 0)
+            sb.append(sc, start2Idx, last2Idx - start2Idx + 1);
+        else
+            sb.append(sc, start2Idx, dp2Idx - start2Idx).append('.').append(sc, dp2Idx, last2Idx - dp2Idx + 1);
+        sb.append(')');
+        result.add(sb.toString());
+    }
+}
+
+
+or
+
+
+class Solution {
+    private static final String ZERO = "0";
+
+public List<String> ambiguousCoordinates(String s) {
+	s = s.substring(1, s.length() - 1);
+	var n = s.length();
+	var coordinates = new ArrayList<String>();
+
+	for (var i = 1; i < n; i++)
+		backtrack(s.substring(0, i), s.substring(i), coordinates);
+
+	return coordinates;
+}
+
+private void backtrack(String x, String y, List<String> coordinates) {
+	var xCoordinates = putDecimal(x);
+	var yCoordinates = putDecimal(y);
+
+	for (var xCoordinate : xCoordinates) {
+		if (isInvalid(xCoordinate))
+			continue;
+
+		for (var yCoordinate : yCoordinates) {
+			if (isInvalid(yCoordinate))
+				continue;
+			coordinates.add("(%s, %s)".formatted(xCoordinate, yCoordinate));
+		}
+	}
+}
+
+private List<String> putDecimal(String s) {
+	var decimals = new ArrayList<>(List.of(s));
+
+	for (var i = 1; i < s.length(); i++)
+		decimals.add("%s.%s".formatted(s.substring(0, i), s.substring(i)));
+
+	return decimals;
+}
+
+private boolean isInvalid(String s) {
+	var decimalIndex = s.indexOf('.');
+
+	if (decimalIndex == -1)
+		return !s.equals(ZERO) && s.startsWith(ZERO);
+
+	var wholePart = s.substring(0, decimalIndex);
+	if (!wholePart.equals(ZERO) && wholePart.startsWith(ZERO))
+		return true;
+
+	var fractionPart = s.substring(decimalIndex + 1);
+	return fractionPart.endsWith(ZERO);
+}
+}
+
+
+or
+
+
+class Solution {
+    public List<String> ambiguousCoordinates(String s) {
+        List<String> result = new ArrayList<>();
+        s = s.substring(1, s.length() - 1);
+        for(int i = 1; i < s.length(); i++){
+            helper(result, s.substring(0, i), s.substring(i));
+        }
+        return result;
+    }
+    private void helper(List<String> result, String x, String y){
+        List<String> coordinatex = breakstring(x);
+        List<String> coordinatey = breakstring(y);
+        for(String dx : coordinatex){
+            if(valid(dx)){
+                for(String dy : coordinatey){
+                    if(valid(dy)){
+                        result.add("(" + dx + ", " + dy + ")");
+                    }
+                }
+            }
+        }
+    }
+    private List<String> breakstring(String x){
+        List<String> list = new ArrayList<>();
+        list.add(x);
+        for(int i = 1; i < x.length(); i++){
+            list.add(x.substring(0, i) + "." + x.substring(i));
+        }
+        return list;
+    }
+    private boolean valid(String s){
+        if(s.contains(".")){
+            String[] substring = s.split("\\.");
+            if(!substring[0].equals("0") && substring[0].startsWith("0")){
+                return false;
+            }
+            else{
+                return !substring[1].endsWith("0");
+            }
+        }
+        else{
+            if(s.equals("0")){
+                return true;
+            }
+            else{
+                return !s.startsWith("0");
+            }
+        }
+    }
+}
