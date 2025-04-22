@@ -1,0 +1,219 @@
+https://leetcode.com/problems/split-a-string-into-the-max-number-of-unique-substrings/description/
+
+
+1593. Split a String Into the Max Number of Unique Substrings
+Medium
+Topics
+Companies
+Hint
+Given a string s, return the maximum number of unique substrings that the given string can be split into.
+
+You can split string s into any list of non-empty substrings, where the concatenation of the substrings forms the original string. However, you must split the substrings such that all of them are unique.
+
+A substring is a contiguous sequence of characters within a string.
+
+ 
+
+Example 1:
+
+Input: s = "ababccc"
+Output: 5
+Explanation: One way to split maximally is ['a', 'b', 'ab', 'c', 'cc']. Splitting like ['a', 'b', 'a', 'b', 'c', 'cc'] is not valid as you have 'a' and 'b' multiple times.
+Example 2:
+
+Input: s = "aba"
+Output: 2
+Explanation: One way to split maximally is ['a', 'ba'].
+Example 3:
+
+Input: s = "aa"
+Output: 1
+Explanation: It is impossible to split the string any further.
+ 
+
+Constraints:
+
+1 <= s.length <= 16
+
+s contains only lower case English letters.
+
+
+
+# java
+
+
+class Solution {
+
+    public int maxUniqueSplit(String s) {
+        Set<String> seen = new HashSet<>();
+        return backtrack(s, 0, seen);
+    }
+
+    private int backtrack(String s, int start, Set<String> seen) {
+        // Base case: If we reach the end of the string, return 0 (no more substrings to add)
+        if (start == s.length()) return 0;
+
+        int maxCount = 0;
+
+        // Try every possible substring starting from 'start'
+        for (int end = start + 1; end <= s.length(); ++end) {
+            String substring = s.substring(start, end);
+            // If the substring is unique
+            if (!seen.contains(substring)) {
+                // Add the substring to the seen set
+                seen.add(substring);
+                // Recursively count unique substrings from the next position
+                maxCount = Math.max(maxCount, 1 + backtrack(s, end, seen));
+                // Backtrack: remove the substring from the seen set
+                seen.remove(substring);
+            }
+        }
+        return maxCount;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public int maxUniqueSplit(String s) {
+        Set<String> seen = new HashSet<>();
+        int[] maxCount = new int[1];
+        backtrack(s, 0, seen, 0, maxCount);
+        return maxCount[0];
+    }
+
+    private void backtrack(
+        String s,
+        int start,
+        Set<String> seen,
+        int count,
+        int[] maxCount
+    ) {
+        // Prune: If the current count plus remaining characters can't exceed maxCount, return
+        if (count + (s.length() - start) <= maxCount[0]) return;
+
+        // Base case: If we reach the end of the string, update maxCount
+        if (start == s.length()) {
+            maxCount[0] = Math.max(maxCount[0], count);
+            return;
+        }
+
+        // Try every possible substring starting from 'start'
+        for (int end = start + 1; end <= s.length(); ++end) {
+            String substring = s.substring(start, end);
+            // If the substring is unique
+            if (!seen.contains(substring)) {
+                // Add the substring to the seen set
+                seen.add(substring);
+                // Recursively count unique substrings from the next position
+                backtrack(s, end, seen, count + 1, maxCount);
+                // Backtrack: remove the substring from the seen set
+                seen.remove(substring);
+            }
+        }
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int maxUniqueSplit(String s) {
+        return backtrack(0, s, new HashSet<>());
+    }
+    private int backtrack(int start, String s, HashSet<String> seen) {
+        if (start == s.length()) {
+            return 0; 
+        }
+        int maxSplits = 0;
+        for (int end = start + 1; end <= s.length(); end++) {
+            String substring = s.substring(start, end);
+            if (!seen.contains(substring)) {
+                seen.add(substring); 
+                maxSplits = Math.max(maxSplits, 1 + backtrack(end, s, seen));
+                seen.remove(substring);
+            }
+        }
+        return maxSplits;
+    }
+}
+
+
+or
+
+
+import java.util.HashSet;
+import java.util.Set;
+
+class Solution {
+    // Main function to find the maximum number of unique substrings
+    public int maxUniqueSplit(String s) {
+        Set<String> seen = new HashSet<>();  // Set to store unique substrings
+        int[] maxCount = {0};  // Array to store the maximum count of unique substrings
+        
+        // Call the backtracking function to find the maximum count
+        backtrack(s, 0, seen, 0, maxCount);
+        
+        return maxCount[0];  // Return the final result
+    }
+
+    // Backtracking function to explore all possible splits
+    private void backtrack(String s, int start, Set<String> seen,
+                           int count, int[] maxCount) {
+        // Pruning: If the remaining characters plus current count can't exceed maxCount, return
+        if (count + (s.length() - start) <= maxCount[0]) return;
+
+        // Base case: If we've reached the end of the string
+        if (start == s.length()) {
+            maxCount[0] = Math.max(maxCount[0], count);  // Update maxCount if necessary
+            return;
+        }
+
+        // Try all possible substrings starting from 'start'
+        for (int end = start + 1; end <= s.length(); ++end) {
+            String substring = s.substring(start, end);  // Extract substring
+            
+            // If the substring is not in the set (i.e., it's unique)
+            if (!seen.contains(substring)) {
+                seen.add(substring);  // Add the substring to the set
+                
+                // Recursively call backtrack with updated parameters
+                backtrack(s, end, seen, count + 1, maxCount);
+                
+                seen.remove(substring);  // Remove the substring from the set (backtracking)
+            }
+        }
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    int max = 0;
+    public int maxUniqueSplit(String s) {
+        int n = s.length();
+        backtrack(s, 0, new HashSet<String>());
+        return max;
+    }
+    public void backtrack(String s, int start, Set<String> h) {
+        if(start == s.length()) {
+            max = Math.max(max, h.size());
+        }
+        String res = "";
+        
+        for(int i = start;i < s.length();i++) {
+            res += s.charAt(i);
+            if(h.contains(res)) continue;
+            h.add(res);
+            backtrack(s, i+1, h);
+            h.remove(res);
+        }
+    }
+}
