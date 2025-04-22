@@ -1,0 +1,198 @@
+https://leetcode.com/problems/maximum-length-of-a-concatenated-string-with-unique-characters/description/
+
+1239. Maximum Length of a Concatenated String with Unique Characters
+Medium
+Topics
+Companies
+Hint
+You are given an array of strings arr. A string s is formed by the concatenation of a subsequence of arr that has unique characters.
+
+Return the maximum possible length of s.
+
+A subsequence is an array that can be derived from another array by deleting some or no elements without changing the order of the remaining elements.
+
+ 
+
+Example 1:
+
+Input: arr = ["un","iq","ue"]
+Output: 4
+Explanation: All the valid concatenations are:
+- ""
+- "un"
+- "iq"
+- "ue"
+- "uniq" ("un" + "iq")
+- "ique" ("iq" + "ue")
+Maximum length is 4.
+Example 2:
+
+Input: arr = ["cha","r","act","ers"]
+Output: 6
+Explanation: Possible longest valid concatenations are "chaers" ("cha" + "ers") and "acters" ("act" + "ers").
+Example 3:
+
+Input: arr = ["abcdefghijklmnopqrstuvwxyz"]
+Output: 26
+Explanation: The only string in arr has all 26 characters.
+ 
+
+Constraints:
+
+1 <= arr.length <= 16
+1 <= arr[i].length <= 26
+arr[i] contains only lowercase English letters.
+
+
+
+# java
+
+class Solution {
+    public int maxLength(List<String> arr) {
+        List<Integer> dp = new ArrayList<>();
+        dp.add(0);
+        int res = 0;
+        for (String s : arr) {
+            int a = 0, dup = 0;
+            for (char c : s.toCharArray()) {
+                dup |= a & (1 << (c - 'a'));
+                a |= 1 << (c - 'a');
+            }
+            if (dup > 0)    continue;
+            for (int i = dp.size() - 1; i >= 0; i--) {
+                if ((dp.get(i) & a) > 0) continue;
+                dp.add(dp.get(i) | a);
+                res = Math.max(res, Integer.bitCount(dp.get(i) | a));
+            }
+            
+        }
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution {
+    private int result = 0;
+    public int maxLength(List<String> arr) {
+            if (arr == null || arr.size() == 0)    return 0;
+
+        dfs(arr, "", 0);
+        return result;
+    }
+
+    private void dfs(List<String> arr, String path, int idx) {
+        boolean isUniqueChar = isUniqueChars(path);
+
+        if (isUniqueChar) {
+        result = Math.max(path.length(), result);
+        }
+
+        if (idx == arr.size() || !isUniqueChar) {
+        return;
+        }
+
+        for (int i = idx; i < arr.size(); i++) {
+        dfs(arr, path + arr.get(i), i + 1);
+        }
+
+    }
+
+    private boolean isUniqueChars(String s) {
+        Set<Character> set = new HashSet<>();
+        for (char c : s.toCharArray()) {
+        if (set.contains(c)) {
+            return false;
+        }
+        set.add(c);
+        }
+        return true;
+    }
+}
+
+
+or
+
+
+class Solution {
+    int max =0;
+    public int maxLength(List<String> arr) {
+        backTrack(arr,"",0);
+        return max;
+    }
+    
+    private void backTrack(List<String> arr, String current, int start){
+        if(max<current.length())
+            max =current.length();
+        for(int i=start; i<arr.size();i++){
+            if(!isValid(current,arr.get(i))) continue;
+            backTrack(arr,current+arr.get(i),i+1);
+        }
+    }
+    
+    private boolean isValid(String currentString, String newString){
+        int[] array = new int[26];
+        for(int i=0;i<newString.length();i++){
+            if(++array[newString.charAt(i)-'a'] == 2) return false;  //to handle if the newString has duplicates then it's not valid
+            if(currentString.contains(newString.charAt(i)+"")) // check if the currentString contains each char from newString
+                return false;
+        }
+        return true;
+    }
+}
+
+
+or
+
+
+
+
+// create a list to store all the combination of word formed by concatenation, also include the string of arr
+
+// Before adding a string in the list check if the string has unique characters or not 
+
+// Keep track of the maxLength concatenated string added in the list
+
+class Solution {
+    
+    // check duplicacy
+    
+    private boolean checkUnique(String x)
+    {
+        int[] fq=new int[26];
+        
+        for(char c:x.toCharArray())
+        {
+            if(++fq[c-'a']>1)
+                return false;
+        }
+        return true;
+    }
+    
+    public int maxLength(List<String> arr) 
+    {
+        List<String> list=new ArrayList<>();
+        int ans=0;
+        for(String str:arr)
+        {
+            List<String> tmp=new ArrayList<>();
+            if(!checkUnique(str))
+                continue;
+            tmp.add(str); // store all combination of strings formed
+            ans=Math.max(ans,str.length());
+            for(String s:list)
+            {
+                String cur=s+str;  // combination
+                if(checkUnique(cur))
+                {
+                    tmp.add(cur);
+                    ans=Math.max(ans,cur.length());
+                }
+            }
+            list.addAll(tmp);  // Main list  
+        }
+        return ans;
+    }
+}
