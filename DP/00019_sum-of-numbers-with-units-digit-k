@@ -1,0 +1,211 @@
+https://leetcode.com/problems/sum-of-numbers-with-units-digit-k/
+
+2310. Sum of Numbers With Units Digit K
+Medium
+Topics
+Companies
+Hint
+Given two integers num and k, consider a set of positive integers with the following properties:
+
+The units digit of each integer is k.
+The sum of the integers is num.
+Return the minimum possible size of such a set, or -1 if no such set exists.
+
+Note:
+
+The set can contain multiple instances of the same integer, and the sum of an empty set is considered 0.
+The units digit of a number is the rightmost digit of the number.
+ 
+
+Example 1:
+
+Input: num = 58, k = 9
+Output: 2
+Explanation:
+One valid set is [9,49], as the sum is 58 and each integer has a units digit of 9.
+Another valid set is [19,39].
+It can be shown that 2 is the minimum possible size of a valid set.
+Example 2:
+
+Input: num = 37, k = 2
+Output: -1
+Explanation: It is not possible to obtain a sum of 37 using only integers that have a units digit of 2.
+Example 3:
+
+Input: num = 0, k = 7
+Output: 0
+Explanation: The sum of an empty set is considered 0.
+ 
+
+Constraints:
+
+0 <= num <= 3000
+0 <= k <= 9
+
+
+
+# java
+
+
+class Solution {
+    public int minimumNumbers(int num, int k) {
+        List<Integer> list = new ArrayList<>();
+        
+        if(num == 0){
+            return 0;
+        }
+        
+        //create the list of all possiblities
+        while(k<=num){
+            if(k!=0)list.add(k);
+            k+=10;
+        }
+        
+        //dp
+        int[][] dp = new int[num+1][list.size()];
+        
+        for(int[] arr:dp){
+            Arrays.fill(arr,-1);
+        }
+        
+        return getMin(num,list,0,0,dp) == Integer.MAX_VALUE ? -1 : getMin(num,list,0,0,dp);
+        
+    }
+    
+    
+    public int getMin(int num,List<Integer> list,int ind,int step,int dp[][]){
+        if(num == 0){
+            return step;
+        }
+        
+        if(num < 0 || ind > list.size() - 1){
+            return Integer.MAX_VALUE;
+        }
+        
+        if(dp[num][ind] != -1){
+            return dp[num][ind];
+        }
+        
+        //if index taken then step+=1 and index will be the same
+        int take = getMin(num-list.get(ind),list,ind,step+1,dp);
+        //if index not taken ind+=1 but step remains same
+        int notTake = getMin(num,list,ind+1,step,dp);
+        
+        return dp[num][ind] = Math.min(take,notTake);
+    }
+}
+
+
+or
+
+
+// DP
+class Solution {
+    public int minimumNumbers(int num, int k) {
+        if (num == 0)
+            return 0;
+        
+        ArrayList<Integer> nums = new ArrayList<>();
+        while (k <= num) {
+            nums.add(k);
+            k += 10;
+        }
+        
+        int minimum = helper(nums, num);
+        return minimum == Integer.MAX_VALUE ? -1 : minimum;
+    }
+    
+    private int helper(ArrayList<Integer> nums, int num) {
+        // store the minimum possible size of a valid set to get the value(idx)
+        int[] aux = new int[num + 1]; 
+        Arrays.fill(aux, Integer.MAX_VALUE);
+        aux[0] = 0;
+        
+        for (int i = 1; i < num + 1; i++) {
+            for (Integer number : nums) {
+                if (number <= i && aux[i - number] != Integer.MAX_VALUE)
+                    aux[i] = Math.min(aux[i], aux[i - number] + 1);
+            }
+        }
+        
+        return aux[num];
+    }
+    
+}
+
+
+
+or
+
+class Solution {
+    public int minimumNumbers(int num, int k) {
+        if (num == 0)
+            return 0;
+        
+        if (k == 0) {
+            if (num % 10 != 0)
+                return -1;
+            
+            return 1;
+        }
+        
+        HashMap<Integer, Integer> cache = new HashMap<>();
+        int res = helper(cache, num, k);
+        return res == Integer.MAX_VALUE ? -1 : res;
+    }
+    
+    // dfs
+    private int helper(HashMap<Integer, Integer> cache, int num, int k) {
+        if (num == 0) {
+            return 0;
+        }
+        
+        if (num < 10 && num < k) {
+            return Integer.MAX_VALUE;
+        }
+        
+        if (cache.containsKey(num))
+            return cache.get(num);
+        
+        int minimum = Integer.MAX_VALUE;
+        while (k <= num) {
+            num -= k;
+            int value = helper(cache, num, k);
+            minimum = Math.min(value == Integer.MAX_VALUE ? value : value + 1, minimum);
+            num += k; // backtrack
+            k += 10; // try each integer has a units digit of k
+        }
+        cache.put(num, minimum); // memorization
+        
+        return minimum;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int minimumNumbers(int num, int k) {
+        if(num==0){
+            return num;
+        }else if(num<k){
+            return -1;
+        }
+
+        int ud = num%10;
+        for(int i=1; i<=10; i++){
+            int res = (i*k)%10;
+            if(res == ud){
+                if(k*i>num){
+                    return -1;
+                }
+                return i;
+            }
+        }
+        return -1;
+
+    }
+}
