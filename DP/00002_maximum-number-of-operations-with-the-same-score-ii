@@ -1,0 +1,243 @@
+https://leetcode.com/problems/maximum-number-of-operations-with-the-same-score-ii/description/
+
+
+3040. Maximum Number of Operations With the Same Score II
+Medium
+Topics
+Companies
+Hint
+Given an array of integers called nums, you can perform any of the following operation while nums contains at least 2 elements:
+
+Choose the first two elements of nums and delete them.
+Choose the last two elements of nums and delete them.
+Choose the first and the last elements of nums and delete them.
+The score of the operation is the sum of the deleted elements.
+
+Your task is to find the maximum number of operations that can be performed, such that all operations have the same score.
+
+Return the maximum number of operations possible that satisfy the condition mentioned above.
+
+ 
+
+Example 1:
+
+Input: nums = [3,2,1,2,3,4]
+Output: 3
+Explanation: We perform the following operations:
+- Delete the first two elements, with score 3 + 2 = 5, nums = [1,2,3,4].
+- Delete the first and the last elements, with score 1 + 4 = 5, nums = [2,3].
+- Delete the first and the last elements, with score 2 + 3 = 5, nums = [].
+We are unable to perform any more operations as nums is empty.
+Example 2:
+
+Input: nums = [3,2,6,1,4]
+Output: 2
+Explanation: We perform the following operations:
+- Delete the first two elements, with score 3 + 2 = 5, nums = [6,1,4].
+- Delete the last two elements, with score 1 + 4 = 5, nums = [6].
+It can be proven that we can perform at most 2 operations.
+ 
+
+Constraints:
+
+2 <= nums.length <= 2000
+1 <= nums[i] <= 1000
+
+
+# java
+
+
+class Solution {
+  public int maxOperations(int[] nums) {
+    final int n = nums.length;
+    Map<String, Integer> mem = new HashMap<>();
+    return Math.max(Math.max(maxOperations(nums, 0, n - 1, nums[0] + nums[1], mem),
+                             maxOperations(nums, 0, n - 1, nums[n - 1] + nums[n - 2], mem)),
+                    maxOperations(nums, 0, n - 1, nums[0] + nums[n - 1], mem));
+  }
+
+  // Returns the maximum number of operations that can be performed for
+  // nums[i..j], s.t. all operations have the same `score`.
+  private int maxOperations(int[] nums, int i, int j, int score, Map<String, Integer> mem) {
+    if (i >= j)
+      return 0;
+    final String key = hash(i, j, score);
+    if (mem.containsKey(key))
+      return mem.get(key);
+    final int deleteFirstTwo =
+        nums[i] + nums[i + 1] == score ? 1 + maxOperations(nums, i + 2, j, score, mem) : 0;
+    final int deleteLastTwo =
+        nums[j] + nums[j - 1] == score ? 1 + maxOperations(nums, i, j - 2, score, mem) : 0;
+    final int deleteFirstAndLast =
+        nums[i] + nums[j] == score ? 1 + maxOperations(nums, i + 1, j - 1, score, mem) : 0;
+    mem.put(key, Math.max(Math.max(deleteFirstTwo, deleteLastTwo), deleteFirstAndLast));
+    return mem.get(key);
+  }
+
+  private String hash(int i, int j, int score) {
+    return i + "," + j + "," + score;
+  }
+}
+
+
+or
+
+
+class Solution {
+    private Integer[][] f;
+    private int[] nums;
+    private int s;
+    private int n;
+
+    public int maxOperations(int[] nums) {
+        this.nums = nums;
+        n = nums.length;
+        int a = g(2, n - 1, nums[0] + nums[1]);
+        int b = g(0, n - 3, nums[n - 2] + nums[n - 1]);
+        int c = g(1, n - 2, nums[0] + nums[n - 1]);
+        return 1 + Math.max(a, Math.max(b, c));
+    }
+
+    private int g(int i, int j, int s) {
+        f = new Integer[n][n];
+        this.s = s;
+        return dfs(i, j);
+    }
+
+    private int dfs(int i, int j) {
+        if (j - i < 1) {
+            return 0;
+        }
+        if (f[i][j] != null) {
+            return f[i][j];
+        }
+        int ans = 0;
+        if (nums[i] + nums[i + 1] == s) {
+            ans = Math.max(ans, 1 + dfs(i + 2, j));
+        }
+        if (nums[i] + nums[j] == s) {
+            ans = Math.max(ans, 1 + dfs(i + 1, j - 1));
+        }
+        if (nums[j - 1] + nums[j] == s) {
+            ans = Math.max(ans, 1 + dfs(i, j - 2));
+        }
+        return f[i][j] = ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int maxOperations(int[] nums) {
+        int maxOperations = 0;
+        int len = nums.length;
+        int[][] memoization = new int[len][len];
+        int start = 0;
+        int end = len - 1;
+
+        maxOperations = Math.max(maxOperations,
+                findMaxOpsHelper(nums, start + 2, end, nums[start] + nums[start + 1], memoization) + 1);
+        maxOperations = Math.max(maxOperations,
+                findMaxOpsHelper(nums, start + 1, end - 1, nums[start] + nums[end], memoization) + 1);
+        maxOperations = Math.max(maxOperations,
+                findMaxOpsHelper(nums, start, end - 2, nums[end] + nums[end - 1], memoization) + 1);
+
+        return maxOperations;
+    }
+
+    private int findMaxOpsHelper(int[] nums, int left, int right, int previousSum, int[][] memoization) {
+        if (left >= right)
+            return 0;
+        if (memoization[left][right] != 0)
+            return memoization[left][right];
+
+        int maxOps = 0;
+        if (nums[left] + nums[left + 1] == previousSum)
+            maxOps = Math.max(maxOps, findMaxOpsHelper(nums, left + 2, right, previousSum, memoization) + 1);
+        if (nums[left] + nums[right] == previousSum)
+            maxOps = Math.max(maxOps, findMaxOpsHelper(nums, left + 1, right - 1, previousSum, memoization) + 1);
+        if (nums[right] + nums[right - 1] == previousSum)
+            maxOps = Math.max(maxOps, findMaxOpsHelper(nums, left, right - 2, previousSum, memoization) + 1);
+
+        return memoization[left][right] = maxOps;
+    }
+}
+
+
+or
+
+
+class Solution {
+    int[][] dp;
+
+    public int maxOperations(int[] nums) {
+        int n = nums.length;
+        dp = new int[n][n];
+        for (int[] row : dp) {
+            Arrays.fill(row, -1);
+        }
+        int ans = 0;
+
+        ans = Math.max(ans, 1 + func(2, n - 1, nums, nums[0] + nums[1]));
+        ans = Math.max(ans, 1 + func(0, n - 3, nums, nums[n - 1] + nums[n - 2]));
+        ans = Math.max(ans, 1 + func(1, n - 2, nums, nums[0] + nums[n - 1]));
+
+        return ans;
+    }
+
+    private int func(int l, int r, int[] nums, int num) {
+        if (l >= r)
+            return 0;
+        if (dp[l][r] != -1)
+            return dp[l][r];
+
+        int ans = 0;
+        if (nums[l] + nums[l + 1] == num) {
+            ans = Math.max(ans, 1 + func(l + 2, r, nums, num));
+        }
+        if (nums[r] + nums[r - 1] == num) {
+            ans = Math.max(ans, 1 + func(l, r - 2, nums, num));
+        }
+        if (nums[l] + nums[r] == num) {
+            ans = Math.max(ans, 1 + func(l + 1, r - 1, nums, num));
+        }
+
+        return dp[l][r] = ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+       public int maxOperations(int[] nums) {
+        int max = 0, n = nums.length;
+        for (int score : new HashSet<>(List.of(nums[0] + nums[1], nums[0] + nums[n - 1], nums[n - 2] + nums[n - 1]))) {
+            max = Math.max(max, dfs(nums, 0, n - 1, score, new HashMap<String, Integer>()));
+        }
+        return max;
+    }
+    private int dfs(int[] nums, int lo, int hi, int score, Map<String, Integer> cache) {
+        if (hi <= lo) {
+            return 0;
+        }
+        String key = lo + ", " + hi;
+        if (!cache.containsKey(key)) {
+            int max = 0;
+            if (score == nums[lo] + nums[lo + 1]) {
+                max = Math.max(max, 1 + dfs(nums, lo + 2, hi, score, cache));
+            }
+            if (score == nums[lo] + nums[hi]) {
+                max = Math.max(max, 1 + dfs(nums, lo + 1, hi - 1, score, cache));
+            }
+            if (score == nums[hi - 1] + nums[hi]) {
+                max = Math.max(max, 1 + dfs(nums, lo, hi - 2, score, cache));
+            }
+            cache.put(key, max);
+        }
+        return cache.get(key);
+    }
+}
