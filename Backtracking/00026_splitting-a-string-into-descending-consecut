@@ -1,0 +1,241 @@
+https://leetcode.com/problems/splitting-a-string-into-descending-consecutive-values/description/
+
+
+1849. Splitting a String Into Descending Consecutive Values
+Medium
+Topics
+Companies
+Hint
+You are given a string s that consists of only digits.
+
+Check if we can split s into two or more non-empty substrings such that the numerical values of the substrings are in descending order and the difference between numerical values of every two adjacent substrings is equal to 1.
+
+For example, the string s = "0090089" can be split into ["0090", "089"] with numerical values [90,89]. The values are in descending order and adjacent values differ by 1, so this way is valid.
+Another example, the string s = "001" can be split into ["0", "01"], ["00", "1"], or ["0", "0", "1"]. However all the ways are invalid because they have numerical values [0,1], [0,1], and [0,0,1] respectively, all of which are not in descending order.
+Return true if it is possible to split s​​​​​​ as described above, or false otherwise.
+
+A substring is a contiguous sequence of characters in a string.
+
+ 
+
+Example 1:
+
+Input: s = "1234"
+Output: false
+Explanation: There is no valid way to split s.
+Example 2:
+
+Input: s = "050043"
+Output: true
+Explanation: s can be split into ["05", "004", "3"] with numerical values [5,4,3].
+The values are in descending order with adjacent values differing by 1.
+Example 3:
+
+Input: s = "9080701"
+Output: false
+Explanation: There is no valid way to split s.
+ 
+
+Constraints:
+
+1 <= s.length <= 20
+s only consists of digits.
+
+
+
+# java
+
+
+class Solution {
+    public boolean splitString(String s) {
+	// we are only making s.length()/2 hops becase we only want min 2 parts of string
+        for(int i = 1; i <= (s.length() / 2)+1; i++){
+            int index = 0, width = i; 
+            Long prev = Long.MAX_VALUE;
+            while(index < s.length()){ 
+				
+				// checking if 100 then next time find 2 digit number so width-1
+                long ten = (long)Math.pow ( 10, i-1); 
+                if(i > 1 && prev == ten) width--;
+				
+                String next = getDigit(index, s, width);
+                long val = Long.parseLong(next);
+				
+                if(index != 0 && prev - val != 1) break; // 
+                
+                index += next.length();
+				// If it is not the first values && we hopped till end then return true;
+                if(prev != Long.MAX_VALUE && index >= s.length()) return true;
+                prev = val;
+            }
+        }
+        return false;
+    }
+    
+	// This function simply returns the next len digit number starting from i index of string
+	// getDigit(2,"090087",1) -> 8
+    public String getDigit(int i, String s, int len){
+        int digits = 0;
+        int j = i;
+        while(j < s.length() && s.charAt(j) == '0') j++;
+        return s.substring(i, Math.min(j+len, s.length()));
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public boolean splitString(String s) {
+        if (s == null || s.length()<=1) return false;
+        return backtrack(0, s, new ArrayList<Long>());
+    }
+    
+    public boolean backtrack(int pos, String s, ArrayList<Long> list) {
+		// Base case where we reach till end of string and we have atleast 2 parts
+        if (pos >= s.length()) return list.size() >= 2; 
+
+        long num = 0;
+        for (int i=pos; i<s.length(); i++) {
+            num = num*10 + (s.charAt(i)-'0'); // "070" i = 1 -> 0.. i = 2 -> 7.. i =3 -> 70 
+            if (list.size()==0 || list.get(list.size()-1) - num == 1) { // if it is first digit or difference is +1 valid
+                
+                list.add(num);  // add the number and continue to next index
+                if (backtrack(i+1, s, list)) return true;
+                list.remove(list.size()-1); // backtrack, done with that itteration coun't find it
+                
+            }
+        }
+        return false;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public boolean splitString(String s) {
+        return backTrack( s , 0, -1, 0 );
+    }
+    
+    public boolean backTrack( String s, int index, long prevNumber, int count )
+    {
+        if( index >= s.length() )
+        {
+            if( count >= 2) 
+                return true;
+            return false;
+        }
+        
+        long currNo=0;
+        for( int i = index; i < s.length() ;i++ )
+        {
+            currNo = currNo*10+(s.charAt(i)-'0');
+            if( prevNumber == -1 || ( prevNumber - currNo ) == 1 )
+                if( backTrack( s,i+1,currNo, count+1) )
+                    return true;
+        }
+    return false;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public boolean splitString(String s) {
+        return backTrack( s , 0, new LinkedList() );
+    }
+    
+    public boolean backTrack( String s, int index, LinkedList<Long> cList )
+    {
+        if( index >= s.length() )
+        {
+            if( cList.size() >= 2) 
+                return true;
+            return false;
+        }
+        
+        long currNo=0;
+        for( int i = index; i < s.length() ;i++ )
+        {
+            long lastNumber = cList.size() > 0 ? cList.getLast() :-1;
+            currNo = currNo*10+(s.charAt(i)-'0');
+            if( lastNumber == -1 || ( lastNumber - currNo ) == 1 )
+            {
+                cList.add( currNo);
+                if( backTrack( s,i+1,cList) )
+                    return true;
+                cList.removeLast();
+            }
+        }
+    return false;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public boolean splitString(String s) {
+        long num = 0;
+        for(int i = 0; i < s.length() - 1; i++){
+            num = num * 10 + (int)(s.charAt(i) - '0');
+            if(canSplitString(s, i+1, num - 1))
+                return true;
+        }
+        return false;
+    }
+
+    private boolean canSplitString(String s, int index, long nextVal){
+        if(index == s.length())
+            return true;
+        long num = 0;
+        for(int i = index; i < s.length(); i++){
+            num = num * 10 + (int)(s.charAt(i) - '0');
+            if(num == nextVal) 
+                return canSplitString(s, i+1, nextVal == 0? 0 : nextVal - 1);
+            if(num > nextVal)
+                break;
+        }
+        return false;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public boolean splitString(String s) {
+        
+     for(int i = 0; i < s.length()-1; i++){ // needs to be split to atleast two partions so iterating up until len - 1
+         Double  val = Double.parseDouble(s.substring(0, i+1));
+
+        if(dfs(i+1, s, val)) // for each partition size check the other remaining string with varying partition
+            return true;
+     }
+     return false;
+    }
+
+    public boolean dfs(int index, String s, Double prev){
+
+        if(index == s.length())
+            return true;
+
+        for(int j = index ;j < s.length(); j++) {
+             Double  val = Double.parseDouble(s.substring(index, j+1));
+             if(prev == val+1 && dfs(j+1, s, val) ){
+                 return true;
+             }
+        }
+    return false;
+    }
+}
