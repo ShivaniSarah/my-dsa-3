@@ -1,0 +1,167 @@
+https://leetcode.com/problems/disconnect-path-in-a-binary-matrix-by-at-most-one-flip/
+
+
+2556. Disconnect Path in a Binary Matrix by at Most One Flip
+Medium
+Topics
+Companies
+Hint
+You are given a 0-indexed m x n binary matrix grid. You can move from a cell (row, col) to any of the cells (row + 1, col) or (row, col + 1) that has the value 1. The matrix is disconnected if there is no path from (0, 0) to (m - 1, n - 1).
+
+You can flip the value of at most one (possibly none) cell. You cannot flip the cells (0, 0) and (m - 1, n - 1).
+
+Return true if it is possible to make the matrix disconnect or false otherwise.
+
+Note that flipping a cell changes its value from 0 to 1 or from 1 to 0.
+
+ 
+
+Example 1:
+
+
+Input: grid = [[1,1,1],[1,0,0],[1,1,1]]
+Output: true
+Explanation: We can change the cell shown in the diagram above. There is no path from (0, 0) to (2, 2) in the resulting grid.
+Example 2:
+
+
+Input: grid = [[1,1,1],[1,0,1],[1,1,1]]
+Output: false
+Explanation: It is not possible to change at most one cell such that there is not path from (0, 0) to (2, 2).
+ 
+
+Constraints:
+
+m == grid.length
+n == grid[i].length
+1 <= m, n <= 1000
+1 <= m * n <= 105
+grid[i][j] is either 0 or 1.
+grid[0][0] == grid[m - 1][n - 1] == 1
+
+
+
+# java
+
+
+class Solution {
+    public boolean isPossibleToCutPath(int[][] grid) {
+        int first=dfs(grid,0,0);
+        grid[0][0]=1; //reset for 2nd dfs() as got updated above
+        int second=dfs(grid,0,0);
+        return second >= 1 ? false : true;
+    }
+    
+    private int dfs(int[][] g, int r, int c) {
+        if(r == g.length-1 && c == g[0].length-1)
+            return 1;
+        if(r == g.length || c == g[0].length || g[r][c] == 0)
+            return 0;
+        
+        g[r][c]=0;
+        if(dfs(g,r+1,c) == 1)
+            return 1;
+        return dfs(g,r,c+1);
+    }
+}
+
+or
+
+
+class Solution {
+    public boolean isPossibleToCutPath(int[][] a) {
+        int m = a.length, n = a[0].length;
+        boolean [][]vis1 = new boolean[m+2][n+2];
+        boolean [][]vis2 = new boolean[m+2][n+2];
+        vis1[0][1] = true;
+        vis2[m+1][n] = true;
+        int []cnt = new int[m+n];
+        for (int i = 1; i <= m; ++i) {
+            for (int j = 1; j <= n; ++j) {
+                vis1[i][j] = a[i-1][j-1] == 1 && (vis1[i-1][j] || vis1[i][j-1]);
+            }
+        }
+        for (int i = m; i >= 1; --i) {
+            for (int j = n; j >= 1; --j) {
+                vis2[i][j] = a[i-1][j-1] == 1 && (vis2[i+1][j] || vis2[i][j+1]);
+                if (vis1[i][j] && vis2[i][j]) cnt[i+j-2]++;
+            }
+        }
+        for (int i = 1; i < m+n-2; ++i) {
+            if (cnt[i] <= 1) return true;
+        }
+        return false;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public boolean isPossibleToCutPath(int[][] grid) {
+        // check if path exists
+        if (!isReachable(grid, 0, 0)) {
+            return true;    // if not, return true
+        }
+
+        // we have set the first path that the DFS travelled to all 0s
+        grid[0][0] = 1; // starting point needs to be a 1
+        // check if any more paths exists or not
+        if (!isReachable(grid, 0, 0)) {
+            return true;    // if not, return true
+        }
+        
+        // otherwise we have learned, 1 flip isn't sufficient
+        // so matrix can't be disconnected
+        return false;
+    }
+
+    private boolean isReachable(int[][] grid, int i, int j) {
+        // end point is last cell of last row and column
+        if (i == grid.length - 1 && j == grid[0].length - 1) {
+            return true;    // reached the end point, return true
+        }
+        // moved out of bounds, or encountered a 0 means path is blocked
+        if (i >= grid.length || j >= grid[0].length || grid[i][j] == 0) {
+            return false;   // con't move so return false
+        }
+        grid[i][j] = 0; // block the path
+        // move down, move right, Either or both can reach the end point
+        return isReachable(grid, i + 1, j) || isReachable(grid, i, j + 1);
+    }
+}
+
+
+or
+
+
+class Solution {
+    public boolean isPossibleToCutPath(int[][] grid) {
+        if (!isReachable(grid, 0, 0)) {
+            return true;   
+        }
+        grid[0][0] = 1; 
+        if (!isReachable(grid, 0, 0)) {
+            return true; 
+        }
+
+        return false;
+    }
+
+    private boolean isReachable(int[][] grid, int i, int j) {
+        if (i == grid.length - 1 && j == grid[0].length - 1) {
+            return true;    
+        }
+        if (i >= grid.length || j >= grid[0].length || grid[i][j] == 0) {
+            return false;   
+        }
+        grid[i][j] = 0;
+        return isReachable(grid, i + 1, j) || isReachable(grid, i, j + 1);
+    }
+}
+
+
+or
+
+
