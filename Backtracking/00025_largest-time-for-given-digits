@@ -1,0 +1,209 @@
+https://leetcode.com/problems/largest-time-for-given-digits/description/
+
+
+949. Largest Time for Given Digits
+Medium
+Topics
+Companies
+Given an array arr of 4 digits, find the latest 24-hour time that can be made using each digit exactly once.
+
+24-hour times are formatted as "HH:MM", where HH is between 00 and 23, and MM is between 00 and 59. The earliest 24-hour time is 00:00, and the latest is 23:59.
+
+Return the latest 24-hour time in "HH:MM" format. If no valid time can be made, return an empty string.
+
+ 
+
+Example 1:
+
+Input: arr = [1,2,3,4]
+Output: "23:41"
+Explanation: The valid 24-hour times are "12:34", "12:43", "13:24", "13:42", "14:23", "14:32", "21:34", "21:43", "23:14", and "23:41". Of these times, "23:41" is the latest.
+Example 2:
+
+Input: arr = [5,5,5,5]
+Output: ""
+Explanation: There are no valid 24-hour times as "55:55" is not valid.
+ 
+
+Constraints:
+
+arr.length == 4
+0 <= arr[i] <= 9
+
+
+
+# java
+
+class Solution {
+    private boolean rearrange(int maxValue,int index,int[] a){
+        int max = -1;
+		
+        for(int i = index; i<a.length;i++) if(a[i]<=maxValue && (max==-1 || a[max]<a[i])) max = i;
+        if(max==-1) return false;
+
+        int temp = a[max];
+        a[max] = a[index];
+        a[index] = temp;
+        return true;
+    }
+    public String largestTimeFromDigits(int[] a) {
+        boolean res = (rearrange(2,0,a) && (a[0]==2 ? rearrange(3,1,a) : rearrange(9,1,a)) && rearrange(5,2,a) && rearrange(9,3,a)) || (rearrange(1,0,a) && rearrange(9,1,a) && rearrange(5,2,a) && rearrange(9,3,a));
+        
+        StringBuilder sb = new StringBuilder();
+        
+        if(!res) return sb.toString();
+        
+        return sb.append(String.valueOf(a[0]))
+          .append(String.valueOf(a[1]))
+          .append(':')
+          .append(String.valueOf(a[2]))
+          .append(String.valueOf(a[3])).toString();
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    List<List<Integer>> resultList = new ArrayList<>();
+    public String largestTimeFromDigits(int[] numArray) {
+
+        if (numArray[0] == 0 && numArray[1] == 0 && numArray[2] == 0 && numArray[3] == 0) return "00:00";
+
+        String result = "";
+        boolean[] visited = new boolean[numArray.length];
+        findPermutation(numArray, new ArrayList<>(), visited);
+        int maxNum = Integer.MIN_VALUE;
+        int firstDigit = -1;
+        int secondDigit = -1;
+        int thirdDigit = -1;
+        int fourthDigit = -1;
+
+        int f = 0;
+        int s = 0;
+        int t = 0;
+        int fo = 0;
+        boolean isVisited = false;
+        for (List<Integer> list : resultList) {
+
+            firstDigit = list.get(0);
+            secondDigit = list.get(1);
+            thirdDigit = list.get(2);
+            fourthDigit = list.get(3);
+            int num = firstDigit * 1000 + secondDigit * 100 + thirdDigit * 10 + fourthDigit;
+            if (num <= 2359 && thirdDigit < 6 && num > maxNum) {
+                isVisited = true;
+                maxNum = num;
+                f = list.get(0);
+                s = list.get(1);
+                t = list.get(2);
+                fo = list.get(3);
+            }
+
+        }
+
+        if (isVisited)
+            result = f + "" + s + ":" + t + "" + fo;
+        else
+            result = "";
+        return result;
+
+
+    }
+
+    private void findPermutation(int[] numArray, List<Integer> currList, boolean[] visited) {
+
+        if (currList.size() == numArray.length) {
+            resultList.add(new ArrayList<>(currList));
+            return;
+        }
+
+        for (int i = 0; i < numArray.length; i++) {
+            if (visited[i]) continue;
+            visited[i] = true;
+            currList.add(numArray[i]);
+            findPermutation(numArray, currList, visited);
+            currList.remove(currList.size() - 1);
+            visited[i] = false;
+        }
+    }
+
+}
+
+
+
+or
+
+
+class Solution {
+    public String largestTimeFromDigits(int[] arr) {
+        String res="";
+        Arrays.sort(arr);
+        for(int i=23;i>=0;i--)
+        {
+            for(int j=59;j>=0;j--)
+            {
+                int b[]=new int[]{i/10,i%10,j/10,j%10};
+                Arrays.sort(b);
+                if(Arrays.equals(arr,b))
+                {
+                    res=String.format("%02d:%02d",i,j);
+                    return res;
+                }
+
+            }
+        }
+        return res;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    int max;
+    String ans;
+
+    public String largestTimeFromDigits(int[] arr) {
+        max = -1; 
+        ans = "";
+        boolean[] used = new boolean[4]; 
+        solve(arr, new StringBuilder(), used);
+        
+        if (!ans.equals("")) {
+            ans = ans.substring(0, 2) + ":" + ans.substring(2, 4);
+        }
+        return ans;
+    }
+
+    private void solve(int[] arr, StringBuilder curr, boolean[] used) {
+        if (curr.length() == 4) {
+            int hours = Integer.parseInt(curr.substring(0, 2));
+            int minutes = Integer.parseInt(curr.substring(2, 4));
+
+            if (hours < 24 && minutes < 60) {
+                int totalMinutes = hours * 60 + minutes; 
+                if (totalMinutes > max) {
+                    max = totalMinutes;
+                    ans = curr.toString();  
+                }
+            }
+            return;
+        }
+
+        for (int i = 0; i < 4; i++) {
+            if (!used[i]) {
+                used[i] = true;
+                curr.append(arr[i]);
+                solve(arr, curr, used);
+                curr.deleteCharAt(curr.length() - 1); 
+                used[i] = false;
+            }
+        }
+    }
+}
