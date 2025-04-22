@@ -1,0 +1,156 @@
+https://leetcode.com/problems/closest-dessert-cost/description/
+
+1774. Closest Dessert Cost
+Medium
+Topics
+Companies
+Hint
+You would like to make dessert and are preparing to buy the ingredients. You have n ice cream base flavors and m types of toppings to choose from. You must follow these rules when making your dessert:
+
+There must be exactly one ice cream base.
+You can add one or more types of topping or have no toppings at all.
+There are at most two of each type of topping.
+You are given three inputs:
+
+baseCosts, an integer array of length n, where each baseCosts[i] represents the price of the ith ice cream base flavor.
+toppingCosts, an integer array of length m, where each toppingCosts[i] is the price of one of the ith topping.
+target, an integer representing your target price for dessert.
+You want to make a dessert with a total cost as close to target as possible.
+
+Return the closest possible cost of the dessert to target. If there are multiple, return the lower one.
+
+ 
+
+Example 1:
+
+Input: baseCosts = [1,7], toppingCosts = [3,4], target = 10
+Output: 10
+Explanation: Consider the following combination (all 0-indexed):
+- Choose base 1: cost 7
+- Take 1 of topping 0: cost 1 x 3 = 3
+- Take 0 of topping 1: cost 0 x 4 = 0
+Total: 7 + 3 + 0 = 10.
+Example 2:
+
+Input: baseCosts = [2,3], toppingCosts = [4,5,100], target = 18
+Output: 17
+Explanation: Consider the following combination (all 0-indexed):
+- Choose base 1: cost 3
+- Take 1 of topping 0: cost 1 x 4 = 4
+- Take 2 of topping 1: cost 2 x 5 = 10
+- Take 0 of topping 2: cost 0 x 100 = 0
+Total: 3 + 4 + 10 + 0 = 17. You cannot make a dessert with a total cost of 18.
+Example 3:
+
+Input: baseCosts = [3,10], toppingCosts = [2,5], target = 9
+Output: 8
+Explanation: It is possible to make desserts with cost 8 and 10. Return 8 as it is the lower cost.
+ 
+
+Constraints:
+
+n == baseCosts.length
+m == toppingCosts.length
+1 <= n, m <= 10
+1 <= baseCosts[i], toppingCosts[i] <= 104
+1 <= target <= 104
+
+
+
+# java
+
+
+class Solution {
+    /** Closest cost result */
+    int closestCost = Integer.MAX_VALUE;
+    /** Difference between closest cost result and target so far */
+    int closestCostDiff = Integer.MAX_VALUE;
+
+    public int closestCost(int[] baseCosts, int[] toppingCosts, int target) {
+        for (int base : baseCosts) {
+            dfs(toppingCosts, 0, base, target);
+        }
+        return closestCost;
+    }
+
+    public void dfs(int[] toppingCosts, int toppingIndex, int cost, int target) {
+        int costDiff = Math.abs(target - cost);
+        if (costDiff < closestCostDiff || (costDiff == closestCostDiff && cost < closestCost)) {
+            closestCostDiff = costDiff;
+            closestCost = cost;
+        }
+        
+        // Since toppings are all positive cost, stop dfs early if cost exceeds target
+        if (toppingIndex >= toppingCosts.length || cost > target)
+            return;
+
+        dfs(toppingCosts, toppingIndex + 1, cost, target);
+        dfs(toppingCosts, toppingIndex + 1, cost + toppingCosts[toppingIndex], target);
+        dfs(toppingCosts, toppingIndex + 1, cost + 2 * toppingCosts[toppingIndex], target);
+    }
+}
+
+
+or
+
+
+class Solution {
+
+int closestCost = Integer.MAX_VALUE;
+
+public void closestCost(int[] toppingCosts, int currIdx, int currCost , int targetCost){
+    if(Math.abs(targetCost - currCost) < Math.abs(closestCost - targetCost))
+        closestCost = currCost;
+    
+    if(Math.abs(targetCost - currCost) == Math.abs(closestCost - targetCost))
+        closestCost = Math.min(closestCost , currCost);
+    
+    if(currCost < targetCost && currIdx < toppingCosts.length){
+        closestCost(toppingCosts, currIdx + 1, currCost, targetCost);
+        closestCost(toppingCosts, currIdx + 1, currCost + toppingCosts[currIdx], targetCost);
+        closestCost(toppingCosts, currIdx + 1, currCost + 2*toppingCosts[currIdx] , targetCost);
+    }
+}
+
+public int closestCost(int[] baseCosts, int[] toppingCosts, int target) {
+    for(int baseCost : baseCosts)
+        closestCost(toppingCosts , 0 , baseCost , target);
+        
+    return closestCost;
+}
+}
+
+
+or
+
+
+class Solution {
+    int cost=Integer.MAX_VALUE;
+    public int closestCost(int[] bc, int[] tc, int target) {
+
+        for(int i=0; i<bc.length; i++){
+            helper(bc[i], tc, target, new int[tc.length], 0);  // consider every base cost 
+        }
+        
+        return cost;
+    }
+    
+    private void helper(int currCost, int[] tc, int target, int[] vis, int idx){
+      // If diff between Cost which I already have > the currcost  OR  Cost(exisiting result) == CurrCost and CurrCost is less than Global Cost then update result
+        if(Math.abs(target-cost) > Math.abs(target-currCost) || (Math.abs(target-cost) == Math.abs(target-currCost) && currCost < cost)) 
+            cost = currCost;
+        
+        
+        for(int i=idx; i<tc.length; i++){
+            if(vis[i]==2 ) continue;  // can take atmost 2 toppings
+            vis[i]+=1; // mark topping as taken
+            helper(currCost+tc[i], tc, target, vis, i); // backtrack
+            vis[i]-=1; // unmark topping as not taken
+        }
+    }
+}
+
+
+or
+
+
