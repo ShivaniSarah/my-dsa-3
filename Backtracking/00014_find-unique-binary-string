@@ -1,0 +1,187 @@
+https://leetcode.com/problems/find-unique-binary-string/description/
+
+1980. Find Unique Binary String
+Medium
+Topics
+Companies
+Hint
+Given an array of strings nums containing n unique binary strings each of length n, return a binary string of length n that does not appear in nums. If there are multiple answers, you may return any of them.
+
+ 
+
+Example 1:
+
+Input: nums = ["01","10"]
+Output: "11"
+Explanation: "11" does not appear in nums. "00" would also be correct.
+Example 2:
+
+Input: nums = ["00","01"]
+Output: "11"
+Explanation: "11" does not appear in nums. "10" would also be correct.
+Example 3:
+
+Input: nums = ["111","011","001"]
+Output: "101"
+Explanation: "101" does not appear in nums. "000", "010", "100", and "110" would also be correct.
+ 
+
+Constraints:
+
+n == nums.length
+1 <= n <= 16
+nums[i].length == n
+nums[i] is either '0' or '1'.
+All the strings of nums are unique.
+
+
+
+# java
+
+
+class Solution {
+    int n;
+    Set<String> numsSet = new HashSet();
+    
+    private String generate(String curr) {
+        if (curr.length() == n) {
+            if (!numsSet.contains(curr)) {
+                return curr;
+            }
+            
+            return "";
+        }
+        
+        String addZero = generate(curr + "0");
+        if (addZero.length() > 0) {
+            return addZero;
+        }
+        
+        return generate(curr + "1");
+    }
+    
+    public String findDifferentBinaryString(String[] nums) {
+        n = nums.length;
+        for (String s : nums) {
+            numsSet.add(s);
+        }
+        
+        return generate("");
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public String findDifferentBinaryString(String[] nums) {
+        Set<Integer> integers = new HashSet();
+        for (String num : nums) {
+            integers.add(Integer.parseInt(num, 2));
+        }
+        
+        int n = nums.length;
+        for (int num = 0; num <= n; num++) {
+            if (!integers.contains(num)) {
+                String ans = Integer.toBinaryString(num);
+                while (ans.length() < n) {
+                    ans = "0" + ans;
+                }
+                
+                return ans;
+            }
+        }
+        
+        return "";
+    }
+}
+
+
+or
+
+
+class Solution {
+    public String findDifferentBinaryString(String[] nums) {
+        Set<Integer> integers = new HashSet();
+        for (String num : nums) {
+            integers.add(Integer.parseInt(num, 2));
+        }
+        
+        int ans = Integer.parseInt(nums[0], 2);
+        int n = nums.length;
+        Random rand = new Random();
+        
+        while (integers.contains(ans)) {
+            ans = rand.nextInt((int) Math.pow(2, n));
+        }
+
+        String s = Integer.toBinaryString(ans);
+        while (s.length() < n) {
+            s = "0" + s;
+        }
+        
+        return s;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public String findDifferentBinaryString(String[] nums) {
+        StringBuilder ans= new StringBuilder();                  
+        for(int i=0; i<nums.length; i++)  
+            ans.append(nums[i].charAt(i) == '0' ? '1' : '0');              // Using ternary operator
+        return ans.toString();
+    }
+}
+
+
+or
+
+class Solution {
+    public String findDifferentBinaryString(String[] nums) {
+        StringBuilder sb = new StringBuilder();
+
+        for(int i=0;i<nums.length;i++)
+        {
+            sb.append(nums[i].charAt(i) == '0'? "1": "0");
+        }
+        return new String(sb);
+    }
+}
+
+
+or
+
+
+class Solution {
+    public static int n;
+    public static void helper(int ind,HashSet<String>hs,ArrayList<String>ds,StringBuilder sb){
+        if(ind==n){
+            if(!hs.contains(sb.toString())) ds.add(sb.toString());
+            return;
+        }
+        if(ds.size()>0) return;
+        for(int i=ind;i<n;i++){
+            //either flip the character at that index 
+            sb.setCharAt(i,sb.charAt(i)=='0'?'1':'0');
+            helper(i+1,hs,ds,sb);
+            sb.setCharAt(i,sb.charAt(i)=='0'?'1':'0');
+            //or skip the character at that index
+            helper(i+1,hs,ds,sb);
+        }
+    }
+    public String findDifferentBinaryString(String[] nums) {
+        HashSet<String>hs=new HashSet<>();
+        ArrayList<String>ds=new ArrayList<>();
+        n=nums[0].length();
+        for(String str:nums)    hs.add(str);
+        for(String str:nums)
+            helper(0,hs,ds,new StringBuilder(str));
+        return ds.get(0);
+    }
+}
