@@ -1,0 +1,256 @@
+https://leetcode.com/problems/soup-servings/description/
+
+808. Soup Servings
+Medium
+Topics
+Companies
+There are two types of soup: type A and type B. Initially, we have n ml of each type of soup. There are four kinds of operations:
+
+Serve 100 ml of soup A and 0 ml of soup B,
+Serve 75 ml of soup A and 25 ml of soup B,
+Serve 50 ml of soup A and 50 ml of soup B, and
+Serve 25 ml of soup A and 75 ml of soup B.
+When we serve some soup, we give it to someone, and we no longer have it. Each turn, we will choose from the four operations with an equal probability 0.25. If the remaining volume of soup is not enough to complete the operation, we will serve as much as possible. We stop once we no longer have some quantity of both types of soup.
+
+Note that we do not have an operation where all 100 ml's of soup B are used first.
+
+Return the probability that soup A will be empty first, plus half the probability that A and B become empty at the same time. Answers within 10-5 of the actual answer will be accepted.
+
+ 
+
+Example 1:
+
+Input: n = 50
+Output: 0.62500
+Explanation: If we choose the first two operations, A will become empty first.
+For the third operation, A and B will become empty at the same time.
+For the fourth operation, B will become empty first.
+So the total probability of A becoming empty first plus half the probability that A and B become empty at the same time, is 0.25 * (1 + 1 + 0.5 + 0) = 0.625.
+Example 2:
+
+Input: n = 100
+Output: 0.71875
+ 
+
+Constraints:
+
+0 <= n <= 109
+
+# java
+
+class Solution {
+  public double soupServings(int n) {
+    return n >= 4800 ? 1.0 : dfs((n + 24) / 25, (n + 24) / 25);
+  }
+
+  private double[][] mem = new double[4800 / 25][4800 / 25];
+
+  private double dfs(int a, int b) {
+    if (a <= 0 && b <= 0)
+      return 0.5;
+    if (a <= 0)
+      return 1.0;
+    if (b <= 0)
+      return 0.0;
+    if (mem[a][b] > 0)
+      return mem[a][b];
+    return mem[a][b] =
+               0.25 * (dfs(a - 4, b) + dfs(a - 3, b - 1) + dfs(a - 2, b - 2) + dfs(a - 1, b - 3));
+  }
+}
+
+
+or
+
+
+class Solution {
+    private double[][] f = new double[200][200];
+
+    public double soupServings(int n) {
+        return n > 4800 ? 1 : dfs((n + 24) / 25, (n + 24) / 25);
+    }
+
+    private double dfs(int i, int j) {
+        if (i <= 0 && j <= 0) {
+            return 0.5;
+        }
+        if (i <= 0) {
+            return 1.0;
+        }
+        if (j <= 0) {
+            return 0;
+        }
+        if (f[i][j] > 0) {
+            return f[i][j];
+        }
+        double ans
+            = 0.25 * (dfs(i - 4, j) + dfs(i - 3, j - 1) + dfs(i - 2, j - 2) + dfs(i - 1, j - 3));
+        f[i][j] = ans;
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public double soupServings(int n) {
+        int m = (int)Math.ceil(n / 25.0);
+        Map<Integer, Map<Integer, Double>> dp = new HashMap<>();
+        dp.put(0, new HashMap<>());
+        dp.get(0).put(0, 0.5);
+
+        for (int k = 1; k <= m; k++) {
+            dp.put(k, new HashMap<>());
+            dp.get(0).put(k, 1.0);
+            dp.get(k).put(0, 0.0);
+            for (int j = 1; j <= k; j++) {
+                dp.get(j).put(k, calculateDP(j, k, dp));
+                dp.get(k).put(j, calculateDP(k, j, dp));
+            }
+            if (dp.get(k).get(k) > 1 - 1e-5) {
+                return 1;
+            }
+        }
+
+        return dp.get(m).get(m);
+    }
+
+    private double calculateDP(int i, int j, Map<Integer, Map<Integer, Double>> dp) {
+        return (dp.get(Math.max(0, i - 4)).get(j)
+                + dp.get(Math.max(0, i - 3)).get(j - 1)
+                + dp.get(Math.max(0, i - 2)).get(Math.max(0, j - 2))
+                + dp.get(i - 1).get(Math.max(0, j - 3))) / 4;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public double soupServings(int n) {
+        int m = (int)Math.ceil(n / 25.0);
+        Map<Integer, Map<Integer, Double>> dp = new HashMap<>();
+
+        for (int k = 1; k <= m; k++) {
+            if (calculateDP(k, k, dp) > 1 - 1e-5) {
+                return 1.0;
+            }
+        }
+        return calculateDP(m, m, dp);
+    }
+
+    private double calculateDP(int i, int j, Map<Integer, Map<Integer, Double>> dp) {
+        if (i <= 0 && j <= 0) {
+            return 0.5;
+        }
+        if (i <= 0) {
+            return 1.0;
+        }
+        if (j <= 0) {
+            return 0.0;
+        }
+        if (dp.containsKey(i) && dp.get(i).containsKey(j)) {
+            return dp.get(i).get(j);
+        }
+        double result = (calculateDP(i - 4, j, dp) + calculateDP(i - 3, j - 1, dp) +
+                calculateDP(i - 2, j - 2, dp) + calculateDP(i - 1, j - 3, dp)) / 4.0;
+        dp.computeIfAbsent(i, k -> new HashMap<>()).put(j, result);
+        return result;
+    }
+}
+
+
+or
+
+
+class Solution {
+    double[][] memo;
+    public double soupServings(int n) {
+        if(n>=5000) {
+            return 1.00000;
+        }
+        // we are doing this because even if there is Volume < 25,
+        // we should count it
+        n = (int)Math.ceil(n*1.0/25);
+        memo = new double[n+1][n+1];
+        return dfs(n, n);
+    }
+
+    double dfs(int A, int B) {
+        if(A <= 0 && B <= 0) {
+            return 0.5;
+        }
+        if(A<=0) {
+            return 1.0;
+        }
+        if(B<=0) {
+            return 0;
+        }
+        // by default it is 0.0
+        if(memo[A][B]>0) {
+            return memo[A][B];
+        }
+        return memo[A][B] = 0.25*(dfs(A-4, B)+dfs(A-3, B-1)+dfs(A-2, B-2)+dfs(A-1, B-3));
+    }
+}
+
+
+or
+
+
+class Solution {
+    public double soupServings(int n) {
+       // Divide the input by 25 to simplify calculations
+        // Each operation will now serve 4 units (100 / 25 = 4)
+        n = (n + 24) / 25;
+
+        // If n is large, the probability of A becoming empty first will be very close to 1
+        if (n >= 500) {
+            return 1.0;
+        }
+
+        // Create a 2D array to store the probabilities
+        double[][] dp = new double[n + 1][n + 1];
+        for (double[] row : dp) {
+            Arrays.fill(row, -1);
+        }
+
+        // Helper function to calculate the probability recursively
+        return serve(n, n, dp);
+    }
+
+    private static double serve(int a, int b, double[][] dp) {
+        if (a <= 0 && b <= 0) {
+            // Base case: both A and B are empty
+            return 0.5;
+        }
+        if (a <= 0) {
+            // Base case: A is empty
+            return 1.0;
+        }
+        if (b <= 0) {
+            // Base case: B is empty
+            return 0.0;
+        }
+
+        if (dp[a][b] != -1) {
+            // If the probability for this state has been calculated, return it
+            return dp[a][b];
+        }
+
+        // Calculate the probability of each operation and add them up
+        double probability = 0.25 * (
+                serve(a - 4, b, dp) +
+                serve(a - 3, b - 1, dp) +
+                serve(a - 2, b - 2, dp) +
+                serve(a - 1, b - 3, dp)
+        );
+
+        // Store the probability in the DP table
+        dp[a][b] = probability;
+        return probability;
+    }
+}
