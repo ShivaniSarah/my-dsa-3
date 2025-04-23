@@ -1,0 +1,249 @@
+https://leetcode.com/problems/minimum-total-space-wasted-with-k-resizing-operations/description/
+
+1959. Minimum Total Space Wasted With K Resizing Operations
+Medium
+Topics
+Companies
+Hint
+You are currently designing a dynamic array. You are given a 0-indexed integer array nums, where nums[i] is the number of elements that will be in the array at time i. In addition, you are given an integer k, the maximum number of times you can resize the array (to any size).
+
+The size of the array at time t, sizet, must be at least nums[t] because there needs to be enough space in the array to hold all the elements. The space wasted at time t is defined as sizet - nums[t], and the total space wasted is the sum of the space wasted across every time t where 0 <= t < nums.length.
+
+Return the minimum total space wasted if you can resize the array at most k times.
+
+Note: The array can have any size at the start and does not count towards the number of resizing operations.
+
+ 
+
+Example 1:
+
+Input: nums = [10,20], k = 0
+Output: 10
+Explanation: size = [20,20].
+We can set the initial size to be 20.
+The total wasted space is (20 - 10) + (20 - 20) = 10.
+Example 2:
+
+Input: nums = [10,20,30], k = 1
+Output: 10
+Explanation: size = [20,20,30].
+We can set the initial size to be 20 and resize to 30 at time 2. 
+The total wasted space is (20 - 10) + (20 - 20) + (30 - 30) = 10.
+Example 3:
+
+Input: nums = [10,20,15,30,20], k = 2
+Output: 15
+Explanation: size = [10,20,20,30,30].
+We can set the initial size to 10, resize to 20 at time 1, and resize to 30 at time 3.
+The total wasted space is (10 - 10) + (20 - 20) + (20 - 15) + (30 - 30) + (30 - 20) = 15.
+ 
+
+Constraints:
+
+1 <= nums.length <= 200
+1 <= nums[i] <= 106
+0 <= k <= nums.length - 1
+
+
+# java
+
+class Solution {
+
+// dp[idx][k]=minimum wasted space in between [idx....n-1] if we resize the region k times 
+
+    int INF=200 *(int)1e6; // according to constarints { 1 <= nums.length <= 200 , 1 <= nums[i] <= 106 }
+    public int minSpaceWastedKResizing(int[] nums, int k) {
+        
+        int dp[][]=new int[nums.length+1][k+1];
+        memeset(dp, -1);
+        return f(dp, 0, k, nums);
+        
+    }
+    
+    int f(int dp[][], int idx, int k, int nums[])
+    {
+        if(idx==nums.length)
+            return 0;
+        if(k==-1)
+            return INF;
+        
+        if(dp[idx][k] != -1)
+            return dp[idx][k];
+        
+        int ans=INF, max=nums[idx], sum=0;
+        
+        for(int j=idx; j<nums.length; ++j)
+        {
+            max=Math.max(max, nums[j]);
+            sum+=nums[j];
+        /**    
+             total waste in between [idx...j] would be
+             summation of (max-nums[idx] + max-nums[idx+1]....max-nums[j])
+             length would be (j-idx+1) and these summation would be
+             (j-idx+1) * max upto j - (nums[idx]+nums[idx+1]....+nums[j]
+ 
+            as i have made one partition in between [idx...j] then remainig (k-1) partitions would be in between [j+1....n-1]
+            and that value will be calculated by the recursion and we have to take the minimum answer from all these combinations 
+            and to avoid tle we are using memozization
+        **/
+            int total_waste_upto_j=(j-idx+1)*max - sum;
+            ans=Math.min(ans,  total_waste_upto_j + f(dp, j+1, k-1, nums));
+            
+        }
+        
+        return dp[idx][k]=ans;
+    }
+    
+    void memeset(int dp[][], int val)
+    {
+        for(int x[]: dp)
+            Arrays.fill(x, val);
+    }
+}
+
+// tc: O(n^2 * k) there will be total (n*k) states  because for each k there are n possibilities and for each n there will be loop running n times
+// so in total there will be O(n^2 * k) [because k<n]
+// sc: O(n*k)
+
+
+or
+
+
+class Solution {
+    public int minSpaceWastedKResizing(int[] nums, int k) {
+        if(nums.length==1)
+            return 0;
+        Integer[][]dp=new Integer[nums.length+1][k+1];
+        int ans=minSpaceWastedKResizing(0,k,nums,dp);
+        return ans;
+    }
+    public int minSpaceWastedKResizing(int idx,int k,int[]nums,Integer[][]dp){
+        if(idx==nums.length)
+            return 0;
+        if(k==0){
+            int max_=Integer.MIN_VALUE,sum=0;
+            for(int i=idx;i<nums.length;i++){
+                max_=Math.max(max_,nums[i]);
+                sum+=nums[i];
+            }
+            dp[idx][k]=max_*(nums.length-idx)-sum;
+            return dp[idx][k];
+        }
+        if(dp[idx][k]!=null)
+            return dp[idx][k];
+        int max_=Integer.MIN_VALUE,sum=0,totalSpaceWasted=Integer.MAX_VALUE;
+        for(int i=idx;i<nums.length;i++){
+            max_=Math.max(max_,nums[i]);
+            sum+=nums[i];
+            totalSpaceWasted=Math.min(totalSpaceWasted,(i-idx+1)*max_-sum+minSpaceWastedKResizing(i+1,k-1,nums,dp));
+        }
+        dp[idx][k]=totalSpaceWasted;
+        return dp[idx][k];
+    }
+}
+
+or
+
+class Solution {
+    int INF =  (int) (200 * 1e6);
+    public int minSpaceWastedKResizing(int[] nums, int k) {
+        int [][] dp = new int[nums.length][k+1];
+        for(int i = 0; i < nums.length; i++)
+            Arrays.fill(dp[i], -1);
+        return GetMinSpace(0, k, nums, dp);
+    }
+
+    public int GetMinSpace(int i, int k, int [] nums, int [][] dp)
+    {
+        if(i == nums.length)
+        return 0;
+
+        if(k == -1)
+        return INF;
+
+        if(dp[i][k] != -1)
+        return dp[i][k];
+
+        int totalSum = 0;
+        int maxSum = 0;
+        int minWastedSpace = INF;
+        for(int j = i; j < nums.length; j++)
+        {
+            maxSum = Math.max(maxSum, nums[j]);
+            totalSum+=nums[j];
+            int spaceWasted = maxSum*(j - i + 1) - totalSum;
+            minWastedSpace = Math.min(minWastedSpace, spaceWasted +
+                             GetMinSpace(j+1, k - 1, nums, dp));
+        }
+        return dp[i][k] = minWastedSpace;
+    }
+}
+
+or
+
+
+class Solution {
+    public int minSpaceWastedKResizing(int[] nums, int k) {
+        ++k;
+        int n = nums.length;
+        int[][] g = new int[n][n];
+        for (int i = 0; i < n; ++i) {
+            int s = 0, mx = 0;
+            for (int j = i; j < n; ++j) {
+                s += nums[j];
+                mx = Math.max(mx, nums[j]);
+                g[i][j] = mx * (j - i + 1) - s;
+            }
+        }
+        int[][] f = new int[n + 1][k + 1];
+        int inf = 0x3f3f3f3f;
+        for (int i = 0; i < f.length; ++i) {
+            Arrays.fill(f[i], inf);
+        }
+        f[0][0] = 0;
+        for (int i = 1; i <= n; ++i) {
+            for (int j = 1; j <= k; ++j) {
+                for (int h = 0; h < i; ++h) {
+                    f[i][j] = Math.min(f[i][j], f[h][j - 1] + g[h][i - 1]);
+                }
+            }
+        }
+        return f[n][k];
+    }
+}
+
+or
+
+
+class Solution {
+  public int minSpaceWastedKResizing(int[] nums, int k) {
+    Integer[][] mem = new Integer[nums.length][k + 1];
+    return minSpaceWasted(nums, 0, k, mem);
+  }
+
+  private static final int MAX = 200_000_000;
+
+  // Returns the minimum space wasted for nums[i..n) if you can resize k times.
+  private int minSpaceWasted(int[] nums, int i, int k, Integer[][] mem) {
+    if (i == nums.length)
+      return 0;
+    if (k == -1)
+      return MAX;
+    if (mem[i][k] != null)
+      return mem[i][k];
+
+    int res = MAX;
+    int sum = 0;
+    int maxNum = nums[i];
+
+    for (int j = i; j < nums.length; ++j) {
+      sum += nums[j];
+      maxNum = Math.max(maxNum, nums[j]);
+      final int wasted = maxNum * (j - i + 1) - sum;
+      res = Math.min(res, minSpaceWasted(nums, j + 1, k - 1, mem) + wasted);
+    }
+
+    return mem[i][k] = res;
+  }
+}
+
