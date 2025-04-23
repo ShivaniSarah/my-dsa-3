@@ -1,0 +1,209 @@
+https://leetcode.com/problems/minimum-number-of-operations-to-satisfy-conditions/description/
+
+
+3122. Minimum Number of Operations to Satisfy Conditions
+Medium
+Topics
+Companies
+You are given a 2D matrix grid of size m x n. In one operation, you can change the value of any cell to any non-negative number. You need to perform some operations such that each cell grid[i][j] is:
+
+Equal to the cell below it, i.e. grid[i][j] == grid[i + 1][j] (if it exists).
+Different from the cell to its right, i.e. grid[i][j] != grid[i][j + 1] (if it exists).
+Return the minimum number of operations needed.
+
+ 
+
+Example 1:
+
+Input: grid = [[1,0,2],[1,0,2]]
+
+Output: 0
+
+Explanation:
+
+
+
+All the cells in the matrix already satisfy the properties.
+
+Example 2:
+
+Input: grid = [[1,1,1],[0,0,0]]
+
+Output: 3
+
+Explanation:
+
+
+
+The matrix becomes [[1,0,1],[1,0,1]] which satisfies the properties, by doing these 3 operations:
+
+Change grid[1][0] to 1.
+Change grid[0][1] to 0.
+Change grid[1][2] to 1.
+Example 3:
+
+Input: grid = [[1],[2],[3]]
+
+Output: 2
+
+Explanation:
+
+
+
+There is a single column. We can change the value to 1 in each cell using 2 operations.
+
+ 
+
+Constraints:
+
+1 <= n, m <= 1000
+0 <= grid[i][j] <= 9
+
+
+# java
+
+
+class Solution {
+    public int minimumOperations(int[][] grid) {
+        int m = grid.length, n = grid[0].length;
+        int[][] f = new int[n][10];
+        final int inf = 1 << 29;
+        for (var g : f) {
+            Arrays.fill(g, inf);
+        }
+        for (int i = 0; i < n; ++i) {
+            int[] cnt = new int[10];
+            for (int j = 0; j < m; ++j) {
+                ++cnt[grid[j][i]];
+            }
+            if (i == 0) {
+                for (int j = 0; j < 10; ++j) {
+                    f[i][j] = m - cnt[j];
+                }
+            } else {
+                for (int j = 0; j < 10; ++j) {
+                    for (int k = 0; k < 10; ++k) {
+                        if (k != j) {
+                            f[i][j] = Math.min(f[i][j], f[i - 1][k] + m - cnt[j]);
+                        }
+                    }
+                }
+            }
+        }
+        int ans = inf;
+        for (int j = 0; j < 10; ++j) {
+            ans = Math.min(ans, f[n - 1][j]);
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+  public int minimumOperations(int[][] grid) {
+    final int m = grid.length;
+    final int n = grid[0].length;
+    int[][] count = new int[n][10];
+
+    for (int i = 0; i < m; ++i)
+      for (int j = 0; j < n; ++j)
+        ++count[j][grid[i][j]];
+
+    Integer[][] mem = new Integer[n][10];
+    return minimumOperations(count, 0, 0, m, mem);
+  }
+
+  // Returns the number of minimum operations needed to make grid[:][j..n)
+  // satisfy the conditions, where the (j - 1)-th column is filled with `prev`.
+  private int minimumOperations(int[][] count, int j, int prev, int m, Integer[][] mem) {
+    if (j == count.length)
+      return 0;
+    if (mem[j][prev] != null)
+      return mem[j][prev];
+
+    int res = Integer.MAX_VALUE;
+
+    for (int num = 0; num < 10; ++num)
+      if (j == 0 || num != prev)
+        res = Math.min(res, m - count[j][num] + minimumOperations(count, j + 1, num, m, mem));
+
+    return mem[j][prev] = res;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int minimumOperations(int[][] grid) {
+        int n = grid.length;
+        int m = grid[0].length;
+        int[][] count = new int[m][10];
+        for (int column = 0; column < m; column++) {
+            for (int value = 0; value < 10; value++) {
+                for (int j = 0; j < n; j++) {
+                    count[column][value] += grid[j][column] != value ? 1 : 0;
+                }
+            }
+        }
+        int[][] dp = new int[m + 1][10];
+        for (int[] row : dp) {
+            Arrays.fill(row, Integer.MAX_VALUE);
+        }
+        Arrays.fill(dp[m], 0);
+        for (int column = m - 1; column >= 0; column--) {
+            for (int value = 0; value < 10; value++) {
+                for (int i = 0; i < 10; i++) {
+                    if (i != value) {
+                        dp[column][value] = Math.min(dp[column][value], count[column][value] + dp[column + 1][i]);
+                    }
+                }
+            }
+        }
+        return Arrays.stream(dp[0]).min().getAsInt();
+    }
+}
+
+
+or
+
+class Solution {
+    private PriorityQueue<List<Integer>> dfs(int[][] grid, int j) {
+        if(j == grid[0].length-1) {
+            PriorityQueue<List<Integer>> queue = new PriorityQueue<>((a,b) -> Integer.compare(a.get(0), b.get(0)));
+            for(int value = 0 ; value <= 9 ; value++) {
+                int count = 0;
+                for(int i = 0 ; i < grid.length ; i++) {
+                    if(grid[i][j] != value) count++;
+                }
+                queue.add(new ArrayList<>(Arrays.asList(count, value)));
+            }
+            return queue;
+        }
+        PriorityQueue<List<Integer>> next = dfs(grid, j+1);
+        PriorityQueue<List<Integer>> queue = new PriorityQueue<>((a,b) -> Integer.compare(a.get(0), b.get(0)));
+        for(int value = 0 ; value <= 9 ; value++) {
+            int count = 0;
+            for(int i = 0 ; i < grid.length ; i++) {
+                if(grid[i][j] != value) count++;
+            }
+            List<Integer> arr = next.poll();
+            if(arr.get(1) == value) {
+                count += next.peek().get(0);
+            } else {
+                count += arr.get(0);
+            }
+            next.add(arr);
+            queue.add(new ArrayList<>(Arrays.asList(count, value)));
+        }
+        return queue;
+    }
+    public int minimumOperations(int[][] grid) {
+        PriorityQueue<List<Integer>> queue = dfs(grid, 0);
+        return queue.peek().get(0);
+    }
+}
