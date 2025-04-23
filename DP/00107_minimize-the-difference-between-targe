@@ -1,0 +1,142 @@
+https://leetcode.com/problems/minimize-the-difference-between-target-and-chosen-elements/description/
+
+1981. Minimize the Difference Between Target and Chosen Elements
+Medium
+Topics
+Companies
+Hint
+You are given an m x n integer matrix mat and an integer target.
+
+Choose one integer from each row in the matrix such that the absolute difference between target and the sum of the chosen elements is minimized.
+
+Return the minimum absolute difference.
+
+The absolute difference between two numbers a and b is the absolute value of a - b.
+
+ 
+
+Example 1:
+
+
+Input: mat = [[1,2,3],[4,5,6],[7,8,9]], target = 13
+Output: 0
+Explanation: One possible choice is to:
+- Choose 1 from the first row.
+- Choose 5 from the second row.
+- Choose 7 from the third row.
+The sum of the chosen elements is 13, which equals the target, so the absolute difference is 0.
+Example 2:
+
+
+Input: mat = [[1],[2],[3]], target = 100
+Output: 94
+Explanation: The best possible choice is to:
+- Choose 1 from the first row.
+- Choose 2 from the second row.
+- Choose 3 from the third row.
+The sum of the chosen elements is 6, and the absolute difference is 94.
+Example 3:
+
+
+Input: mat = [[1,2,9,8,7]], target = 6
+Output: 1
+Explanation: The best choice is to choose 7 from the first row.
+The absolute difference is 1.
+ 
+
+Constraints:
+
+m == mat.length
+n == mat[i].length
+1 <= m, n <= 70
+1 <= mat[i][j] <= 70
+1 <= target <= 800
+
+
+# java
+
+
+class Solution {
+    public int minimizeTheDifference(int[][] mat, int target) {
+        Integer[][] dp = new Integer[mat.length][5001];
+        return minDiff(mat, 0, target,0, dp);
+    }
+    
+    public int minDiff(int[][] mat,int index,int target, int val, Integer[][] dp){
+        if(index == mat.length){
+            return Math.abs(val - target);
+        }
+        if(dp[index][val] != null){
+            return dp[index][val];
+        }
+        
+        int res = Integer.MAX_VALUE;
+        for(int i = 0; i < mat[0].length; i++){
+            res = Math.min(res, minDiff(mat, index + 1, target, val + mat[index][i], dp));
+        }
+        
+        return dp[index][val] = res;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    int[][] dp;
+    public int minimizeTheDifference(int[][] mat, int target) {
+        dp=new int[mat.length][4901];
+        for(int i=0;i<mat.length;i++) Arrays.fill(dp[i],-1);
+        return dfs(mat,0,target,0);
+    }
+    public int dfs(int[][] mat,int index,int target,int sum){
+        if(index==mat.length){
+            return Math.abs(sum-target);
+        }
+        if(dp[index][sum]!=-1) return dp[index][sum];
+        int ans=Integer.MAX_VALUE;
+        for(int i=0;i<mat[0].length;i++){
+            ans=Math.min(ans,dfs(mat,index+1,target,sum+mat[index][i]));
+        }
+        dp[index][sum]=ans;
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minimizeTheDifference(int[][] mat, int t) {
+        int m= mat.length;
+        int[][] dp= new int[m][5001];
+        for(int i=0; i<m; i++){
+            for(int j=0; j<5001; j++){
+                dp[i][j]=-1;
+            }
+        }
+        return solve(mat,dp,0,t,0);
+    }
+    
+    public int solve(int[][] mat, int[][] dp, int ind, int t, int val){
+        if(ind==mat.length){
+            return Math.abs(t-val);
+        }
+        
+        if(dp[ind][val]!=-1){
+            return dp[ind][val];
+        }
+        
+        int min= (int)(1e9);
+        for(int i=0; i<mat[0].length; i++){
+            min= Math.min(min, solve(mat,dp,ind+1,t,val+mat[ind][i]));
+        }
+        
+        return dp[ind][val]= min;
+    }
+}
+
+
