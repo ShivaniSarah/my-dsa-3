@@ -1,0 +1,200 @@
+https://leetcode.com/problems/minimum-substring-partition-of-equal-character-frequency/description/
+
+3144. Minimum Substring Partition of Equal Character Frequency
+Medium
+Topics
+Companies
+Hint
+Given a string s, you need to partition it into one or more balanced substrings. For example, if s == "ababcc" then ("abab", "c", "c"), ("ab", "abc", "c"), and ("ababcc") are all valid partitions, but ("a", "bab", "cc"), ("aba", "bc", "c"), and ("ab", "abcc") are not. The unbalanced substrings are bolded.
+
+Return the minimum number of substrings that you can partition s into.
+
+Note: A balanced string is a string where each character in the string occurs the same number of times.
+
+ 
+
+Example 1:
+
+Input: s = "fabccddg"
+
+Output: 3
+
+Explanation:
+
+We can partition the string s into 3 substrings in one of the following ways: ("fab, "ccdd", "g"), or ("fabc", "cd", "dg").
+
+Example 2:
+
+Input: s = "abababaccddb"
+
+Output: 2
+
+Explanation:
+
+We can partition the string s into 2 substrings like so: ("abab", "abaccddb").
+
+ 
+
+Constraints:
+
+1 <= s.length <= 1000
+s consists only of English lowercase letters.
+
+
+# java
+
+
+class Solution {
+  public int minimumSubstringsInPartition(String s) {
+    final int n = s.length();
+    // dp[i] := the minimum number of substrings in s[0..i]
+    int[] dp = new int[n];
+    Arrays.fill(dp, n);
+
+    for (int i = 0; i < n; ++i) {
+      int[] count = new int[26];
+      for (int j = i; j >= 0; --j) {
+        ++count[s.charAt(j) - 'a'];
+        if (isBalanced(count)) // word[j..i] is balanced.
+          dp[i] = j > 0 ? Math.min(dp[i], 1 + dp[j - 1]) : 1;
+      }
+    }
+
+    return dp[n - 1];
+  }
+
+  private static final int MAX = 1001;
+
+  // Returns true if all non-zero frequencies are the same.
+  private boolean isBalanced(int[] count) {
+    int minfreq = MAX;
+    int maxfreq = 0;
+    for (final int freq : count)
+      if (freq > 0) {
+        minfreq = Math.min(minfreq, freq);
+        maxfreq = Math.max(maxfreq, freq);
+      }
+    return minfreq == maxfreq;
+  }
+}
+
+
+or
+
+
+class Solution {
+    private int n;
+    private char[] s;
+    private Integer[] f;
+
+    public int minimumSubstringsInPartition(String s) {
+        n = s.length();
+        f = new Integer[n];
+        this.s = s.toCharArray();
+        return dfs(0);
+    }
+
+    private int dfs(int i) {
+        if (i >= n) {
+            return 0;
+        }
+        if (f[i] != null) {
+            return f[i];
+        }
+        int[] cnt = new int[26];
+        Map<Integer, Integer> freq = new HashMap<>(26);
+        int ans = n - i;
+        for (int j = i; j < n; ++j) {
+            int k = s[j] - 'a';
+            if (cnt[k] > 0) {
+                if (freq.merge(cnt[k], -1, Integer::sum) == 0) {
+                    freq.remove(cnt[k]);
+                }
+            }
+            ++cnt[k];
+            freq.merge(cnt[k], 1, Integer::sum);
+            if (freq.size() == 1) {
+                ans = Math.min(ans, 1 + dfs(j + 1));
+            }
+        }
+        return f[i] = ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public boolean isBalanced(int[] charFreq) {
+        int minFreq = 1001, maxFreq = 0;
+        for (int Freq : charFreq) {
+            if (Freq > 0) {
+                minFreq = Math.min(minFreq , Freq);
+                maxFreq = Math.max(maxFreq , Freq);
+            }
+        }
+        return minFreq == maxFreq;
+    }
+
+    public int minimumSubstringsInPartition(String S) {
+        int N = S.length();
+        int[] DP = new int[N];
+        Arrays.fill(DP,N);
+        for (int END = 0 ; END < N ; END++){
+            int[] charFreq = new int[26];
+            for (int START = END ; START >= 0 ; START--){
+                charFreq[S.charAt(START) - 'a']++;
+                if (isBalanced(charFreq)){
+                    DP[END] = START > 0 ? Math.min(DP[END] , 1 + DP[START - 1]) : 1;
+                }
+            }
+        }
+        return DP[N - 1];
+    }
+}
+
+
+or
+
+
+class Solution {
+        public int minimumSubstringsInPartition(String s) {
+        // Initialize an array to store the maximum frequency of each character
+        int[] maxFrequency = new int[26]; // Array to hold maximum frequency of each character 'a' to 'z'
+        for (int i = 0; i < s.length(); i++) {
+            maxFrequency[s.charAt(i) - 'a']++; // Increment frequency of character at position i
+        }
+
+        // dp[i] represents the minimum number of partitions needed for the first i characters
+        int[] dp = new int[s.length() + 1]; // Array to hold the minimum partitions needed for each prefix of s
+        dp[0] = 0; // Base case: no characters, no partitions needed
+
+        for (int i = 1; i <= s.length(); i++) {
+            dp[i] = Integer.MAX_VALUE; // Initialize dp[i] with a large number
+            int[] freq = new int[26]; // Array to keep track of character frequencies in the current window
+            int maxInWindow = 0; // Variable to store the maximum frequency in the current window
+
+            // Check all substrings that end at position i
+            for (int j = i; j > 0; j--) {
+                char c = s.charAt(j - 1); // Get character in the string at position j-1
+                freq[c - 'a']++; // Increment frequency of that character in the current window
+                maxInWindow = Math.max(maxInWindow, freq[c - 'a']); // Update maxInWindow if current frequency is higher
+
+                // Check if the current window can form a balanced substring
+                boolean isValid = true; // Flag to check if the window is valid
+                for (int k = 0; k < 26; k++) {
+                    if (freq[k] > 0 && freq[k] < maxInWindow) {
+                        isValid = false; // Set valid to false if any character frequency is less than maxInWindow
+                        break; // Exit the loop as the substring is not valid
+                    }
+                }
+
+                if (isValid) { // If the window is valid
+                    dp[i] = Math.min(dp[i], dp[j - 1] + 1); // Update dp[i] with the minimum partitions found
+                }
+            }
+        }
+        return dp[s.length()]; // Return the minimum number of partitions for the entire string
+    }
+}
