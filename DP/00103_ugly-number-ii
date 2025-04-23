@@ -1,0 +1,209 @@
+https://leetcode.com/problems/ugly-number-ii/description/
+
+264. Ugly Number II
+Medium
+Topics
+Companies
+Hint
+An ugly number is a positive integer whose prime factors are limited to 2, 3, and 5.
+
+Given an integer n, return the nth ugly number.
+
+ 
+
+Example 1:
+
+Input: n = 10
+Output: 12
+Explanation: [1, 2, 3, 4, 5, 6, 8, 9, 10, 12] is the sequence of the first 10 ugly numbers.
+Example 2:
+
+Input: n = 1
+Output: 1
+Explanation: 1 has no prime factors, therefore all of its prime factors are limited to 2, 3, and 5.
+ 
+
+Constraints:
+
+1 <= n <= 1690
+
+
+# java
+
+
+class Solution {
+
+    public int nthUglyNumber(int n) {
+        TreeSet<Long> uglyNumbersSet = new TreeSet<>(); // TreeSet to store potential ugly numbers
+        uglyNumbersSet.add(1L); // Start with 1, the first ugly number
+        // TreeSet automatically sorts elements in ascending order and does not
+        // allow duplicate entries, just like a HashSet in python
+
+        Long currentUgly = 1L;
+        for (int i = 0; i < n; i++) {
+            currentUgly = uglyNumbersSet.pollFirst(); // Get the smallest number from the set and remove it
+
+            // Insert the next potential ugly numbers into the set
+            uglyNumbersSet.add(currentUgly * 2);
+            uglyNumbersSet.add(currentUgly * 3);
+            uglyNumbersSet.add(currentUgly * 5);
+        }
+
+        return currentUgly.intValue(); // Return the nth ugly number
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public int nthUglyNumber(int n) {
+        PriorityQueue<Long> minHeap = new PriorityQueue<>();
+        Set<Long> seenNumbers = new HashSet<>(); // Set to avoid duplicates
+        int[] primeFactors = { 2, 3, 5 }; // Factors for generating new ugly numbers
+
+        minHeap.offer(1L);
+        seenNumbers.add(1L);
+
+        long currentUgly = 1L;
+        for (int i = 0; i < n; i++) {
+            currentUgly = minHeap.poll(); // Get the smallest number
+
+            // Generate and push the next ugly numbers
+            for (int prime : primeFactors) {
+                long nextUgly = currentUgly * prime;
+                if (seenNumbers.add(nextUgly)) { // Avoid duplicates
+                    minHeap.offer(nextUgly);
+                }
+            }
+        }
+
+        return (int) currentUgly; // Return the nth ugly number
+    }
+}
+
+
+or
+
+class Solution {
+
+    public int nthUglyNumber(int n) {
+        int[] uglyNumbers = new int[n]; // DP array to store ugly numbers
+        uglyNumbers[0] = 1; // The first ugly number is 1
+
+        // Three pointers for the multiples of 2, 3, and 5
+        int indexMultipleOf2 = 0, indexMultipleOf3 = 0, indexMultipleOf5 = 0;
+        int nextMultipleOf2 = 2, nextMultipleOf3 = 3, nextMultipleOf5 = 5;
+
+        // Generate ugly numbers until we reach the nth one
+        for (int i = 1; i < n; i++) {
+            // Find the next ugly number as the minimum of the next multiples
+            int nextUglyNumber = Math.min(
+                nextMultipleOf2,
+                Math.min(nextMultipleOf3, nextMultipleOf5)
+            );
+            uglyNumbers[i] = nextUglyNumber;
+
+            // Update the corresponding pointer and next multiple
+            if (nextUglyNumber == nextMultipleOf2) {
+                indexMultipleOf2++;
+                nextMultipleOf2 = uglyNumbers[indexMultipleOf2] * 2;
+            }
+            if (nextUglyNumber == nextMultipleOf3) {
+                indexMultipleOf3++;
+                nextMultipleOf3 = uglyNumbers[indexMultipleOf3] * 3;
+            }
+            if (nextUglyNumber == nextMultipleOf5) {
+                indexMultipleOf5++;
+                nextMultipleOf5 = uglyNumbers[indexMultipleOf5] * 5;
+            }
+        }
+
+        return uglyNumbers[n - 1]; // Return the nth ugly number
+    }
+}
+
+or
+
+
+public class Solution {
+    public int nthUglyNumber(int n) {
+        int[] ugly = new int[n];
+        ugly[0] = 1;
+        int index2 = 0, index3 = 0, index5 = 0;
+        int factor2 = 2, factor3 = 3, factor5 = 5;
+        for(int i=1;i<n;i++){
+            int min = Math.min(Math.min(factor2,factor3),factor5);
+            ugly[i] = min;
+            if(factor2 == min)
+                factor2 = 2*ugly[++index2];
+            if(factor3 == min)
+                factor3 = 3*ugly[++index3];
+            if(factor5 == min)
+                factor5 = 5*ugly[++index5];
+        }
+        return ugly[n-1];
+    }
+}
+
+or
+
+
+class Solution {
+    public int nthUglyNumber(int n) {
+        int[] primes = {2, 3, 5};
+        PriorityQueue<Long> uglyHeap = new PriorityQueue<>();
+        HashSet<Long> visited = new HashSet<>();
+        
+        uglyHeap.add(1L);
+        visited.add(1L);
+        
+        long curr = 1L;
+        for (int i = 0; i < n; i++) {
+            curr = uglyHeap.poll();
+            for (int prime : primes) {
+                long new_ugly = curr * prime;
+                if (!visited.contains(new_ugly)) {
+                    uglyHeap.add(new_ugly);
+                    visited.add(new_ugly);
+                }
+            }
+        }
+        return (int)curr;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int nthUglyNumber(int n) {
+        int[] primes = {2, 3, 5};  // Initialize the primes array
+        int[] indices = {0, 0, 0}; // Initialize indices for multiples of 2, 3, 5
+        List<Integer> uglyArr = new ArrayList<>();  // Initialize the ugly number array with 1
+        uglyArr.add(1);
+
+        for (int i = 1; i < n; ++i) {
+            // Calculate the next possible ugly numbers
+            int[] nextUglies = {
+                uglyArr.get(indices[0]) * primes[0],
+                uglyArr.get(indices[1]) * primes[1],
+                uglyArr.get(indices[2]) * primes[2]
+            };
+            int minValue = Math.min(nextUglies[0], Math.min(nextUglies[1], nextUglies[2]));  // Find the smallest value
+            uglyArr.add(minValue);  // Append the smallest value to uglyArr
+
+            // Update indices for primes that generated the current min_value
+            for (int j = 0; j < 3; ++j) {
+                if (nextUglies[j] == minValue) {
+                    indices[j]++;
+                }
+            }
+        }
+
+        return uglyArr.get(n - 1);
+    }
+}
