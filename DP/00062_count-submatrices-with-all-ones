@@ -1,0 +1,271 @@
+https://leetcode.com/problems/count-submatrices-with-all-ones/description/
+
+1504. Count Submatrices With All Ones
+Medium
+Topics
+Companies
+Hint
+Given an m x n binary matrix mat, return the number of submatrices that have all ones.
+
+ 
+
+Example 1:
+
+
+Input: mat = [[1,0,1],[1,1,0],[1,1,0]]
+Output: 13
+Explanation: 
+There are 6 rectangles of side 1x1.
+There are 2 rectangles of side 1x2.
+There are 3 rectangles of side 2x1.
+There is 1 rectangle of side 2x2. 
+There is 1 rectangle of side 3x1.
+Total number of rectangles = 6 + 2 + 3 + 1 + 1 = 13.
+Example 2:
+
+
+Input: mat = [[0,1,1,0],[0,1,1,1],[1,1,1,0]]
+Output: 24
+Explanation: 
+There are 8 rectangles of side 1x1.
+There are 5 rectangles of side 1x2.
+There are 2 rectangles of side 1x3. 
+There are 4 rectangles of side 2x1.
+There are 2 rectangles of side 2x2. 
+There are 2 rectangles of side 3x1. 
+There is 1 rectangle of side 3x2. 
+Total number of rectangles = 8 + 5 + 2 + 4 + 2 + 2 + 1 = 24.
+ 
+
+Constraints:
+
+1 <= m, n <= 150
+mat[i][j] is either 0 or 1.
+
+
+# java
+
+
+class Solution {
+  public int numSubmat(int[][] mat) {
+    final int m = mat.length;
+    final int n = mat[0].length;
+    int ans = 0;
+
+    for (int baseRow = 0; baseRow < m; ++baseRow) {
+      int[] row = new int[n];
+      Arrays.fill(row, 1);
+      for (int i = baseRow; i < m; ++i) {
+        for (int j = 0; j < n; ++j)
+          row[j] &= mat[i][j];
+        ans += count(row);
+      }
+    }
+
+    return ans;
+  }
+
+  private int count(int[] row) {
+    int res = 0;
+    int length = 0;
+    for (final int num : row) {
+      length = num == 0 ? 0 : length + 1;
+      res += length;
+    }
+    return res;
+  }
+}
+
+
+or
+
+
+class Solution {
+  public int numSubmat(int[][] mat) {
+    int ans = 0;
+    int[] hist = new int[mat[0].length];
+
+    for (int[] row : mat) {
+      for (int i = 0; i < row.length; ++i)
+        hist[i] = row[i] == 0 ? 0 : hist[i] + 1;
+      ans += count(hist);
+    }
+
+    return ans;
+  }
+
+  private int count(int[] hist) {
+    // submatrices[i] := the number of submatrices, where the i-th column is the
+    // right border
+    int[] submatrices = new int[hist.length];
+    Deque<Integer> stack = new ArrayDeque<>();
+
+    for (int i = 0; i < hist.length; ++i) {
+      while (!stack.isEmpty() && hist[stack.peek()] >= hist[i])
+        stack.pop();
+      if (!stack.isEmpty()) {
+        final int prevIndex = stack.peek();
+        submatrices[i] = submatrices[prevIndex] + hist[i] * (i - prevIndex);
+      } else {
+        submatrices[i] = hist[i] * (i + 1);
+      }
+      stack.push(i);
+    }
+
+    return Arrays.stream(submatrices).sum();
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int numSubmat(int[][] mat) {
+        int m = mat.length, n = mat[0].length;
+        int[][] g = new int[m][n];
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (mat[i][j] == 1) {
+                    g[i][j] = j == 0 ? 1 : 1 + g[i][j - 1];
+                }
+            }
+        }
+        int ans = 0;
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                int col = 1 << 30;
+                for (int k = i; k >= 0 && col > 0; --k) {
+                    col = Math.min(col, g[k][j]);
+                    ans += col;
+                }
+            }
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+	
+	public int numSubmat (int[][] mat) {
+		
+		int submatrices = 0;
+		int rowLength = mat.length;
+		int colLength = mat[0].length;
+		
+		for (int row = 1; row < rowLength; row++) {
+			for (int col = 0; col < colLength; col++) {
+				mat[row][col] = mat[row][col] == 1 ? mat[row - 1][col] + 1 : 0;
+			}
+		}
+		
+		for (int row = 0; row < rowLength; row++) {
+			for (int col = 0; col < colLength; col++) {
+				if (mat[row][col] != 0) {
+					int min = mat[row][col];
+					submatrices += min;
+					for (int k = col + 1; k < colLength && mat[row][k] != 0; k++) {
+						min = Math.min (min, mat[row][k]);
+						submatrices += min;
+					}
+				}
+			}
+		}
+		
+		return submatrices;
+	}
+}
+
+
+or
+
+
+class Solution {
+    private int n;
+    private int res = 0;
+    
+    public int numSubmat(int[][] mat) {
+        this.n = mat[0].length;
+        
+        // dp[j] : the height (number of consecutive '1's) of column j 
+        int[] dp = new int[n];
+        for (int i = 0; i < mat.length; i++) {
+            // calculating (updating) heights
+            for (int j = 0; j < n; j++) {
+                dp[j] = mat[i][j] == 1 ? dp[j] + 1 : 0;
+            }
+            enumerateRowByMinHeight(dp);
+        }
+        return res;
+    }
+
+    public void enumerateRowByMinHeight(int[] dp) {
+        // monotonic stack storing indices : for index p < q in stack, dp[p] < dp[q]
+        Deque<Integer> stack = new LinkedList<>();
+        stack.offerLast(-1);
+
+        for (int j = 0; j < n; j++) {
+            while (stack.peekLast() != -1 && dp[stack.peekLast()] >= dp[j]) {
+                int idx = stack.pollLast();
+                res += dp[idx] * (idx - stack.peekLast()) * (j - idx);
+            }
+            stack.offerLast(j);
+        }
+        while (stack.peekLast() != -1) {
+            int idx = stack.pollLast();
+            res += dp[idx] * (idx - stack.peekLast()) * (n - idx);
+        }
+    }
+}
+
+or
+
+
+class Solution {
+    public int numSubmat(int[][] mat) {
+       
+        int R = mat.length;
+        int C = mat[0].length;
+        int ans = 0;
+        
+        int[][]dp = new int[R][C];
+        
+        for(int i = 0 ; i < R ; i++){
+            int cnt = 0;
+            for(int j = 0 ; j < C ; j++){
+                
+              if(mat[i][j] == 1){
+                 ++cnt;      
+                }else{
+                 cnt = 0;
+                }
+                
+               dp[i][j] = cnt; 
+            }         
+        }
+        
+        
+      for(int i = 0 ; i < R ; i++){
+          
+          for(int j = 0 ; j < C ; j++){
+              
+              int res = Integer.MAX_VALUE;
+              
+              for(int k = i ; k < R ; k++){
+                  
+                  res = Math.min(dp[k][j] , res);
+                  ans += res;
+                  
+              }
+              
+          }
+          
+      }
+        
+     return ans;       
+    }
+}
