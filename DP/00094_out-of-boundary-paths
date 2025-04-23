@@ -1,0 +1,250 @@
+https://leetcode.com/problems/out-of-boundary-paths/description/
+
+576. Out of Boundary Paths
+Medium
+Topics
+Companies
+Hint
+There is an m x n grid with a ball. The ball is initially at the position [startRow, startColumn]. You are allowed to move the ball to one of the four adjacent cells in the grid (possibly out of the grid crossing the grid boundary). You can apply at most maxMove moves to the ball.
+
+Given the five integers m, n, maxMove, startRow, startColumn, return the number of paths to move the ball out of the grid boundary. Since the answer can be very large, return it modulo 109 + 7.
+
+ 
+
+Example 1:
+
+
+Input: m = 2, n = 2, maxMove = 2, startRow = 0, startColumn = 0
+Output: 6
+Example 2:
+
+
+Input: m = 1, n = 3, maxMove = 3, startRow = 0, startColumn = 1
+Output: 12
+ 
+
+Constraints:
+
+1 <= m, n <= 50
+0 <= maxMove <= 50
+0 <= startRow < m
+0 <= startColumn < n
+
+
+
+# java
+
+
+class Solution {
+  public int findPaths(int m, int n, int maxMove, int startRow, int startColumn) {
+    Integer[][][] mem = new Integer[maxMove + 1][m][n];
+    return findPaths(m, n, maxMove, startRow, startColumn, mem);
+  }
+
+  private static final int MOD = 1_000_000_007;
+
+  // Returns the number of paths to move the ball at (i, j) out-of-bounds with k
+  // moves.
+  private int findPaths(int m, int n, int k, int i, int j, Integer[][][] mem) {
+    if (i < 0 || i == m || j < 0 || j == n)
+      return 1;
+    if (k == 0)
+      return 0;
+    if (mem[k][i][j] != null)
+      return mem[k][i][j];
+    return mem[k][i][j] = (int) ((findPaths(m, n, k - 1, i + 1, j, mem) * 1L +
+                                  findPaths(m, n, k - 1, i - 1, j, mem) +
+                                  findPaths(m, n, k - 1, i, j + 1, mem) +
+                                  findPaths(m, n, k - 1, i, j - 1, mem)) %
+                                 MOD);
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    private int m;
+    private int n;
+    private int[][][] f;
+    private static final int[] DIRS = {-1, 0, 1, 0, -1};
+    private static final int MOD = (int) 1e9 + 7;
+
+    public int findPaths(int m, int n, int maxMove, int startRow, int startColumn) {
+        this.m = m;
+        this.n = n;
+        f = new int[m + 1][n + 1][maxMove + 1];
+        for (var a : f) {
+            for (var b : a) {
+                Arrays.fill(b, -1);
+            }
+        }
+        return dfs(startRow, startColumn, maxMove);
+    }
+
+    private int dfs(int i, int j, int k) {
+        if (i < 0 || i >= m || j < 0 || j >= n) {
+            return 1;
+        }
+        if (f[i][j][k] != -1) {
+            return f[i][j][k];
+        }
+        if (k == 0) {
+            return 0;
+        }
+        int res = 0;
+        for (int t = 0; t < 4; ++t) {
+            int x = i + DIRS[t];
+            int y = j + DIRS[t + 1];
+            res += dfs(x, y, k - 1);
+            res %= MOD;
+        }
+        f[i][j][k] = res;
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution {
+  public int findPaths(int m, int n, int N, int i, int j) {
+    if (i == m || j == n || i < 0 || j < 0) return 1;
+    if (N == 0) return 0;
+    return findPaths(m, n, N - 1, i - 1, j)
+        + findPaths(m, n, N - 1, i + 1, j)
+        + findPaths(m, n, N - 1, i, j - 1)
+        + findPaths(m, n, N - 1, i, j + 1);
+  }
+}
+
+
+or
+
+
+class Solution {
+  int M = 1000000007;
+
+  public int findPaths(int m, int n, int N, int i, int j) {
+    int[][][] memo = new int[m][n][N + 1];
+    for (int[][] l : memo) for (int[] sl : l) Arrays.fill(sl, -1);
+    return findPaths(m, n, N, i, j, memo);
+  }
+
+  public int findPaths(int m, int n, int N, int i, int j, int[][][] memo) {
+    if (i == m || j == n || i < 0 || j < 0) return 1;
+    if (N == 0) return 0;
+    if (memo[i][j][N] >= 0) return memo[i][j][N];
+    memo[i][j][N] = (
+        (findPaths(m, n, N - 1, i - 1, j, memo) + findPaths(m, n, N - 1, i + 1, j, memo)) % M +
+        (findPaths(m, n, N - 1, i, j - 1, memo) + findPaths(m, n, N - 1, i, j + 1, memo)) % M
+    ) % M;
+    return memo[i][j][N];
+  }
+}
+
+
+or
+
+
+class Solution {
+  public int findPaths(int m, int n, int N, int x, int y) {
+    int M = 1000000000 + 7;
+    int dp[][] = new int[m][n];
+    dp[x][y] = 1;
+    int count = 0;
+    for (int moves = 1; moves <= N; moves++) {
+      int[][] temp = new int[m][n];
+      for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+          if (i == m - 1) count = (count + dp[i][j]) % M;
+          if (j == n - 1) count = (count + dp[i][j]) % M;
+          if (i == 0) count = (count + dp[i][j]) % M;
+          if (j == 0) count = (count + dp[i][j]) % M;
+          temp[i][j] = (
+              ((i > 0 ? dp[i - 1][j] : 0) + (i < m - 1 ? dp[i + 1][j] : 0)) % M +
+              ((j > 0 ? dp[i][j - 1] : 0) + (j < n - 1 ? dp[i][j + 1] : 0)) % M
+          ) % M;
+        }
+      }
+      dp = temp;
+    }
+    return count;
+  }
+}
+
+
+or
+
+
+class Solution {
+    
+    private long helper(int m, int n, int maxMove, int row, int col, long[][][] t, long mod){
+        
+        if(row < 0 || col < 0 || row >= m || col >= n)
+            return 1;
+        
+        if(maxMove == 0)
+            return 0;
+        
+        if(t[row][col][maxMove] != -1)
+            return t[row][col][maxMove];
+        
+        
+        return t[row][col][maxMove] =  (helper(m, n, maxMove-1, row-1, col, t, mod) % mod) +
+                                    (helper(m, n, maxMove-1, row, col+1, t, mod) % mod) +
+                                    (helper(m, n, maxMove-1, row+1, col, t, mod) % mod) +
+                                    (helper(m, n, maxMove-1, row, col-1, t, mod) % mod);
+    }
+    
+    public int findPaths(int m, int n, int maxMove, int startRow, int startColumn) {
+        long mod = 1_000_000_007;
+        long[][][] t = new long[51][51][51];
+        
+        for(long[][] row : t){
+            for(long[] rowcol : row){
+                Arrays.fill(rowcol,-1);
+            }
+        }
+        
+        return (int) (helper(m, n, maxMove, startRow, startColumn, t, mod) % mod);
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int findPaths(int m, int n, int N, int x, int y) {
+        final int M = 1000000000 + 7;
+        int[][] dp = new int[m][n];
+        dp[x][y] = 1;
+        int count = 0;
+
+        for (int moves = 1; moves <= N; moves++) {
+            int[][] temp = new int[m][n];
+
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < n; j++) {
+                    if (i == m - 1) count = (count + dp[i][j]) % M;
+                    if (j == n - 1) count = (count + dp[i][j]) % M;
+                    if (i == 0) count = (count + dp[i][j]) % M;
+                    if (j == 0) count = (count + dp[i][j]) % M;
+                    temp[i][j] = (
+                            ((i > 0 ? dp[i - 1][j] : 0) + (i < m - 1 ? dp[i + 1][j] : 0)) % M +
+                            ((j > 0 ? dp[i][j - 1] : 0) + (j < n - 1 ? dp[i][j + 1] : 0)) % M
+                    ) % M;
+                }
+            }
+            dp = temp;
+        }
+
+        return count;
+    }
+}
+
