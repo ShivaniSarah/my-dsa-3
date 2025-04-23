@@ -1,0 +1,449 @@
+https://leetcode.com/problems/maximum-number-of-moves-in-a-grid/description/
+
+2684. Maximum Number of Moves in a Grid
+Medium
+Topics
+Companies
+Hint
+You are given a 0-indexed m x n matrix grid consisting of positive integers.
+
+You can start at any cell in the first column of the matrix, and traverse the grid in the following way:
+
+From a cell (row, col), you can move to any of the cells: (row - 1, col + 1), (row, col + 1) and (row + 1, col + 1) such that the value of the cell you move to, should be strictly bigger than the value of the current cell.
+Return the maximum number of moves that you can perform.
+
+ 
+
+Example 1:
+
+
+Input: grid = [[2,4,3,5],[5,4,9,3],[3,4,2,11],[10,9,13,15]]
+Output: 3
+Explanation: We can start at the cell (0, 0) and make the following moves:
+- (0, 0) -> (0, 1).
+- (0, 1) -> (1, 2).
+- (1, 2) -> (2, 3).
+It can be shown that it is the maximum number of moves that can be made.
+Example 2:
+
+
+Input: grid = [[3,2,4],[2,1,9],[1,1,7]]
+Output: 0
+Explanation: Starting from any cell in the first column we cannot perform any moves.
+ 
+
+Constraints:
+
+m == grid.length
+n == grid[i].length
+2 <= m, n <= 1000
+4 <= m * n <= 105
+1 <= grid[i][j] <= 106
+
+
+
+# java
+
+
+class Solution {
+  public int maxMoves(int[][] grid) {
+    final int m = grid.length;
+    final int n = grid[0].length;
+    int ans = 0;
+    // dp[i][j] := the maximum number of moves you can perform from (i, j)
+    int[][] dp = new int[m][n];
+
+    for (int j = n - 2; j >= 0; --j)
+      for (int i = 0; i < m; ++i) {
+        if (grid[i][j + 1] > grid[i][j])
+          dp[i][j] = 1 + dp[i][j + 1];
+        if (i > 0 && grid[i - 1][j + 1] > grid[i][j])
+          dp[i][j] = Math.max(dp[i][j], 1 + dp[i - 1][j + 1]);
+        if (i + 1 < m && grid[i + 1][j + 1] > grid[i][j])
+          dp[i][j] = Math.max(dp[i][j], 1 + dp[i + 1][j + 1]);
+      }
+
+    for (int i = 0; i < m; ++i)
+      ans = Math.max(ans, dp[i][0]);
+
+    return ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int maxMoves(int[][] grid) {
+        int[][] dirs = { {-1, 1}, {0, 1}, {1, 1} };
+        int m = grid.length, n = grid[0].length;
+        Deque<int[]> q = new ArrayDeque<>();
+        for (int i = 0; i < m; ++i) {
+            q.offer(new int[] {i, 0});
+        }
+        int[][] dist = new int[m][n];
+        int ans = 0;
+        while (!q.isEmpty()) {
+            var p = q.poll();
+            int i = p[0], j = p[1];
+            for (var dir : dirs) {
+                int x = i + dir[0], y = j + dir[1];
+                if (x >= 0 && x < m && y >= 0 && y < n && grid[x][y] > grid[i][j]
+                    && dist[x][y] < dist[i][j] + 1) {
+                    dist[x][y] = dist[i][j] + 1;
+                    ans = Math.max(ans, dist[x][y]);
+                    q.offer(new int[] {x, y});
+                }
+            }
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    // The three possible directions for the next column.
+    private final int[] dirs = { -1, 0, 1 };
+
+    public int maxMoves(int[][] grid) {
+        int M = grid.length, N = grid[0].length;
+
+        Queue<int[]> q = new LinkedList<>();
+        boolean[][] vis = new boolean[M][N];
+
+        // Enqueue the cells in the first column.
+        for (int i = 0; i < M; i++) {
+            vis[i][0] = true;
+            q.offer(new int[] { i, 0, 0 });
+        }
+
+        int maxMoves = 0;
+        while (!q.isEmpty()) {
+            int sz = q.size();
+
+            while (sz-- > 0) {
+                int[] v = q.poll();
+
+                // Current cell with the number of moves made so far.
+                int row = v[0], col = v[1], count = v[2];
+
+                maxMoves = Math.max(maxMoves, count);
+
+                for (int dir : dirs) {
+                    // Next cell after the move.
+                    int newRow = row + dir, newCol = col + 1;
+
+                    // If the next cell isn't visited yet and is greater than
+                    // the current cell value, add it to the queue with the
+                    // incremented move count.
+                    if (
+                        newRow >= 0 &&
+                        newCol >= 0 &&
+                        newRow < M &&
+                        newCol < N &&
+                        !vis[newRow][newCol] &&
+                        grid[row][col] < grid[newRow][newCol]
+                    ) {
+                        vis[newRow][newCol] = true;
+                        q.offer(new int[] { newRow, newCol, count + 1 });
+                    }
+                }
+            }
+        }
+
+        return maxMoves;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    // The three possible directions for the next column.
+    private final int[] dirs = { -1, 0, 1 };
+
+    private int DFS(int row, int col, int[][] grid, int[][] dp) {
+        int M = grid.length, N = grid[0].length;
+
+        // If we have calculated the moves required for this cell, return the answer and skip the recursion.
+        if (dp[row][col] != -1) {
+            return dp[row][col];
+        }
+
+        int maxMoves = 0;
+        for (int dir : dirs) {
+            // Next cell after the move.
+            int newRow = row + dir, newCol = col + 1;
+
+            // If the next cell is valid and greater than the current cell value,
+            // perform recursion to that cell with updated value of moves.
+            if (
+                newRow >= 0 &&
+                newCol >= 0 &&
+                newRow < M &&
+                newCol < N &&
+                grid[row][col] < grid[newRow][newCol]
+            ) {
+                maxMoves = Math.max(
+                    maxMoves,
+                    1 + DFS(newRow, newCol, grid, dp)
+                );
+            }
+        }
+
+        dp[row][col] = maxMoves;
+        return maxMoves;
+    }
+
+    public int maxMoves(int[][] grid) {
+        int M = grid.length, N = grid[0].length;
+
+        int[][] dp = new int[M][N];
+        for (int i = 0; i < M; i++) {
+            Arrays.fill(dp[i], -1);
+        }
+
+        int maxMoves = 0;
+        // Start DFS from each cell in the first column.
+        for (int i = 0; i < M; i++) {
+            int movesRequired = DFS(i, 0, grid, dp);
+            maxMoves = Math.max(maxMoves, movesRequired);
+        }
+
+        return maxMoves;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+
+    public int maxMoves(int[][] grid) {
+        int M = grid.length, N = grid[0].length;
+
+        int[][] dp = new int[M][N];
+        // Cells in the first column will have the moves as 1.
+        // This is required to ensure we have a way if the cell is reachable or not
+        // from the first column.
+        for (int i = 0; i < M; i++) {
+            dp[i][0] = 1;
+        }
+
+        int maxMoves = 0;
+        for (int j = 1; j < N; j++) {
+            for (int i = 0; i < M; i++) {
+                // Check all the three next possible cells
+                // Check if the next cell is greater than the previous one
+                // Check if the previous cell was reachable,
+                // if the value is > 0
+                if (grid[i][j] > grid[i][j - 1] && dp[i][j - 1] > 0) {
+                    dp[i][j] = Math.max(dp[i][j], dp[i][j - 1] + 1);
+                }
+                if (
+                    i - 1 >= 0 &&
+                    grid[i][j] > grid[i - 1][j - 1] &&
+                    dp[i - 1][j - 1] > 0
+                ) {
+                    dp[i][j] = Math.max(dp[i][j], dp[i - 1][j - 1] + 1);
+                }
+                if (
+                    i + 1 < M &&
+                    grid[i][j] > grid[i + 1][j - 1] &&
+                    dp[i + 1][j - 1] > 0
+                ) {
+                    dp[i][j] = Math.max(dp[i][j], dp[i + 1][j - 1] + 1);
+                }
+
+                maxMoves = Math.max(maxMoves, dp[i][j] - 1);
+            }
+        }
+
+        return maxMoves;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+
+    public int maxMoves(int[][] grid) {
+        int M = grid.length, N = grid[0].length;
+
+        // Create a dp array to store moves, with each cell having a size of 2.
+        int[][] dp = new int[M][2];
+
+        // Initialize the first column cells as reachable.
+        for (int i = 0; i < M; i++) {
+            dp[i][0] = 1;
+        }
+
+        int maxMoves = 0;
+
+        // Iterate over each column starting from the second one.
+        for (int j = 1; j < N; j++) {
+            for (int i = 0; i < M; i++) {
+                // Check if moving from the same row
+                // of the previous column is possible.
+                if (grid[i][j] > grid[i][j - 1] && dp[i][0] > 0) {
+                    dp[i][1] = Math.max(dp[i][1], dp[i][0] + 1);
+                }
+                // Check if moving from the upper diagonal is possible.
+                if (
+                    i - 1 >= 0 &&
+                    grid[i][j] > grid[i - 1][j - 1] &&
+                    dp[i - 1][0] > 0
+                ) {
+                    dp[i][1] = Math.max(dp[i][1], dp[i - 1][0] + 1);
+                }
+                // Check if moving from the lower diagonal is possible.
+                if (
+                    i + 1 < M &&
+                    grid[i][j] > grid[i + 1][j - 1] &&
+                    dp[i + 1][0] > 0
+                ) {
+                    dp[i][1] = Math.max(dp[i][1], dp[i + 1][0] + 1);
+                }
+
+                // Update the maximum moves so far.
+                maxMoves = Math.max(maxMoves, dp[i][1] - 1);
+            }
+
+            // Shift dp values for the next iteration.
+            for (int k = 0; k < M; k++) {
+                dp[k][0] = dp[k][1];
+                dp[k][1] = 0;
+            }
+        }
+
+        return maxMoves;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int maxMoves(int[][] grid) {
+        // Get dimensions of the grid
+        int m = grid.length;    // number of rows
+        int n = grid[0].length; // number of columns
+        
+        // res will store the rightmost column we can reach
+        int res = 0;
+        
+        // dp array stores the maximum number of moves possible to reach each cell
+        // in the current column we're processing
+        int[] dp = new int[m];
+        
+        // Iterate through each column from left to right (starting from column 1)
+        for (int j = 1; j < n; j++) {
+            // leftTop keeps track of the dp value from the cell above-left
+            int leftTop = 0;
+            // found indicates if we can reach any cell in current column
+            boolean found = false;
+            
+            // Iterate through each row in current column
+            for (int i = 0; i < m; i++) {
+                // cur will store the maximum moves to reach current cell
+                int cur = -1;
+                // Store dp[i] for next iteration's leftTop
+                int nxtLeftTop = dp[i];
+                
+                // Check move from top-left cell (if valid)
+                if (i - 1 >= 0 && leftTop != -1 && grid[i][j] > grid[i - 1][j - 1]) {
+                    cur = Math.max(cur, leftTop + 1);
+                }
+                
+                // Check move from direct left cell (if valid)
+                if (dp[i] != -1 && grid[i][j] > grid[i][j - 1]) {
+                    cur = Math.max(cur, dp[i] + 1);
+                }
+                
+                // Check move from bottom-left cell (if valid)
+                if (i + 1 < m && dp[i + 1] != -1 && grid[i][j] > grid[i + 1][j - 1]) {
+                    cur = Math.max(cur, dp[i + 1] + 1);
+                }
+                
+                // Update dp array for current cell
+                dp[i] = cur;
+                // Update found flag if we can reach current cell
+                found = found || (dp[i] != -1);
+                // Update leftTop for next row's iteration
+                leftTop = nxtLeftTop;
+            }
+            
+            // If we can't reach any cell in current column, break
+            if (!found) break;
+            // Update result to current column if we can reach it
+            res = j;
+        }
+        
+        // Return the maximum number of moves possible
+        return res;
+    }
+}
+
+
+or
+
+
+class Pair{
+    int x;
+    int y;
+    int steps;
+    Pair(int x,int y,int steps){
+        this.x=x;
+        this.y=y;
+        this.steps=steps;
+    }
+}
+class Solution {
+    public int maxMoves(int[][] grid) {
+        int max=0;
+        for(int i=0;i<grid.length;i++){
+            int cnt=bfs(grid,i);
+            max=Math.max(max,cnt);
+        }
+        return max;
+    }
+    public int bfs(int[][] grid,int row){
+        Queue<Pair> qu=new LinkedList<>();
+        qu.add(new Pair(row,0,0));
+        boolean[][] vis=new boolean[grid.length][grid[0].length];
+        vis[row][0]=true;
+        int steps=0;
+        while(!qu.isEmpty()){
+            Pair p=qu.poll();
+            int x=p.x;
+            int y=p.y;
+            steps=p.steps;
+            int diri[]={-1,0,1};
+            int dirj[]={1,1,1};
+            for(int i=0;i<3;i++){
+                int curri=x+diri[i];
+                int currj=y+dirj[i];
+                if(curri>=0 && curri<grid.length && currj>=0 && currj<grid[0].length && !vis[curri][currj] && grid[curri][currj]>grid[x][y]){
+                    qu.add(new Pair(curri,currj,steps+1));
+                    vis[curri][currj]=true;
+                }
+            }
+        }
+        return steps;
+    }
+}
