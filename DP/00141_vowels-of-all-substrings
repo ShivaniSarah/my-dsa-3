@@ -1,0 +1,107 @@
+https://leetcode.com/problems/vowels-of-all-substrings/description/
+
+2063. Vowels of All Substrings
+Medium
+Topics
+Companies
+Hint
+Given a string word, return the sum of the number of vowels ('a', 'e', 'i', 'o', and 'u') in every substring of word.
+
+A substring is a contiguous (non-empty) sequence of characters within a string.
+
+Note: Due to the large constraints, the answer may not fit in a signed 32-bit integer. Please be careful during the calculations.
+
+ 
+
+Example 1:
+
+Input: word = "aba"
+Output: 6
+Explanation: 
+All possible substrings are: "a", "ab", "aba", "b", "ba", and "a".
+- "b" has 0 vowels in it
+- "a", "ab", "ba", and "a" have 1 vowel each
+- "aba" has 2 vowels in it
+Hence, the total sum of vowels = 0 + 1 + 1 + 1 + 1 + 2 = 6. 
+Example 2:
+
+Input: word = "abc"
+Output: 3
+Explanation: 
+All possible substrings are: "a", "ab", "abc", "b", "bc", and "c".
+- "a", "ab", and "abc" have 1 vowel each
+- "b", "bc", and "c" have 0 vowels each
+Hence, the total sum of vowels = 1 + 1 + 1 + 0 + 0 + 0 = 3.
+Example 3:
+
+Input: word = "ltcd"
+Output: 0
+Explanation: There are no vowels in any substring of "ltcd".
+ 
+
+Constraints:
+
+1 <= word.length <= 105
+word consists of lowercase English letters.
+
+
+# java
+
+
+class Solution {
+  public long countVowels(String word) {
+    // dp[i] := the sum of the number of vowels of word[0..i), ...,
+    // word[i - 1..i)
+    long[] dp = new long[word.length() + 1];
+
+    for (int i = 1; i <= word.length(); ++i) {
+      dp[i] = dp[i - 1];
+      if (isVowel(word.charAt(i - 1)))
+        dp[i] += i;
+    }
+
+    return Arrays.stream(dp).sum();
+  }
+
+  private boolean isVowel(char c) {
+    return "aeiou".indexOf(c) != -1;
+  }
+}
+
+
+
+or
+
+class Solution {
+  public long countVowels(String word) {
+    long ans = 0;
+
+    for (int i = 0; i < word.length(); ++i)
+      if (isVowel(word.charAt(i)))
+        ans += (i + 1) * (long) (word.length() - i);
+
+    return ans;
+  }
+
+  private boolean isVowel(char c) {
+    return "aeiou".indexOf(c) != -1;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public long countVowels(String word) {
+        long ans = 0;
+        for (int i = 0, n = word.length(); i < n; ++i) {
+            char c = word.charAt(i);
+            if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u') {
+                ans += (i + 1L) * (n - i);
+            }
+        }
+        return ans;
+    }
+}
+
