@@ -1,0 +1,143 @@
+http://leetcode.com/problems/unique-substrings-in-wraparound-string/description/
+
+467. Unique Substrings in Wraparound String
+Medium
+Topics
+Companies
+Hint
+We define the string base to be the infinite wraparound string of "abcdefghijklmnopqrstuvwxyz", so base will look like this:
+
+"...zabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcd....".
+Given a string s, return the number of unique non-empty substrings of s are present in base.
+
+ 
+
+Example 1:
+
+Input: s = "a"
+Output: 1
+Explanation: Only the substring "a" of s is in base.
+Example 2:
+
+Input: s = "cac"
+Output: 2
+Explanation: There are two substrings ("a", "c") of s in base.
+Example 3:
+
+Input: s = "zab"
+Output: 6
+Explanation: There are six substrings ("z", "a", "b", "za", "ab", and "zab") of s in base.
+ 
+
+Constraints:
+
+1 <= s.length <= 105
+s consists of lowercase English letters.
+
+
+# java
+
+
+class Solution {
+  public int findSubstringInWraproundString(String s) {
+    int maxLength = 1;
+    // count[i] := the number of substrings ending in ('a' + i)
+    int[] count = new int[26];
+
+    for (int i = 0; i < s.length(); ++i) {
+      if (i > 0 && (s.charAt(i) - s.charAt(i - 1) == 1 || s.charAt(i - 1) - s.charAt(i) == 25))
+        ++maxLength;
+      else
+        maxLength = 1;
+      final int index = s.charAt(i) - 'a';
+      count[index] = Math.max(count[index], maxLength);
+    }
+
+    return Arrays.stream(count).sum();
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int findSubstringInWraproundString(String p) {
+        int[] dp = new int[26];
+        int k = 0;
+        for (int i = 0; i < p.length(); ++i) {
+            char c = p.charAt(i);
+            if (i > 0 && (c - p.charAt(i - 1) + 26) % 26 == 1) {
+                ++k;
+            } else {
+                k = 1;
+            }
+            dp[c - 'a'] = Math.max(dp[c - 'a'], k);
+        }
+        int ans = 0;
+        for (int v : dp) {
+            ans += v;
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int findSubstringInWraproundString(String s){
+        int dp[] = new int[s.length()];
+        dp[s.length() - 1] = 1;
+        int maxArray[] = new int[26];
+        maxArray[s.charAt(s.length()-1) - 'a'] = 1;
+        for(int i = s.length() - 2 ; i >= 0 ; i--){
+            if(s.charAt(i) == s.charAt(i+1) - 1 || s.charAt(i) == 'z' && s.charAt(i+1) == 'a'){
+                dp[i] = 1 + dp[i+1];
+            }else{
+                dp[i] = 1;
+            }
+            int key = s.charAt(i) - 'a';
+            maxArray[key] = Math.max(maxArray[key],dp[i]);
+        }
+        int res = 0;
+        for(int i=0;i<26;i++){
+            res = res + maxArray[i];
+        }
+        return res;
+    }
+}
+
+or
+
+
+
+class Solution {
+    public int findSubstringInWraproundString(String p)
+    {
+        int[] arr = new int[26];
+        int i = 0;
+        int j = 1;
+        arr[p.charAt(0)-'a'] = 1;
+        while(j < p.length())
+        {
+            int ch = p.charAt(j)-'a';
+            int prev = p.charAt(j-1)-'a';
+            
+            if((prev == 25 && ch == 0) || (prev+1==ch))
+            {
+                arr[ch] = Math.max(arr[ch],j-i+1);
+            }
+            else
+            {
+                i = j;
+                arr[ch] = Math.max(arr[ch],1);
+            }
+            j++;
+        }
+        int sum = 0;
+        for(int ele : arr) sum+=ele;
+        return sum;
+    }
+}
