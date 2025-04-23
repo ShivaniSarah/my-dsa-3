@@ -1,0 +1,224 @@
+https://leetcode.com/problems/number-of-restricted-paths-from-first-to-last-node/description/
+
+1786. Number of Restricted Paths From First to Last Node
+Medium
+Topics
+Companies
+Hint
+There is an undirected weighted connected graph. You are given a positive integer n which denotes that the graph has n nodes labeled from 1 to n, and an array edges where each edges[i] = [ui, vi, weighti] denotes that there is an edge between nodes ui and vi with weight equal to weighti.
+
+A path from node start to node end is a sequence of nodes [z0, z1, z2, ..., zk] such that z0 = start and zk = end and there is an edge between zi and zi+1 where 0 <= i <= k-1.
+
+The distance of a path is the sum of the weights on the edges of the path. Let distanceToLastNode(x) denote the shortest distance of a path between node n and node x. A restricted path is a path that also satisfies that distanceToLastNode(zi) > distanceToLastNode(zi+1) where 0 <= i <= k-1.
+
+Return the number of restricted paths from node 1 to node n. Since that number may be too large, return it modulo 109 + 7.
+
+ 
+
+Example 1:
+
+
+Input: n = 5, edges = [[1,2,3],[1,3,3],[2,3,1],[1,4,2],[5,2,2],[3,5,1],[5,4,10]]
+Output: 3
+Explanation: Each circle contains the node number in black and its distanceToLastNode value in blue. The three restricted paths are:
+1) 1 --> 2 --> 5
+2) 1 --> 2 --> 3 --> 5
+3) 1 --> 3 --> 5
+Example 2:
+
+
+Input: n = 7, edges = [[1,3,1],[4,1,2],[7,3,4],[2,5,3],[5,6,1],[6,7,2],[7,5,3],[2,6,4]]
+Output: 1
+Explanation: Each circle contains the node number in black and its distanceToLastNode value in blue. The only restricted path is 1 --> 3 --> 7.
+ 
+
+Constraints:
+
+1 <= n <= 2 * 104
+n - 1 <= edges.length <= 4 * 104
+edges[i].length == 3
+1 <= ui, vi <= n
+ui != vi
+1 <= weighti <= 105
+There is at most one edge between any two nodes.
+There is at least one path between any two nodes.
+
+
+# java
+
+class Solution {
+    private static final int INF = Integer.MAX_VALUE;
+    private static final int MOD = (int) 1e9 + 7;
+    private List<int[]>[] g;
+    private int[] dist;
+    private int[] f;
+    private int n;
+
+    public int countRestrictedPaths(int n, int[][] edges) {
+        this.n = n;
+        g = new List[n + 1];
+        for (int i = 0; i < g.length; ++i) {
+            g[i] = new ArrayList<>();
+        }
+        for (int[] e : edges) {
+            int u = e[0], v = e[1], w = e[2];
+            g[u].add(new int[] {v, w});
+            g[v].add(new int[] {u, w});
+        }
+        PriorityQueue<int[]> q = new PriorityQueue<>((a, b) -> a[0] - b[0]);
+        q.offer(new int[] {0, n});
+        dist = new int[n + 1];
+        f = new int[n + 1];
+        Arrays.fill(dist, INF);
+        Arrays.fill(f, -1);
+        dist[n] = 0;
+        while (!q.isEmpty()) {
+            int[] p = q.poll();
+            int u = p[1];
+            for (int[] ne : g[u]) {
+                int v = ne[0], w = ne[1];
+                if (dist[v] > dist[u] + w) {
+                    dist[v] = dist[u] + w;
+                    q.offer(new int[] {dist[v], v});
+                }
+            }
+        }
+        return dfs(1);
+    }
+
+    private int dfs(int i) {
+        if (f[i] != -1) {
+            return f[i];
+        }
+        if (i == n) {
+            return 1;
+        }
+        int ans = 0;
+        for (int[] ne : g[i]) {
+            int j = ne[0];
+            if (dist[i] > dist[j]) {
+                ans = (ans + dfs(j)) % MOD;
+            }
+        }
+        f[i] = ans;
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+  public int countRestrictedPaths(int n, int[][] edges) {
+    List<Pair<Integer, Integer>>[] graph = new List[n];
+
+    for (int i = 0; i < n; ++i)
+      graph[i] = new ArrayList<>();
+
+    for (int[] edge : edges) {
+      final int u = edge[0] - 1;
+      final int v = edge[1] - 1;
+      final int w = edge[2];
+      graph[u].add(new Pair<>(v, w));
+      graph[v].add(new Pair<>(u, w));
+    }
+
+    return dijkstra(graph, 0, n - 1);
+  }
+
+  private int dijkstra(List<Pair<Integer, Integer>>[] graph, int src, int dst) {
+    final int MOD = 1_000_000_007;
+    // ways[i] := the number of restricted path from i to n
+    long[] ways = new long[graph.length];
+    // dist[i] := the distance to the last node of i
+    long[] dist = new long[graph.length];
+    Arrays.fill(dist, Long.MAX_VALUE);
+
+    ways[dst] = 1;
+    dist[dst] = 0;
+    // (d, u)
+    Queue<Pair<Long, Integer>> minHeap =
+        new PriorityQueue<>(Comparator.comparingLong(Pair::getKey));
+    minHeap.offer(new Pair<>(dist[dst], dst));
+
+    while (!minHeap.isEmpty()) {
+      final long d = minHeap.peek().getKey();
+      final int u = minHeap.poll().getValue();
+      if (d > dist[u])
+        continue;
+      for (Pair<Integer, Integer> pair : graph[u]) {
+        final int v = pair.getKey();
+        final int w = pair.getValue();
+        if (d + w < dist[v]) {
+          dist[v] = d + w;
+          minHeap.offer(new Pair<>(dist[v], v));
+        }
+        if (dist[v] < dist[u]) {
+          ways[u] += ways[v];
+          ways[u] %= MOD;
+        }
+      }
+    }
+
+    return (int) ways[src];
+  }
+}
+
+
+
+
+or
+
+
+
+class Pair {
+    int node, weight;
+    
+    Pair(int node, int weight) {
+        this.node = node;
+        this.weight = weight;
+    }
+}
+
+class Solution {
+    public int countRestrictedPaths(int n, int[][] edges) {
+        List<List<Pair>> adj = new ArrayList<>();
+        for (int i = 0; i <= n; i++) {
+            adj.add(new ArrayList<>());
+        }
+
+        for (int[] edge : edges) {
+            int u = edge[0], v = edge[1], w = edge[2];
+            adj.get(u).add(new Pair(v, w));
+            adj.get(v).add(new Pair(u, w));
+        }
+
+        int[] dist = new int[n + 1];
+        int[] ans = new int[n + 1];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[n] = 0;
+        ans[n] = 1;
+        PriorityQueue<Pair> heap = new PriorityQueue<>((a, b) -> a.weight - b.weight);
+        heap.offer(new Pair(n, 0));
+        int mod = (int) 1e9 + 7;
+
+        while (!heap.isEmpty()) {
+            Pair top = heap.poll();
+            int d = top.weight, x = top.node;
+            if (d > dist[x]) continue;
+            if (x == 1) break;
+            for (Pair neighbor : adj.get(x)) {
+                int y = neighbor.node, w = neighbor.weight;
+                if (dist[y] > dist[x] + w) {
+                    dist[y] = dist[x] + w;
+                    heap.offer(new Pair(y, dist[y]));
+                }
+                if (dist[y] > dist[x]) {
+                    ans[y] = (ans[y] + ans[x]) % mod;
+                }
+            }
+        }
+        return ans[1];
+    }
+}
