@@ -1,0 +1,230 @@
+https://leetcode.com/problems/count-number-of-texts/description/
+
+2266. Count Number of Texts
+Medium
+Topics
+Companies
+Hint
+Alice is texting Bob using her phone. The mapping of digits to letters is shown in the figure below.
+
+
+In order to add a letter, Alice has to press the key of the corresponding digit i times, where i is the position of the letter in the key.
+
+For example, to add the letter 's', Alice has to press '7' four times. Similarly, to add the letter 'k', Alice has to press '5' twice.
+Note that the digits '0' and '1' do not map to any letters, so Alice does not use them.
+However, due to an error in transmission, Bob did not receive Alice's text message but received a string of pressed keys instead.
+
+For example, when Alice sent the message "bob", Bob received the string "2266622".
+Given a string pressedKeys representing the string received by Bob, return the total number of possible text messages Alice could have sent.
+
+Since the answer may be very large, return it modulo 109 + 7.
+
+ 
+
+Example 1:
+
+Input: pressedKeys = "22233"
+Output: 8
+Explanation:
+The possible text messages Alice could have sent are:
+"aaadd", "abdd", "badd", "cdd", "aaae", "abe", "bae", and "ce".
+Since there are 8 possible messages, we return 8.
+Example 2:
+
+Input: pressedKeys = "222222222222222222222222222222222222"
+Output: 82876089
+Explanation:
+There are 2082876103 possible text messages Alice could have sent.
+Since we need to return the answer modulo 109 + 7, we return 2082876103 % (109 + 7) = 82876089.
+ 
+
+Constraints:
+
+1 <= pressedKeys.length <= 105
+pressedKeys only consists of digits from '2' - '9'.
+
+# java
+
+
+class Solution {
+  public int countTexts(String pressedKeys) {
+    final int MOD = 1_000_000_007;
+    final int n = pressedKeys.length();
+    // dp[i] := the number of possible text messages of pressedKeys[i..n)
+    long[] dp = new long[n + 1];
+    dp[n] = 1; // ""
+
+    for (int i = n - 1; i >= 0; --i) {
+      dp[i] = dp[i + 1];
+      if (isSame(pressedKeys, i, 2))
+        dp[i] += dp[i + 2];
+      if (isSame(pressedKeys, i, 3))
+        dp[i] += dp[i + 3];
+      if ((pressedKeys.charAt(i) == '7' || pressedKeys.charAt(i) == '9') &&
+          isSame(pressedKeys, i, 4))
+        dp[i] += dp[i + 4];
+      dp[i] %= MOD;
+    }
+
+    return (int) dp[0];
+  }
+
+  // Returns true if s[i..i + k) are the same digits.
+  private boolean isSame(final String s, int i, int k) {
+    if (i + k > s.length())
+      return false;
+    for (int j = i + 1; j < i + k; ++j)
+      if (s.charAt(j) != s.charAt(i))
+        return false;
+    return true;
+  }
+}
+
+
+or
+
+
+class Solution {
+    private static final int N = 100010;
+    private static final int MOD = (int) 1e9 + 7;
+    private static long[] f = new long[N];
+    private static long[] g = new long[N];
+    static {
+        f[0] = 1;
+        f[1] = 1;
+        f[2] = 2;
+        f[3] = 4;
+        g[0] = 1;
+        g[1] = 1;
+        g[2] = 2;
+        g[3] = 4;
+        for (int i = 4; i < N; ++i) {
+            f[i] = (f[i - 1] + f[i - 2] + f[i - 3]) % MOD;
+            g[i] = (g[i - 1] + g[i - 2] + g[i - 3] + g[i - 4]) % MOD;
+        }
+    }
+
+    public int countTexts(String pressedKeys) {
+        long ans = 1;
+        for (int i = 0, n = pressedKeys.length(); i < n; ++i) {
+            int j = i;
+            char c = pressedKeys.charAt(i);
+            for (; j + 1 < n && pressedKeys.charAt(j + 1) == c; ++j)
+                ;
+            int cnt = j - i + 1;
+            ans = c == '7' || c == '9' ? ans * g[cnt] : ans * f[cnt];
+            ans %= MOD;
+            i = j;
+        }
+        return (int) ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    int mod=((int)Math.pow(10,9)+7);
+    public int countTexts(String press) {
+        int dp[]=new int[press.length()+1];
+        Arrays.fill(dp,-1);
+        return recur(0,press,dp);
+        
+    }
+    int recur(int i,String press,int dp[]){
+        if(i==press.length()){
+            return 1;
+        }
+        if(dp[i]!=-1) return dp[i];
+        int c=0;
+        int o1=recur(i+1,press,dp);
+        int o2=0;
+        if(i<press.length()-1 &&  press.charAt(i)==press.charAt(i+1)){
+            o2=recur(i+2,press,dp);
+        }
+        int o3=0;
+        if(i<press.length()-2 &&  press.charAt(i)==press.charAt(i+1) &&  press.charAt(i)==press.charAt(i+2)){
+            o3=recur(i+3,press,dp);
+        }
+        int o4=0;
+        if(i+3<press.length() && (press.charAt(i)=='7' || press.charAt(i)=='9') && press.charAt(i)==press.charAt(i+1) &&  press.charAt(i)==press.charAt(i+2) && press.charAt(i)==press.charAt(i+3) ){
+            o4=recur(i+4,press,dp);
+
+    }
+    c=(((((o1+o2)%mod)+o3)%mod)+o4)%mod;
+    return dp[i]=c;
+}
+}
+
+or
+
+class Solution {
+  public int countTexts(String pressedKeys) {
+    final int MOD = 1_000_000_007;
+    final int n = pressedKeys.length();
+    // dp[i] := the number of possible text messages of pressedKeys[i..n)
+    long[] dp = new long[n + 1];
+    dp[n] = 1; // ""
+
+    for (int i = n - 1; i >= 0; --i) {
+      dp[i] = dp[i + 1];
+      if (isSame(pressedKeys, i, 2))
+        dp[i] += dp[i + 2];
+      if (isSame(pressedKeys, i, 3))
+        dp[i] += dp[i + 3];
+      if ((pressedKeys.charAt(i) == '7' || pressedKeys.charAt(i) == '9') &&
+          isSame(pressedKeys, i, 4))
+        dp[i] += dp[i + 4];
+      dp[i] %= MOD;
+    }
+
+    return (int) dp[0];
+  }
+
+  // Returns true if s[i..i + k) are the same digits.
+  private boolean isSame(final String s, int i, int k) {
+    if (i + k > s.length())
+      return false;
+    for (int j = i + 1; j < i + k; ++j)
+      if (s.charAt(j) != s.charAt(i))
+        return false;
+    return true;
+  }
+}
+
+or
+
+
+class Solution {
+    int MOD = 1000000007;
+    public int countTexts(String pressedKeys) {
+        Integer[] dp = new Integer[pressedKeys.length()];
+        return f(pressedKeys,0,dp);
+    }
+    public int f(String keys,int index,Integer[] dp){
+        if(index >= keys.length()){
+            return 1;
+        }
+        if(dp[index] != null){
+            return dp[index];
+        }
+        int take_one = 0;
+        int take_two = 0;
+        int take_three = 0;
+        int take_four = 0;
+        take_one = f(keys,index+1,dp)%MOD;
+        if(index < keys.length() - 1 && keys.charAt(index) == keys.charAt(index+1)){
+            take_two = f(keys,index+2,dp)%MOD;
+        }
+        if(index < keys.length()-2 && keys.charAt(index) == keys.charAt(index+1) && keys.charAt(index) == keys.charAt(index+2)){
+            take_three = f(keys,index+3,dp)%MOD;
+        }
+        if(keys.charAt(index) == '7' || keys.charAt(index) == '9'){
+            if(index < keys.length()-3 && keys.charAt(index) == keys.charAt(index+1) && keys.charAt(index) == keys.charAt(index+2) && keys.charAt(index) == keys.charAt(index+3)){
+                take_four = f(keys,index+4,dp)%MOD;
+            }
+        }
+        return dp[index] = ((take_one + take_two)%MOD + (take_four+take_three)%MOD)%MOD;
+    }
+}
