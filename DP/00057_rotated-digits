@@ -192,3 +192,30 @@ class Solution {
         return count;
     }
 }
+
+or
+
+
+public int rotatedDigits(int N) {
+    char[] chars = Integer.toString(N).toCharArray();
+    int res = 0;
+    HashSet<Integer> digits = new HashSet<>();
+    for (int i = 0; i < chars.length; i++) {
+        int digit = chars[i] - '0';
+        for (int j = 0; j < digit; j++) {
+            if (set2.contains(j)) {
+                res += (int)Math.pow(7, chars.length - i - 1);
+            }
+            if (set1.containsAll(digits) && set1.contains(j)) {
+                res -= (int)Math.pow(3, chars.length - i - 1);
+            }
+        }
+        digits.add(digit);
+        if (!set2.contains(digit)) {
+            return res;
+        }
+
+    }
+
+    return res + (!set1.containsAll(digits) ? 1 : 0);
+}
