@@ -1,0 +1,166 @@
+https://leetcode.com/problems/largest-1-bordered-square/description/
+
+1139. Largest 1-Bordered Square
+Medium
+Topics
+Companies
+Hint
+Given a 2D grid of 0s and 1s, return the number of elements in the largest square subgrid that has all 1s on its border, or 0 if such a subgrid doesn't exist in the grid.
+
+ 
+
+Example 1:
+
+Input: grid = [[1,1,1],[1,0,1],[1,1,1]]
+Output: 9
+Example 2:
+
+Input: grid = [[1,1,0,0]]
+Output: 1
+ 
+
+Constraints:
+
+1 <= grid.length <= 100
+1 <= grid[0].length <= 100
+grid[i][j] is 0 or 1
+
+
+# java
+
+class Solution {
+  public int largest1BorderedSquare(int[][] grid) {
+    final int m = grid.length;
+    final int n = grid[0].length;
+
+    // leftOnes[i][j] := consecutive 1s in the left of grid[i][j]
+    int[][] leftOnes = new int[m][n];
+    // topOnes[i][j] := consecutive 1s in the top of grid[i][j]
+    int[][] topOnes = new int[m][n];
+
+    for (int i = 0; i < m; ++i)
+      for (int j = 0; j < n; ++j)
+        if (grid[i][j] == 1) {
+          leftOnes[i][j] = j == 0 ? 1 : 1 + leftOnes[i][j - 1];
+          topOnes[i][j] = i == 0 ? 1 : 1 + topOnes[i - 1][j];
+        }
+
+    for (int sz = Math.min(m, n); sz > 0; --sz)
+      for (int i = 0; i + sz - 1 < m; ++i)
+        for (int j = 0; j + sz - 1 < n; ++j) {
+          final int x = i + sz - 1;
+          final int y = j + sz - 1;
+          // If grid[i..x][j..y] has all 1s on its border.
+          if (Math.min(leftOnes[i][y], leftOnes[x][y]) >= sz &&
+              Math.min(topOnes[x][j], topOnes[x][y]) >= sz)
+            return sz * sz;
+        }
+
+    return 0;
+  }
+};
+
+
+
+
+
+or
+
+
+class Solution {
+    public int largest1BorderedSquare(int[][] grid) {
+        int m = grid.length, n = grid[0].length;
+        int[][] down = new int[m][n];
+        int[][] right = new int[m][n];
+        for (int i = m - 1; i >= 0; --i) {
+            for (int j = n - 1; j >= 0; --j) {
+                if (grid[i][j] == 1) {
+                    down[i][j] = i + 1 < m ? down[i + 1][j] + 1 : 1;
+                    right[i][j] = j + 1 < n ? right[i][j + 1] + 1 : 1;
+                }
+            }
+        }
+        for (int k = Math.min(m, n); k > 0; --k) {
+            for (int i = 0; i <= m - k; ++i) {
+                for (int j = 0; j <= n - k; ++j) {
+                    if (down[i][j] >= k && right[i][j] >= k && right[i + k - 1][j] >= k
+                        && down[i][j + k - 1] >= k) {
+                        return k * k;
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+}
+
+
+or
+
+
+
+
+class Solution {
+    public int largest1BorderedSquare(int[][] grid) {
+        if (grid == null || grid.length == 0) return 0;
+        int m = grid.length, n = grid[0].length;
+        int[][][] dp = new int[m + 1][n + 1][2];
+        int max = 0;
+
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (grid[i][j] == 1) {
+                    dp[i + 1][j + 1][0] = dp[i][j + 1][0] + 1;
+                    dp[i + 1][j + 1][1] = dp[i + 1][j][1] + 1;
+
+                    int len = Math.min(dp[i + 1][j + 1][0], dp[i + 1][j + 1][1]);
+                    for (int k = len; k > max; k--) {
+                        int len1 = Math.min(dp[i + 1 - k + 1][j + 1][1], dp[i + 1][j + 1 - k + 1][0]);
+                        if (len1 >= k) {
+                            max = Math.max(max, k);
+                        }
+                    }
+                } else {
+                    dp[i + 1][j + 1][0] = 0;
+                    dp[i + 1][j + 1][1] = 0;
+                }
+            }
+        }
+
+        return max * max;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int largest1BorderedSquare(int[][] grid) {
+        int m = grid.length, n = grid[0].length;
+        int[][] left = new int[m][n], top = new int[m][n];
+        int res = 0;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (i == 0) {
+                    top[i][j] = grid[i][j];
+                } else {
+                    top[i][j] = grid[i][j] == 0? 0 : top[i-1][j] + 1;
+                }
+                if (j == 0) {
+                    left[i][j] = grid[i][j];
+                } else {
+                    left[i][j] = grid[i][j] == 0? 0 : left[i][j-1] + 1;
+                }
+                for (int l = Math.min(top[i][j], left[i][j]); l >= 1; l--) {
+				// 已知下面的边和右侧边合法，看上边和左侧边是否合法
+                    if (left[i-l+1][j] >= l && top[i][j-l+1] >= l) {
+                        res = Math.max(res, l * l);
+                        break;
+                    }
+                }
+            }
+        }
+        return res;
+    }
+}
