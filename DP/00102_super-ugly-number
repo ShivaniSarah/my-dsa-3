@@ -1,0 +1,144 @@
+https://leetcode.com/problems/super-ugly-number/description/
+
+313. Super Ugly Number
+Medium
+Topics
+Companies
+A super ugly number is a positive integer whose prime factors are in the array primes.
+
+Given an integer n and an array of integers primes, return the nth super ugly number.
+
+The nth super ugly number is guaranteed to fit in a 32-bit signed integer.
+
+ 
+
+Example 1:
+
+Input: n = 12, primes = [2,7,13,19]
+Output: 32
+Explanation: [1,2,4,7,8,13,14,16,19,26,28,32] is the sequence of the first 12 super ugly numbers given primes = [2,7,13,19].
+Example 2:
+
+Input: n = 1, primes = [2,3,5]
+Output: 1
+Explanation: 1 has no prime factors, therefore all of its prime factors are in the array primes = [2,3,5].
+ 
+
+Constraints:
+
+1 <= n <= 105
+1 <= primes.length <= 100
+2 <= primes[i] <= 1000
+primes[i] is guaranteed to be a prime number.
+All the values of primes are unique and sorted in ascending order.
+
+
+# java
+
+
+class Solution {
+    public int nthSuperUglyNumber(int n, int[] primes) {
+        int[] ugly = new int[n];
+        int[] idx = new int[primes.length];
+        int[] val = new int[primes.length];
+        Arrays.fill(val, 1);
+
+        int next = 1;
+        for (int i = 0; i < n; i++) {
+            ugly[i] = next;
+            
+            next = Integer.MAX_VALUE;
+            for (int j = 0; j < primes.length; j++) {
+                //skip duplicate and avoid extra multiplication
+                if (val[j] == ugly[i]) val[j] = ugly[idx[j]++] * primes[j];
+                //find next ugly number
+                next = Math.min(next, val[j]);
+            }
+        }
+
+        return ugly[n - 1];
+    }
+}
+
+
+or
+
+
+class Solution {
+  public int nthSuperUglyNumber(int n, int[] primes) {
+    final int k = primes.length;
+    int[] indices = new int[k];
+    int[] uglyNums = new int[n];
+    uglyNums[0] = 1;
+
+    for (int i = 1; i < n; ++i) {
+      int[] nexts = new int[k];
+      for (int j = 0; j < k; ++j)
+        nexts[j] = uglyNums[indices[j]] * primes[j];
+      final int next = Arrays.stream(nexts).min().getAsInt();
+      for (int j = 0; j < k; ++j)
+        if (next == nexts[j])
+          ++indices[j];
+      uglyNums[i] = next;
+    }
+
+    return uglyNums[n - 1];
+  }
+}
+
+
+or
+
+
+class Solution {
+  public int nthSuperUglyNumber(int n, int[] primes) {
+    // index := the next index in `uglyNums`
+    // value := prime * uglyNums[index]
+    record UglyNum(int prime, int index, long value) {}
+    Queue<UglyNum> minHeap = new PriorityQueue<>(Comparator.comparingLong(UglyNum::value));
+    int[] uglyNums = new int[n];
+    uglyNums[0] = 1;
+
+    for (final int prime : primes)
+      minHeap.offer(new UglyNum(prime, 1, (long) prime * uglyNums[0]));
+
+    for (int i = 1; i < n; ++i) {
+      uglyNums[i] = (int) minHeap.peek().value;
+      while (minHeap.peek().value == uglyNums[i]) {
+        final UglyNum u = minHeap.poll();
+        minHeap.offer(new UglyNum(u.prime, u.index + 1, (long) u.prime * uglyNums[u.index]));
+      }
+    }
+
+    return uglyNums[n - 1];
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int nthSuperUglyNumber(int n, int[] primes) {
+        PriorityQueue<Integer> q = new PriorityQueue<>();
+        q.offer(1);
+        int x = 0;
+        while (n-- > 0) {
+            x = q.poll();
+            while (!q.isEmpty() && q.peek() == x) {
+                q.poll();
+            }
+            for (int k : primes) {
+                if (k <= Integer.MAX_VALUE / x) {
+                    q.offer(k * x);
+                }
+                if (x % k == 0) {
+                    break;
+                }
+            }
+        }
+        return x;
+    }
+}
+
+
