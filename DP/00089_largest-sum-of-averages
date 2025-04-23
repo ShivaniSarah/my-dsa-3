@@ -1,0 +1,263 @@
+https://leetcode.com/problems/largest-sum-of-averages/description/
+
+813. Largest Sum of Averages
+Medium
+Topics
+Companies
+You are given an integer array nums and an integer k. You can partition the array into at most k non-empty adjacent subarrays. The score of a partition is the sum of the averages of each subarray.
+
+Note that the partition must use every integer in nums, and that the score is not necessarily an integer.
+
+Return the maximum score you can achieve of all the possible partitions. Answers within 10-6 of the actual answer will be accepted.
+
+ 
+
+Example 1:
+
+Input: nums = [9,1,2,3,9], k = 3
+Output: 20.00000
+Explanation: 
+The best choice is to partition nums into [9], [1, 2, 3], [9]. The answer is 9 + (1 + 2 + 3) / 3 + 9 = 20.
+We could have also partitioned nums into [9, 1], [2], [3, 9], for example.
+That partition would lead to a score of 5 + 2 + 6 = 13, which is worse.
+Example 2:
+
+Input: nums = [1,2,3,4,5,6,7], k = 4
+Output: 20.50000
+ 
+
+Constraints:
+
+1 <= nums.length <= 100
+1 <= nums[i] <= 104
+1 <= k <= nums.length
+
+
+# java
+
+
+class Solution {
+  public double largestSumOfAverages(int[] nums, int k) {
+    final int n = nums.length;
+    double[][] mem = new double[n + 1][k + 1];
+    double[] prefix = new double[n + 1];
+
+    for (int i = 0; i < n; i++)
+      prefix[i + 1] = prefix[i] + nums[i];
+
+    return largestSumOfAverages(nums, n, k, prefix, mem);
+  }
+
+  // Returns the maximum score to partition the first i numbers into k groups.
+  private double largestSumOfAverages(int[] nums, int i, int k, double[] prefix, double[][] mem) {
+    if (k == 1)
+      return prefix[i] / i;
+    if (mem[i][k] > 0)
+      return mem[i][k];
+
+    // Try all the possible partitions.
+    for (int j = k - 1; j < i; ++j)
+      mem[i][k] = Math.max(mem[i][k], largestSumOfAverages(nums, j, k - 1, prefix, mem) +
+                                          (prefix[i] - prefix[j]) / (i - j));
+
+    return mem[i][k];
+  }
+}
+
+
+or
+
+
+class Solution {
+  public double largestSumOfAverages(int[] nums, int K) {
+    final int n = nums.length;
+    // dp[i][k] := the maximum score to partition the first i nums into k groups
+    double[][] dp = new double[n + 1][K + 1];
+    double[] prefix = new double[n + 1];
+
+    for (int i = 1; i <= n; ++i) {
+      prefix[i] = nums[i - 1] + prefix[i - 1];
+      dp[i][1] = prefix[i] / i;
+    }
+
+    for (int k = 2; k <= K; ++k)
+      for (int i = k; i <= n; ++i)
+        for (int j = k - 1; j < i; ++j) {
+          final double average = (prefix[i] - prefix[j]) / (i - j);
+          dp[i][k] = Math.max(dp[i][k], dp[j][k - 1] + average);
+        }
+
+    return dp[n][K];
+  }
+}
+
+
+or
+
+
+class Solution {
+    private Double[][] f;
+    private int[] s;
+    private int n;
+
+    public double largestSumOfAverages(int[] nums, int k) {
+        n = nums.length;
+        s = new int[n + 1];
+        f = new Double[n + 1][k + 1];
+        for (int i = 0; i < n; ++i) {
+            s[i + 1] = s[i] + nums[i];
+        }
+        return dfs(0, k);
+    }
+
+    private double dfs(int i, int k) {
+        if (i == n) {
+            return 0;
+        }
+        if (k == 1) {
+            return (s[n] - s[i]) * 1.0 / (n - i);
+        }
+        if (f[i][k] != null) {
+            return f[i][k];
+        }
+        double ans = 0;
+        for (int j = i; j < n; ++j) {
+            double t = (s[j + 1] - s[i]) * 1.0 / (j - i + 1) + dfs(j + 1, k - 1);
+            ans = Math.max(ans, t);
+        }
+        return f[i][k] = ans;
+    }
+}
+
+
+or
+
+class Solution {
+    public double largestSumOfAverages(int[] A, int K) {
+        int N = A.length;
+        double[] P = new double[N+1];
+        for (int i = 0; i < N; ++i)
+            P[i+1] = P[i] + A[i];
+
+        double[] dp = new double[N];
+        for (int i = 0; i < N; ++i)
+            dp[i] = (P[N] - P[i]) / (N - i);
+
+        for (int k = 0; k < K-1; ++k)
+            for (int i = 0; i < N; ++i)
+                for (int j = i+1; j < N; ++j)
+                    dp[i] = Math.max(dp[i], (P[j]-P[i]) / (j-i) + dp[j]);
+
+        return dp[0];
+    }
+}
+
+
+or
+
+
+class Solution {
+  public double largestSumOfAverages(int[] nums, int k) {
+    int n = nums.length;
+    Double[][] dp = new Double[n][k];
+    return divide(nums, 0, n, k-1, dp);
+  }
+  
+  public double divide(int[] nums, int start, int end, int k, Double[][] dp) {
+    if(start >= end) return 0;
+    if(dp[start][k] != null) return dp[start][k];
+    if(k == 0) {
+      double lastPartitionSum = 0;
+      for(int j = start; j < end; j++) {
+        lastPartitionSum += nums[j];
+      }
+      return lastPartitionSum / (end - start);
+    }
+    
+    double max = 0;
+    for(int i = start+1; i < end; i++) { // try to split at every single index > start
+      double res = divide(nums, i, end, k-1, dp);
+      
+      double currPartitionSum = 0;
+      for(int j = start; j < i; j++) { // get the average of the partition we just tried to make
+        currPartitionSum += nums[j];
+      }
+      double avg = currPartitionSum / (i - start); 
+      max = Math.max(res + avg, max); // optimal substructure, find the best partition at each index
+    }
+    dp[start][k] = max;
+    return max;    
+  }
+}
+
+
+or
+
+
+class Solution {
+    public double largestSumOfAverages(int[] nums, int k) {
+        return largestSumOfAveragesHelper(nums,k,0,new Double[nums.length][k+1]);
+    }
+    
+    private double largestSumOfAveragesHelper(int[] nums, int k, int index, Double[][] memo) {
+        //Base
+        if(index == nums.length)
+            return 0;
+        if(memo[index][k] != null)
+            return memo[index][k];
+        
+        int sum=0;
+        if(k == 1) { //last recursion level... cover all remaining numbers for avg calculation
+            for(int i=index; i<nums.length; i++) {
+                sum += nums[i];
+            }
+            return memo[index][k] = sum*1.0/(nums.length-index);
+        }
+        
+        int count=0;
+        double max=0;
+        double currAvg=0;
+        for(int i=index; i<nums.length; i++) { //find avg for all combinations recursively & capture the max
+            sum += nums[i];
+            count++;
+            currAvg=sum*1.0/count;
+            max=Math.max(max,currAvg+largestSumOfAveragesHelper(nums,k-1,i+1,memo));
+        }
+        return memo[index][k] = max;
+    }
+}
+
+
+or
+
+class Solution {
+    public double largestSumOfAverages(int[] nums, int k) {
+        Double[][] dp = new Double[nums.length][k+1];
+        return f(nums,0,k,dp);
+    }
+    public double f(int[] nums,int index,int k,Double[][] dp){
+        if(k == 0){
+            if(index == nums.length){
+                return 0;
+            }
+            return Integer.MIN_VALUE;
+        }
+        if(index == nums.length){
+            return Integer.MIN_VALUE;
+        }
+        if(dp[index][k] != null){
+            return dp[index][k];
+        }
+        double max = 0;
+        double sum = 0;
+        for(int i = index; i<nums.length; i++){
+            sum += nums[i];
+            double cur = f(nums,i+1,k-1,dp);
+            if(cur != Integer.MIN_VALUE){
+                cur += sum / (i + 1 - index);
+                max = Math.max(max,cur);
+            }
+        }
+        return dp[index][k] = max;
+    }   
+}
