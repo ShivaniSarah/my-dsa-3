@@ -1,0 +1,216 @@
+https://leetcode.com/problems/maximum-score-after-applying-operations-on-a-tree/description/
+
+2925. Maximum Score After Applying Operations on a Tree
+Medium
+Topics
+Companies
+Hint
+There is an undirected tree with n nodes labeled from 0 to n - 1, and rooted at node 0. You are given a 2D integer array edges of length n - 1, where edges[i] = [ai, bi] indicates that there is an edge between nodes ai and bi in the tree.
+
+You are also given a 0-indexed integer array values of length n, where values[i] is the value associated with the ith node.
+
+You start with a score of 0. In one operation, you can:
+
+Pick any node i.
+Add values[i] to your score.
+Set values[i] to 0.
+A tree is healthy if the sum of values on the path from the root to any leaf node is different than zero.
+
+Return the maximum score you can obtain after performing these operations on the tree any number of times so that it remains healthy.
+
+ 
+
+Example 1:
+
+
+Input: edges = [[0,1],[0,2],[0,3],[2,4],[4,5]], values = [5,2,5,2,1,1]
+Output: 11
+Explanation: We can choose nodes 1, 2, 3, 4, and 5. The value of the root is non-zero. Hence, the sum of values on the path from the root to any leaf is different than zero. Therefore, the tree is healthy and the score is values[1] + values[2] + values[3] + values[4] + values[5] = 11.
+It can be shown that 11 is the maximum score obtainable after any number of operations on the tree.
+Example 2:
+
+
+Input: edges = [[0,1],[0,2],[1,3],[1,4],[2,5],[2,6]], values = [20,10,9,7,4,3,5]
+Output: 40
+Explanation: We can choose nodes 0, 2, 3, and 4.
+- The sum of values on the path from 0 to 4 is equal to 10.
+- The sum of values on the path from 0 to 3 is equal to 10.
+- The sum of values on the path from 0 to 5 is equal to 3.
+- The sum of values on the path from 0 to 6 is equal to 5.
+Therefore, the tree is healthy and the score is values[0] + values[2] + values[3] + values[4] = 40.
+It can be shown that 40 is the maximum score obtainable after any number of operations on the tree.
+ 
+
+Constraints:
+
+2 <= n <= 2 * 104
+edges.length == n - 1
+edges[i].length == 2
+0 <= ai, bi < n
+values.length == n
+1 <= values[i] <= 109
+The input is generated such that edges represents a valid tree.
+
+# java
+
+
+class Solution {
+  public long maximumScoreAfterOperations(int[][] edges, int[] values) {
+    List<Integer>[] tree = new ArrayList[values.length];
+
+    for (int i = 0; i < values.length; ++i)
+      tree[i] = new ArrayList<>();
+
+    for (int[] edge : edges) {
+      final int u = edge[0];
+      final int v = edge[1];
+      tree[u].add(v);
+      tree[v].add(u);
+    }
+
+    return Arrays.stream(values).sum() - dfs(tree, 0, /*prev=*/-1, values);
+  }
+
+  private long dfs(List<Integer>[] tree, int u, int prev, int[] values) {
+    if (u > 0 && tree[u].size() == 1)
+      return values[u];
+    long childrenSum = 0;
+    for (final int v : tree[u])
+      if (v != prev)
+        childrenSum += dfs(tree, v, u, values);
+    return Math.min(childrenSum, 1L * values[u]);
+  }
+}
+
+
+or
+
+
+class Solution {
+    private List<Integer>[] g;
+    private int[] values;
+
+    public long maximumScoreAfterOperations(int[][] edges, int[] values) {
+        int n = values.length;
+        g = new List[n];
+        this.values = values;
+        Arrays.setAll(g, k -> new ArrayList<>());
+        for (var e : edges) {
+            int a = e[0], b = e[1];
+            g[a].add(b);
+            g[b].add(a);
+        }
+        return dfs(0, -1)[1];
+    }
+
+    private long[] dfs(int i, int fa) {
+        long a = 0, b = 0;
+        boolean leaf = true;
+        for (int j : g[i]) {
+            if (j != fa) {
+                leaf = false;
+                var t = dfs(j, i);
+                a += t[0];
+                b += t[1];
+            }
+        }
+        if (leaf) {
+            return new long[] {values[i], 0};
+        }
+        return new long[] {values[i] + a, Math.max(values[i] + b, a)};
+    }
+}
+
+
+
+or
+
+
+import java.util.ArrayList;
+import java.util.List;
+
+class Solution {
+    public long dfs(int i, List<Integer>[] adj, int[] v, int[] vis) {
+        if (adj[i].size() == 1 && i != 0)
+            return (long) v[i];
+        long s = 0;
+        vis[i] = 1;
+        for (int j : adj[i]) {
+            if (vis[j] == 1)
+                continue;
+            s += dfs(j, adj, v, vis);
+        }
+        return Math.min((long) v[i], s);
+    }
+
+    public long maximumScoreAfterOperations(int[][] edges, int[] values) {
+        int n = values.length;
+        List<Integer>[] adj = new ArrayList[n];
+        for (int i = 0; i < n; i++) {
+            adj[i] = new ArrayList<>();
+        }
+        for (int i = 0; i < n - 1; i++) {
+            adj[edges[i][0]].add(edges[i][1]);
+            adj[edges[i][1]].add(edges[i][0]);
+        }
+        long s = 0;
+        for (int i : values)
+            s += i;
+        int[] vis = new int[n];
+        long k = dfs(0, adj, values, vis);
+        return s - k;
+    }
+}
+
+
+or
+
+class Solution {
+    class Node{
+        long val;
+        List<Node>neighbor;
+        public Node(int val){
+            this.val=val;
+            neighbor=new ArrayList<>();
+        }
+    }
+    public long maximumScoreAfterOperations(int[][] edges, int[] values) {
+        Map<Integer,Node>map=new HashMap<>();
+        long sum=0;
+        for(int i=0;i<values.length;i++){
+            map.put(i,new Node(values[i]));
+            sum+=values[i];
+        }
+        BuildMap(edges,map);//Build the two way connection for the diagram.
+        Node root=map.get(0);//Treating the node 0 as the root of the tree
+        long minRemain=helper(root,new HashSet<Node>());//Try to DFS the tree and find the min removed value which keep the tree health.
+        return sum-minRemain;
+    }
+    public long helper(Node node,Set<Node>visited){
+        visited.add(node);//add the current Node to the visited list to make sure we are not visted the same node twice.
+        List<Node>nextNode=node.neighbor;
+        long sum=0;
+        for(Node next:nextNode){
+            //visit the connected node which have not been visited. The reason having this is because the graph we build is two way, so the visited set can make sure it does not visit the parent again.
+            if(!visited.contains(next))
+                sum+=helper(next,visited);
+        }
+        //if the node is the leaf
+        if(sum==0)
+            return node.val;
+        //if the node is not the leaf, we need to check are we going to remove all the children node or just remove the parent node.
+        //This is the key part to make sure the tree is health and we are trying to remove the min value for the tree
+        long result=Math.min(node.val,sum);
+        return result;
+    }
+    public void BuildMap(int[][]edges, Map<Integer,Node>map){
+        for(int i=0;i<edges.length;i++){
+            Node from=map.get(edges[i][0]);
+            Node to=map.get(edges[i][1]);
+            from.neighbor.add(to);
+            to.neighbor.add(from);
+        }
+        
+    }
+    
+}
