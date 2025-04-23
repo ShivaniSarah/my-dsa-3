@@ -1,0 +1,233 @@
+https://leetcode.com/problems/longest-palindrome-after-substring-concatenation-i/description/
+
+
+3503. Longest Palindrome After Substring Concatenation I
+Medium
+Topics
+Companies
+Hint
+You are given two strings, s and t.
+
+You can create a new string by selecting a substring from s (possibly empty) and a substring from t (possibly empty), then concatenating them in order.
+
+Return the length of the longest palindrome that can be formed this way.
+
+ 
+
+Example 1:
+
+Input: s = "a", t = "a"
+
+Output: 2
+
+Explanation:
+
+Concatenating "a" from s and "a" from t results in "aa", which is a palindrome of length 2.
+
+Example 2:
+
+Input: s = "abc", t = "def"
+
+Output: 1
+
+Explanation:
+
+Since all characters are different, the longest palindrome is any single character, so the answer is 1.
+
+Example 3:
+
+Input: s = "b", t = "aaaa"
+
+Output: 4
+
+Explanation:
+
+Selecting "aaaa" from t is the longest palindrome, so the answer is 4.
+
+Example 4:
+
+Input: s = "abcde", t = "ecdba"
+
+Output: 5
+
+Explanation:
+
+Concatenating "abc" from s and "ba" from t results in "abcba", which is a palindrome of length 5.
+
+ 
+
+Constraints:
+
+1 <= s.length, t.length <= 30
+s and t consist of lowercase English letters.
+
+
+# java
+
+
+class Solution {
+    public int longestPalindrome(String s, String t) {
+        List<String> list1 = new ArrayList<>();
+        List<String> list2 = new ArrayList<>();
+        fun(s, list1);
+        fun(t, list2);
+        String sb = "";
+        for(int i = 0; i < list1.size(); i++) {
+            for(int j = 0; j < list2.size(); j++) {
+                String s1 = list1.get(i);
+                String s2 = list2.get(j);
+                String k = s1 + s2;
+                if(isPali(s1) && sb.length() < s1.length()) sb = s1;
+                if(isPali(s2) && sb.length() < s2.length()) sb = s2;
+                if(isPali(k) && sb.length() < k.length()) sb = k;
+            }
+        }
+        return sb.length();
+    }
+    static boolean isPali(String s) {
+        int start = 0;
+        int end = s.length() - 1;
+        while(start < end) {
+            if(s.charAt(start) != s.charAt(end)) {
+                return false;
+            }
+            start++;
+            end--;
+        }
+        return true;
+    }
+    static void fun(String s, List<String> list) {
+        for(int i = 0; i < s.length(); i++) {
+            StringBuilder sb = new StringBuilder();
+            for(int j = i; j < s.length(); j++) {
+                sb.append(s.charAt(j));
+                list.add(sb.toString());
+            }
+        }
+    }
+}
+
+
+or
+
+
+class Solution {
+    private int palinSize(String word) {
+        int w = word.length(), res = 1;
+
+        for (int wordLen = 0; wordLen < 2 * w - 1; wordLen++) {
+            int idxLeft = wordLen / 2;
+            int idxRght = idxLeft + wordLen % 2;
+
+            if (word.charAt(idxLeft) == word.charAt(idxRght)) {
+                while (idxLeft > 0 && idxRght < w - 1) {
+                    if (word.charAt(idxLeft - 1) != word.charAt(idxRght + 1)) break;
+                    idxLeft--;
+                    idxRght++;}
+                res = Math.max(res, idxRght - idxLeft + 1);} }
+        return res;}
+
+    public int longestPalindrome(String s, String t) {
+        int m = s.length(), n = t.length(), ans = 1;
+
+        for (int sRght = 0; sRght <= m; sRght++) {
+            for (int tLeft = 0; tLeft <= n; tLeft++) {
+                if (sRght + n - tLeft <= ans) continue;
+                String word = s.substring(0, sRght) + t.substring(tLeft);
+                ans = Math.max(ans, palinSize(word)); } }
+
+        if (m > ans) ans = Math.max(ans, palinSize(s));
+        if (n > ans) ans = Math.max(ans, palinSize(t));
+
+        return ans;
+        }
+}
+
+
+or
+
+
+class Solution {
+    public void generateStrings(String str, List<String> list) {
+        int n = str.length();
+        for (int i = 0; i < n; i++) {
+            StringBuilder sb = new StringBuilder();
+            for (int j = i; j < n; j++) {
+                sb.append(str.charAt(j));
+                list.add(sb.toString());
+            }
+        }
+    }
+
+    public boolean isPalindrome(String str) {
+        int left = 0;
+        int right = str.length() - 1;
+        while (left < right) {
+            char ch1 = str.charAt(left);
+            char ch2 = str.charAt(right);
+            if (ch1 != ch2) {
+                return false;
+            }
+            left++;
+            right--;
+        }
+        return true;
+    }
+
+    public int longestPalindrome(String s, String t) {
+        List<String> sList = new ArrayList<>();
+        List<String> tList = new ArrayList<>();
+        generateStrings(s, sList);
+        generateStrings(t, tList);
+        String str = "";
+        for (int i = 0; i < sList.size(); i++) {
+            for (int j = 0; j < tList.size(); j++) {
+                String s1 = sList.get(i);
+                String s2 = tList.get(j);
+                String concat = s1 + s2;
+                if (isPalindrome(s1) && str.length() < s1.length()) {
+                    str = s1;
+                }
+                if (isPalindrome(s2) && str.length() < s2.length()) {
+                    str = s2;
+                }
+                if (isPalindrome(concat) && str.length() < concat.length()) {
+                    str = concat;
+                }
+            }
+        }
+        return str.length();
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int longestPalindrome(String s, String t) {
+        int m = s.length(), n = t.length(), max = 0;
+        for (int i = 0; i <= m; i++) {
+            for (int j = 0; j <= n; j++) {
+                String a = s.substring(0, i) + t.substring(j);
+                int len = a.length();
+                for (int k = 0; k < len; k++) {
+                    max = Math.max(max, Math.max(expand(a, k, k), expand(a, k, k + 1)));
+                }
+            }
+        }
+        return max;
+    }
+
+    int expand(String a, int i, int j) {
+        char[] ca = a.toCharArray();
+        int n = ca.length;
+        while (i >= 0 && j < n && ca[i] == ca[j]) {
+            i--;
+            j++;
+        }
+        return j - i - 1;
+    }
+}
+
+
