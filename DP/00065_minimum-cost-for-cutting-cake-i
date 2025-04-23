@@ -1,0 +1,197 @@
+https://leetcode.com/problems/minimum-cost-for-cutting-cake-i/description/
+
+
+3218. Minimum Cost for Cutting Cake I
+Medium
+Topics
+Companies
+Hint
+There is an m x n cake that needs to be cut into 1 x 1 pieces.
+
+You are given integers m, n, and two arrays:
+
+horizontalCut of size m - 1, where horizontalCut[i] represents the cost to cut along the horizontal line i.
+verticalCut of size n - 1, where verticalCut[j] represents the cost to cut along the vertical line j.
+In one operation, you can choose any piece of cake that is not yet a 1 x 1 square and perform one of the following cuts:
+
+Cut along a horizontal line i at a cost of horizontalCut[i].
+Cut along a vertical line j at a cost of verticalCut[j].
+After the cut, the piece of cake is divided into two distinct pieces.
+
+The cost of a cut depends only on the initial cost of the line and does not change.
+
+Return the minimum total cost to cut the entire cake into 1 x 1 pieces.
+
+ 
+
+Example 1:
+
+Input: m = 3, n = 2, horizontalCut = [1,3], verticalCut = [5]
+
+Output: 13
+
+Explanation:
+
+
+
+Perform a cut on the vertical line 0 with cost 5, current total cost is 5.
+Perform a cut on the horizontal line 0 on 3 x 1 subgrid with cost 1.
+Perform a cut on the horizontal line 0 on 3 x 1 subgrid with cost 1.
+Perform a cut on the horizontal line 1 on 2 x 1 subgrid with cost 3.
+Perform a cut on the horizontal line 1 on 2 x 1 subgrid with cost 3.
+The total cost is 5 + 1 + 1 + 3 + 3 = 13.
+
+Example 2:
+
+Input: m = 2, n = 2, horizontalCut = [7], verticalCut = [4]
+
+Output: 15
+
+Explanation:
+
+Perform a cut on the horizontal line 0 with cost 7.
+Perform a cut on the vertical line 0 on 1 x 2 subgrid with cost 4.
+Perform a cut on the vertical line 0 on 1 x 2 subgrid with cost 4.
+The total cost is 7 + 4 + 4 = 15.
+
+ 
+
+Constraints:
+
+1 <= m, n <= 20
+horizontalCut.length == m - 1
+verticalCut.length == n - 1
+1 <= horizontalCut[i], verticalCut[i] <= 103
+
+
+# java
+
+
+class Solution {
+  public int minimumCost(int m, int n, int[] horizontalCut, int[] verticalCut) {
+    int cost = 0;
+    int sumH = Arrays.stream(horizontalCut).sum();
+    int sumV = Arrays.stream(verticalCut).sum();
+
+    Arrays.sort(horizontalCut);
+    Arrays.sort(verticalCut);
+
+    for (int i = m - 2, j = n - 2; i >= 0 && j >= 0;)
+      if (horizontalCut[i] > verticalCut[j]) {
+        cost += horizontalCut[i] + sumV;
+        sumH -= horizontalCut[i--];
+      } else {
+        cost += verticalCut[j] + sumH;
+        sumV -= verticalCut[j--];
+      }
+
+    return cost + sumH + sumV;
+  }
+}
+
+
+or
+
+class Solution {
+    public int minimumCost(int m, int n, int[] horizontalCut, int[] verticalCut) {
+        Arrays.sort(horizontalCut);
+        Arrays.sort(verticalCut);
+        int ans = 0;
+        int i = m - 2, j = n - 2;
+        int h = 1, v = 1;
+        while (i >= 0 || j >= 0) {
+            if (j < 0 || (i >= 0 && horizontalCut[i] > verticalCut[j])) {
+                ans += horizontalCut[i--] * v;
+                ++h;
+            } else {
+                ans += verticalCut[j--] * h;
+                ++v;
+            }
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+       public int minimumCost(int m, int n, int[] h, int[] v) {
+        int res = Arrays.stream(h).sum() + Arrays.stream(v).sum();
+        for (int a : h)
+            for (int b : v)
+                res += Math.min(a, b);
+        return res;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    Integer[][][][] dp;
+    private int solve(int i,int j,int k,int l,int[] h,int[] v){
+        if((j - i + 1) == 1 && (l - k + 1) == 1) return 0;
+        if(dp[i][j][k][l] != null) return dp[i][j][k][l];
+        int min = Integer.MAX_VALUE;
+        // vertical cut
+        for(int cut = i;cut < j;cut++){
+            min = Math.min(min,v[cut] + solve(i,cut,k,l,h,v) + solve(cut + 1,j,k,l,h,v));
+        }
+        // horizontal cut
+        for(int cut = k;cut < l;cut++){
+            min = Math.min(min,h[cut] + solve(i,j,k,cut,h,v) + solve(i,j,cut + 1,l,h,v));
+        }
+        return dp[i][j][k][l] = min;
+    }
+    public int minimumCost(int m, int n, int[] horizontalCut, int[] verticalCut) {
+        int max = Math.max(m,n);
+        dp = new Integer[max][max][max][max];
+        return solve(0,n - 1,0,m - 1,horizontalCut,verticalCut);
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minimumCost(int m, int n, int[] horizontalCut, int[] verticalCut) {
+        Arrays.sort(horizontalCut);
+        Arrays.sort(verticalCut);
+        int i=m-2, j=n-2, cost=0, hcut=1, vcut=1;
+        while(i>=0 && j>=0)
+        {
+            if(horizontalCut[i]>verticalCut[j])
+            {
+                cost+=horizontalCut[i]*vcut;
+                i--;
+                hcut++;
+            }
+            else
+            {
+                cost+=verticalCut[j]*hcut;
+                j--;
+                vcut++;
+            }
+        }
+        while(i>=0)
+        {
+            cost+=horizontalCut[i]*vcut;
+            i--;
+            hcut++;
+        }
+        while(j>=0)
+        {
+            cost+=verticalCut[j]*hcut;
+            j--;
+            vcut++;
+        }
+        return cost;
+    }
+}
