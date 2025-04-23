@@ -1,0 +1,150 @@
+https://leetcode.com/problems/bitwise-ors-of-subarrays/description/
+
+898. Bitwise ORs of Subarrays
+Medium
+Topics
+Companies
+Given an integer array arr, return the number of distinct bitwise ORs of all the non-empty subarrays of arr.
+
+The bitwise OR of a subarray is the bitwise OR of each integer in the subarray. The bitwise OR of a subarray of one integer is that integer.
+
+A subarray is a contiguous non-empty sequence of elements within an array.
+
+ 
+
+Example 1:
+
+Input: arr = [0]
+Output: 1
+Explanation: There is only one possible result: 0.
+Example 2:
+
+Input: arr = [1,1,2]
+Output: 3
+Explanation: The possible subarrays are [1], [1], [2], [1, 1], [1, 2], [1, 1, 2].
+These yield the results 1, 1, 2, 1, 3, 3.
+There are 3 unique values, so the answer is 3.
+Example 3:
+
+Input: arr = [1,2,4]
+Output: 6
+Explanation: The possible results are 1, 2, 3, 4, 6, and 7.
+ 
+
+Constraints:
+
+1 <= arr.length <= 5 * 104
+0 <= arr[i] <= 109
+
+
+# java
+
+
+class Solution {
+  public int subarrayBitwiseORs(int[] arr) {
+    List<Integer> s = new ArrayList<>();
+    int l = 0;
+
+    for (final int a : arr) {
+      final int r = s.size();
+      s.add(a);
+      // s[l..r) are values generated in the previous iteration
+      for (int i = l; i < r; ++i)
+        if (s.get(s.size() - 1) != (s.get(i) | a))
+          s.add(s.get(i) | a);
+      l = r;
+    }
+
+    return new HashSet<>(s).size();
+  }
+}
+
+
+
+
+
+or
+
+
+class Solution {
+    public int subarrayBitwiseORs(int[] arr) {
+        Set<Integer> s = new HashSet<>();
+        s.add(0);
+        Set<Integer> ans = new HashSet<>();
+        for (int x : arr) {
+            Set<Integer> t = new HashSet<>();
+            for (int y : s) {
+                t.add(x | y);
+            }
+            t.add(x);
+            s = t;
+            ans.addAll(s);
+        }
+        return ans.size();
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int subarrayBitwiseORs(int[] A) {
+        Set<Integer> ans = new HashSet();
+        Set<Integer> cur = new HashSet();
+        cur.add(0);
+        for (int x: A) {
+            Set<Integer> cur2 = new HashSet();
+            for (int y: cur)
+                cur2.add(x | y);
+            cur2.add(x);
+            cur = cur2;
+            ans.addAll(cur);
+        }
+
+        return ans.size();
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int subarrayBitwiseORs(int[] arr) {
+        Set set = new HashSet<>();
+        for (int i = 0; i < arr.length; i++) {
+            set.add(arr[i]);
+            for (int j = i - 1; j >= 0; j--) {
+                if ((arr[i] | arr[j]) == arr[j]) {
+                    break;
+                }
+                arr[j] |= arr[i];
+                set.add(arr[j]);
+            }
+        }
+        return set.size();
+    }
+}
+
+or
+
+
+class Solution {
+    public int subarrayBitwiseORs(int[] arr) {
+        HashSet<Integer> res = new HashSet<>();
+        HashSet<Integer> prev = new HashSet<>();
+
+        for (int num : arr) {
+            HashSet<Integer> cur = new HashSet<>();
+            cur.add(num);
+            for (int prevNum : prev)
+                cur.add(num | prevNum);
+            prev = cur;
+            res.addAll(cur);
+        }
+
+        return res.size();
+    }
+}
+
