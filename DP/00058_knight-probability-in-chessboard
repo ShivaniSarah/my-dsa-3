@@ -1,0 +1,302 @@
+https://leetcode.com/problems/knight-probability-in-chessboard/description/
+
+688. Knight Probability in Chessboard
+Medium
+Topics
+Companies
+On an n x n chessboard, a knight starts at the cell (row, column) and attempts to make exactly k moves. The rows and columns are 0-indexed, so the top-left cell is (0, 0), and the bottom-right cell is (n - 1, n - 1).
+
+A chess knight has eight possible moves it can make, as illustrated below. Each move is two cells in a cardinal direction, then one cell in an orthogonal direction.
+
+
+Each time the knight is to move, it chooses one of eight possible moves uniformly at random (even if the piece would go off the chessboard) and moves there.
+
+The knight continues moving until it has made exactly k moves or has moved off the chessboard.
+
+Return the probability that the knight remains on the board after it has stopped moving.
+
+ 
+
+Example 1:
+
+Input: n = 3, k = 2, row = 0, column = 0
+Output: 0.06250
+Explanation: There are two moves (to (1,2), (2,1)) that will keep the knight on the board.
+From each of those positions, there are also two moves that will keep the knight on the board.
+The total probability the knight stays on the board is 0.0625.
+Example 2:
+
+Input: n = 1, k = 0, row = 0, column = 0
+Output: 1.00000
+ 
+
+Constraints:
+
+1 <= n <= 25
+0 <= k <= 100
+0 <= row, column <= n - 1
+
+
+# java
+
+
+public class Solution {
+    public double knightProbability(int n, int k, int row, int column) {
+        // Define possible directions for the knight's moves
+        int[][] directions = {{1, 2}, {1, -2}, {-1, 2}, {-1, -2},
+                              {2, 1}, {2, -1}, {-2, 1}, {-2, -1}};
+
+        // Initialize the dynamic programming table
+        double[][][] dp = new double[k + 1][n][n];
+        dp[0][row][column] = 1.0;
+
+        // Iterate over the number of moves
+        for (int moves = 1; moves <= k; moves++) {
+            // Iterate over the cells on the chessboard
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    // Iterate over possible directions
+                    for (int[] direction : directions) {
+                        int prevI = i - direction[0];
+                        int prevJ = j - direction[1];
+                        // Check if the previous cell is within the chessboard
+                        if (prevI >= 0 && prevI < n && prevJ >= 0 && prevJ < n) {
+                            // Add the previous probability divided by 8
+                            dp[moves][i][j] += dp[moves - 1][prevI][prevJ] / 8.0;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Calculate total probability by summing probabilities for all cells
+        double totalProbability = 0.0;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                totalProbability += dp[k][i][j];
+            }
+        }
+        return totalProbability;
+    }
+}
+
+
+or
+
+
+public class Solution {
+    public double knightProbability(int n, int k, int row, int column) {
+        // Define possible directions for the knight's moves
+        int[][] directions = {
+            {1, 2}, {1, -2}, {-1, 2}, {-1, -2},
+            {2, 1}, {2, -1}, {-2, 1}, {-2, -1}
+        };
+
+        // Initialize the previous and current DP tables
+        double[][] prevDp = new double[n][n];
+        double[][] currDp = new double[n][n];
+
+        // Set the probability of the starting cell to 1
+        prevDp[row][column] = 1;
+
+        // Iterate over the number of moves
+        for (int moves = 1; moves <= k; moves++) {
+            // Iterate over the cells on the chessboard
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    currDp[i][j] = 0;
+
+                    // Iterate over possible directions
+                    for (int[] direction : directions) {
+                        int prevI = i - direction[0];
+                        int prevJ = j - direction[1];
+
+                        // Check if the previous cell is within the chessboard
+                        if (prevI >= 0 && prevI < n && prevJ >= 0 && prevJ < n) {
+                            // Update the probability by adding the previous probability divided by 8
+                            currDp[i][j] += prevDp[prevI][prevJ] / 8;
+                        }
+                    }
+                }
+            }
+
+            // Swap the previous and current DP tables
+            double[][] temp = prevDp;
+            prevDp = currDp;
+            currDp = temp;
+        }
+
+        // Calculate the total probability by summing up the probabilities for all cells
+        double totalProbability = 0;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                totalProbability += prevDp[i][j];
+            }
+        }
+
+        // Return the total probability
+        return totalProbability;
+    }
+}
+
+
+or
+
+
+class Solution {
+    int[][] directions = {{1, 2}, {1, -2}, {-1, 2}, {-1, -2}, {2, 1}, {2, -1}, {-2, 1}, {-2, -1}};
+
+    private double calculateDP(double[][][] dp, int moves, int i, int j, int n, int row, int column) {
+        // Base case
+        if (moves == 0) {
+            if (i == row && j == column) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+
+        // Check if the value has already been calculated
+        if (dp[moves][i][j] != -1) {
+            return dp[moves][i][j];
+        }
+
+        dp[moves][i][j] = 0;
+
+        // Iterate over possible directions
+        for (int[] direction : directions) {
+            int prevI = i - direction[0];
+            int prevJ = j - direction[1];
+
+            // Boundary check
+            if (prevI >= 0 && prevI < n && prevJ >= 0 && prevJ < n) {
+                dp[moves][i][j] += calculateDP(dp, moves - 1, prevI, prevJ, n, row, column) / 8.0;
+            }
+        }
+
+        return dp[moves][i][j];
+    }
+
+    public double knightProbability(int n, int k, int row, int column) {
+        double[][][] dp = new double[k + 1][n][n];
+
+        // Initialize dp with -1 values
+        for (double[][] layer : dp) {
+            for (double[] rowArray : layer) {
+                Arrays.fill(rowArray, -1);
+            }
+        }
+
+        // Calculate the total probability by summing up the probabilities for all cells
+        double totalProbability = 0;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                totalProbability += calculateDP(dp, k, i, j, n, row, column);
+            }
+        }
+
+        return totalProbability;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    private final int[][] moves = {{-2, -1}, {-2, 1}, {-1, -2}, {-1, 2}, {1, -2}, {1, 2}, {2, -1}, {2, 1}};
+
+    public double knightProbability(int n, int k, int row, int column) {
+        double[][] dp = new double[n][n];
+        dp[row][column] = 1.0;
+
+        for(int move = 1; move<=k; move++) {
+            double[][] ndp = new double[n][n];
+            for(int r = 0; r<n; r++) {
+                for(int c = 0; c<n; c++) {
+                    for(int[] m: moves) {
+                        int nr = r+m[0];
+                        int nc = c+m[1];
+                        if (isValid(nr, nc, n)) ndp[r][c] += dp[nr][nc]/8.0;
+                    }
+                }
+            }
+            dp = ndp;
+        }
+
+        double prob = 0.0;
+        for (int r = 0; r < n; r++) {
+            for (int c = 0; c < n; c++) {
+                prob += dp[r][c];
+            }
+        }
+
+        return prob;
+    }
+
+    private boolean isValid(int r, int c, int n) {
+        return r >= 0 && r < n && c >= 0 && c < n;
+    }
+}
+
+or
+
+
+class Solution {
+    public double knightProbability(int n, int k, int row, int column) {
+        double[][][] f = new double[k + 1][n][n];
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+                f[0][i][j] = 1;
+            }
+        }
+        int[] dirs = {-2, -1, 2, 1, -2, 1, 2, -1, -2};
+        for (int h = 1; h <= k; ++h) {
+            for (int i = 0; i < n; ++i) {
+                for (int j = 0; j < n; ++j) {
+                    for (int p = 0; p < 8; ++p) {
+                        int x = i + dirs[p], y = j + dirs[p + 1];
+                        if (x >= 0 && x < n && y >= 0 && y < n) {
+                            f[h][i][j] += f[h - 1][x][y] / 8;
+                        }
+                    }
+                }
+            }
+        }
+        return f[k][row][column];
+    }
+}
+
+
+or
+
+
+
+class Solution {
+  public double knightProbability(int n, int k, int row, int column) {
+    final int[][] DIRS = {{1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}};
+    final double PROB = 0.125;
+    // dp[i][j] := the probability to stand on (i, j)
+    double[][] dp = new double[n][n];
+    dp[row][column] = 1.0;
+
+    for (int move = 0; move < k; ++move) {
+      double[][] newDp = new double[n][n];
+      for (int i = 0; i < n; ++i)
+        for (int j = 0; j < n; ++j)
+          if (dp[i][j] > 0.0) {
+            for (int[] dir : DIRS) {
+              final int x = i + dir[0];
+              final int y = j + dir[1];
+              if (x < 0 || x >= n || y < 0 || y >= n)
+                continue;
+              newDp[x][y] += dp[i][j] * PROB;
+            }
+          }
+      dp = newDp;
+    }
+
+    return Arrays.stream(dp).flatMapToDouble(Arrays::stream).sum();
+  }
+}
