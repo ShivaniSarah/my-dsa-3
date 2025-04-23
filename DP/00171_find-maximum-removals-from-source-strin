@@ -1,0 +1,325 @@
+https://leetcode.com/problems/find-maximum-removals-from-source-string/description/
+
+
+3316. Find Maximum Removals From Source String
+Medium
+Topics
+Companies
+Hint
+You are given a string source of size n, a string pattern that is a subsequence of source, and a sorted integer array targetIndices that contains distinct numbers in the range [0, n - 1].
+
+We define an operation as removing a character at an index idx from source such that:
+
+idx is an element of targetIndices.
+pattern remains a subsequence of source after removing the character.
+Performing an operation does not change the indices of the other characters in source. For example, if you remove 'c' from "acb", the character at index 2 would still be 'b'.
+
+Return the maximum number of operations that can be performed.
+
+ 
+
+Example 1:
+
+Input: source = "abbaa", pattern = "aba", targetIndices = [0,1,2]
+
+Output: 1
+
+Explanation:
+
+We can't remove source[0] but we can do either of these two operations:
+
+Remove source[1], so that source becomes "a_baa".
+Remove source[2], so that source becomes "ab_aa".
+Example 2:
+
+Input: source = "bcda", pattern = "d", targetIndices = [0,3]
+
+Output: 2
+
+Explanation:
+
+We can remove source[0] and source[3] in two operations.
+
+Example 3:
+
+Input: source = "dda", pattern = "dda", targetIndices = [0,1,2]
+
+Output: 0
+
+Explanation:
+
+We can't remove any character from source.
+
+Example 4:
+
+Input: source = "yeyeykyded", pattern = "yeyyd", targetIndices = [0,2,3,4]
+
+Output: 2
+
+Explanation:
+
+We can remove source[2] and source[3] in two operations.
+
+ 
+
+Constraints:
+
+1 <= n == source.length <= 3 * 103
+1 <= pattern.length <= n
+1 <= targetIndices.length <= n
+targetIndices is sorted in ascending order.
+The input is generated such that targetIndices contains distinct elements in the range [0, n - 1].
+source and pattern consist only of lowercase English letters.
+The input is generated such that pattern appears as a subsequence in source.
+
+
+# java
+
+class Solution {
+    public int maxRemovals(String source, String pattern, int[] targetIndices) {
+        int m = source.length(), n = pattern.length();
+        int[][] f = new int[m + 1][n + 1];
+        final int inf = Integer.MAX_VALUE / 2;
+        for (var g : f) {
+            Arrays.fill(g, -inf);
+        }
+        f[0][0] = 0;
+        int[] s = new int[m];
+        for (int i : targetIndices) {
+            s[i] = 1;
+        }
+        for (int i = 1; i <= m; ++i) {
+            for (int j = 0; j <= n; ++j) {
+                f[i][j] = f[i - 1][j] + s[i - 1];
+                if (j > 0 && source.charAt(i - 1) == pattern.charAt(j - 1)) {
+                    f[i][j] = Math.max(f[i][j], f[i - 1][j - 1]);
+                }
+            }
+        }
+        return f[m][n];
+    }
+}
+
+
+or
+
+
+class Solution {
+  public int maxRemovals(String source, String pattern, int[] targetIndices) {
+    Set<Integer> target = Arrays.stream(targetIndices).boxed().collect(Collectors.toSet());
+    Integer[][] mem = new Integer[source.length()][pattern.length()];
+    final int ans = maxRemovals(source, pattern, 0, 0, target, mem);
+    return ans == Integer.MIN_VALUE ? 0 : ans;
+  }
+
+  // Returns the maximum number of operations that can be performed for
+  // source[i..m) and pattern[j..n).
+  private int maxRemovals(String source, String pattern, int i, int j, Set<Integer> target,
+                          Integer[][] mem) {
+    if (i == source.length())
+      return j == pattern.length() ? 0 : Integer.MIN_VALUE;
+    if (j == pattern.length())
+      return (target.contains(i) ? 1 : 0) + maxRemovals(source, pattern, i + 1, j, target, mem);
+    if (mem[i][j] != null)
+      return mem[i][j];
+    final int pick = source.charAt(i) == pattern.charAt(j)
+                         ? maxRemovals(source, pattern, i + 1, j + 1, target, mem)
+                         : Integer.MIN_VALUE;
+    final int skip =
+        (target.contains(i) ? 1 : 0) + maxRemovals(source, pattern, i + 1, j, target, mem);
+    return mem[i][j] = Math.max(pick, skip);
+  }
+}
+
+or
+
+
+class Solution {
+  public int maxRemovals(String source, String pattern, int[] targetIndices) {
+    final int m = source.length();
+    final int n = pattern.length();
+    Set<Integer> target = Arrays.stream(targetIndices).boxed().collect(Collectors.toSet());
+    // dp[i][j] := the maximum number of operations that can be performed for
+    // source[i..m) and pattern[j..n)
+    int[][] dp = new int[m + 1][n + 1];
+    Arrays.stream(dp).forEach(A -> Arrays.fill(A, Integer.MIN_VALUE));
+    dp[m][n] = 0;
+
+    for (int i = m - 1; i >= 0; --i) {
+      dp[i][n] = (target.contains(i) ? 1 : 0) + dp[i + 1][n];
+      for (int j = n - 1; j >= 0; --j) {
+        final int pick =
+            source.charAt(i) == pattern.charAt(j) ? dp[i + 1][j + 1] : Integer.MIN_VALUE;
+        final int skip = (target.contains(i) ? 1 : 0) + dp[i + 1][j];
+        dp[i][j] = Math.max(pick, skip);
+      }
+    }
+
+    return dp[0][0] == Integer.MIN_VALUE ? 0 : dp[0][0];
+  }
+}
+
+
+or
+
+
+class Solution {
+  public int maxRemovals(String source, String pattern, int[] targetIndices) {
+    final int m = source.length();
+    final int n = pattern.length();
+    Set<Integer> target = Arrays.stream(targetIndices).boxed().collect(Collectors.toSet());
+    // dp[j] := the maximum number of operations that can be performed for
+    // source so far and pattern[j..n)
+    int[] dp = new int[n + 1];
+    Arrays.fill(dp, Integer.MIN_VALUE);
+    dp[n] = 0;
+
+    for (int i = m - 1; i >= 0; --i) {
+      int[] newDp = dp.clone();
+      newDp[n] = (target.contains(i) ? 1 : 0) + dp[n];
+      for (int j = n - 1; j >= 0; --j) {
+        final int pick = source.charAt(i) == pattern.charAt(j) ? dp[j + 1] : Integer.MIN_VALUE;
+        final int skip = (target.contains(i) ? 1 : 0) + dp[j];
+        newDp[j] = Math.max(pick, skip);
+      }
+      dp = newDp;
+    }
+
+    return dp[0] == Integer.MIN_VALUE ? 0 : dp[0];
+  }
+}
+
+or
+
+
+
+class Solution {
+    
+    private int getIndex(int[] targetIndices, int t) {
+        int l = 0, r = targetIndices.length - 1;
+        while (l <= r) {
+            int mid = l + (r - l) / 2;
+            if (targetIndices[mid] == t) {
+                return mid;
+            }
+            if (targetIndices[mid] > t) {
+                r = mid - 1;
+            } else {
+                l = mid + 1;
+            }
+        }
+        
+        return -1;
+    }
+    
+    private int getAGreaterPos(int[] targetIndices, int t) {
+        int ans = targetIndices.length;
+        int l = 0, r = ans - 1;
+        
+        while (l <= r) {
+            int mid = l + (r - l) / 2;
+            if (targetIndices[mid] >= t) {
+                ans = mid;
+                r = mid - 1;
+            } else {
+                l = mid + 1;
+            }
+        }
+        
+        return ans;
+    }
+    
+    Integer[][] cache;
+    
+    private int getMaxRemovals(String source, String pattern, int[] targetIndices, int index1, int index2) {
+        if (index2 >= pattern.length()) {
+            // get the position of index1 in the targetIndices
+            // now that much elements we can remove
+            int pos = getAGreaterPos(targetIndices, index1);
+            // return 0;
+            return targetIndices.length - pos;
+            
+        } else if (index1 >= source.length()) {
+            return Integer.MIN_VALUE;
+        }
+        
+        if (cache[index1][index2] != null)
+            return cache[index1][index2];
+        
+        char c1 = source.charAt(index1);
+        char c2 = pattern.charAt(index2);
+        
+        int pos = getIndex(targetIndices, index1);
+        
+        if (pos == -1) {
+            // this means that I cannot consider the current index
+            int choice1 = Integer.MIN_VALUE;
+            if (c1 == c2) {
+                choice1 = getMaxRemovals(source, pattern, targetIndices, index1 + 1, index2 + 1);
+            } else {
+                choice1 = getMaxRemovals(source, pattern, targetIndices, index1 + 1, index2);
+            }
+            return cache[index1][index2] = choice1;
+        } else {
+            int choice1 = Integer.MIN_VALUE;
+            int choice2 = Integer.MIN_VALUE;
+            
+            if (c1 == c2) {
+                choice1 = getMaxRemovals(source, pattern, targetIndices, index1 + 1, index2 + 1);
+                choice2 = 1 + getMaxRemovals(source, pattern, targetIndices, index1 + 1, index2);
+            } else {
+                choice1 = getMaxRemovals(source, pattern, targetIndices, index1 + 1, index2);
+                choice2 = 1 + getMaxRemovals(source, pattern, targetIndices, index1 + 1, index2);
+            }
+            
+            return cache[index1][index2] = Math.max(choice1, choice2);
+        }
+        
+    }
+    
+    public int maxRemovals(String source, String pattern, int[] targetIndices) {
+        int n = source.length();
+        int m = pattern.length();
+        cache = new Integer[n][m];
+        return getMaxRemovals(source, pattern, targetIndices, 0, 0);
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int maxRemovals(String source, String pattern, int[] targetIndices) {
+        int m = source.length();
+        int n = pattern.length();
+        int[] target = new int[m];
+        int[] dp = new int[n + 1];
+
+        // Mark target indices
+        for (int i : targetIndices) {
+            target[i] += 1;
+        }
+
+        // Initialize DP array
+        Arrays.fill(dp, Integer.MIN_VALUE);
+        dp[n] = 0;
+
+        // Fill DP table
+        for (int i = m - 1; i >= 0; i--) {
+            for (int j = 0; j <= n; j++) {
+                dp[j] += target[i];
+                if (j < n && source.charAt(i) == pattern.charAt(j)) {
+                    dp[j] = Math.max(dp[j], dp[j + 1]);
+                }
+            }
+        }
+
+        return dp[0];
+    }
+}
+
+
+or
+
