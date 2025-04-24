@@ -1,0 +1,557 @@
+https://leetcode.com/problems/minimum-number-of-operations-to-sort-a-binary-tree-by-level/description/
+
+2471. Minimum Number of Operations to Sort a Binary Tree by Level
+Medium
+Topics
+Companies
+Hint
+You are given the root of a binary tree with unique values.
+
+In one operation, you can choose any two nodes at the same level and swap their values.
+
+Return the minimum number of operations needed to make the values at each level sorted in a strictly increasing order.
+
+The level of a node is the number of edges along the path between it and the root node.
+
+ 
+
+Example 1:
+
+
+Input: root = [1,4,3,7,6,8,5,null,null,null,null,9,null,10]
+Output: 3
+Explanation:
+- Swap 4 and 3. The 2nd level becomes [3,4].
+- Swap 7 and 5. The 3rd level becomes [5,6,8,7].
+- Swap 8 and 7. The 3rd level becomes [5,6,7,8].
+We used 3 operations so return 3.
+It can be proven that 3 is the minimum number of operations needed.
+Example 2:
+
+
+Input: root = [1,3,2,7,6,5,4]
+Output: 3
+Explanation:
+- Swap 3 and 2. The 2nd level becomes [2,3].
+- Swap 7 and 4. The 3rd level becomes [4,6,5,7].
+- Swap 6 and 5. The 3rd level becomes [4,5,6,7].
+We used 3 operations so return 3.
+It can be proven that 3 is the minimum number of operations needed.
+Example 3:
+
+
+Input: root = [1,2,3,4,5,6]
+Output: 0
+Explanation: Each level is already sorted in increasing order so return 0.
+ 
+
+Constraints:
+
+The number of nodes in the tree is in the range [1, 105].
+1 <= Node.val <= 105
+All the values of the tree are unique.
+
+
+
+# java
+
+
+class Solution {
+  public int minimumOperations(TreeNode root) {
+    int ans = 0;
+    Queue<TreeNode> q = new LinkedList<>(Arrays.asList(root));
+
+    // e.g. vals = [7, 6, 8, 5]
+    // [2, 1, 3, 0]: Initialize the ids based on the order of vals.
+    // [3, 1, 2, 0]: Swap 2 with 3, so 2 is in the right place (i == ids[i]).
+    // [0, 1, 2, 3]: Swap 3 with 0, so 3 is in the right place.
+    while (!q.isEmpty()) {
+      List<Integer> vals = new ArrayList<>();
+      List<Integer> ids = new ArrayList<>();
+      for (int sz = q.size(); sz > 0; --sz) {
+        TreeNode node = q.poll();
+        vals.add(node.val);
+        if (node.left != null)
+          q.offer(node.left);
+        if (node.right != null)
+          q.offer(node.right);
+      }
+      for (int i = 0; i < vals.size(); ++i)
+        ids.add(i);
+      Collections.sort(ids, (i, j) -> vals.get(i) - vals.get(j));
+      for (int i = 0; i < ids.size(); ++i)
+        for (; ids.get(i) != i; ++ans)
+          swap(ids, i, ids.get(i));
+    }
+
+    return ans;
+  }
+
+  private void swap(List<Integer> ids, int i, int j) {
+    final int temp = ids.get(i);
+    ids.set(i, ids.get(j));
+    ids.set(j, temp);
+  }
+}
+
+
+
+
+
+or
+
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public int minimumOperations(TreeNode root) {
+        Deque<TreeNode> q = new ArrayDeque<>();
+        q.offer(root);
+        int ans = 0;
+        while (!q.isEmpty()) {
+            List<Integer> t = new ArrayList<>();
+            for (int n = q.size(); n > 0; --n) {
+                TreeNode node = q.poll();
+                t.add(node.val);
+                if (node.left != null) {
+                    q.offer(node.left);
+                }
+                if (node.right != null) {
+                    q.offer(node.right);
+                }
+            }
+            ans += f(t);
+        }
+        return ans;
+    }
+
+    private int f(List<Integer> t) {
+        int n = t.size();
+        List<Integer> alls = new ArrayList<>(t);
+        alls.sort((a, b) -> a - b);
+        Map<Integer, Integer> m = new HashMap<>();
+        for (int i = 0; i < n; ++i) {
+            m.put(alls.get(i), i);
+        }
+        int[] arr = new int[n];
+        for (int i = 0; i < n; ++i) {
+            arr[i] = m.get(t.get(i));
+        }
+        int ans = 0;
+        for (int i = 0; i < n; ++i) {
+            while (arr[i] != i) {
+                swap(arr, i, arr[i]);
+                ++ans;
+            }
+        }
+        return ans;
+    }
+
+    private void swap(int[] arr, int i, int j) {
+        int t = arr[i];
+        arr[i] = arr[j];
+        arr[j] = t;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public int minimumOperations(TreeNode root) {
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.add(root);
+        int totalSwaps = 0;
+
+        // Process tree level by level using BFS
+        while (!queue.isEmpty()) {
+            int levelSize = queue.size();
+            int[] levelValues = new int[levelSize];
+
+            // Store values of current level and add children to queue
+            for (int i = 0; i < levelSize; i++) {
+                TreeNode node = queue.poll();
+                levelValues[i] = node.val;
+
+                if (node.left != null) queue.add(node.left);
+                if (node.right != null) queue.add(node.right);
+            }
+
+            // Add minimum swaps needed for current level
+            totalSwaps += getMinSwaps(levelValues);
+        }
+        return totalSwaps;
+    }
+
+    // Calculate minimum swaps needed to sort an array
+    private int getMinSwaps(int[] original) {
+        int swaps = 0;
+        int[] target = original.clone();
+        Arrays.sort(target);
+
+        // Map to track current positions of values
+        Map<Integer, Integer> pos = new HashMap<>();
+        for (int i = 0; i < original.length; i++) {
+            pos.put(original[i], i);
+        }
+
+        // For each position, swap until correct value is placed
+        for (int i = 0; i < original.length; i++) {
+            if (original[i] != target[i]) {
+                swaps++;
+
+                // Update position of swapped values
+                int curPos = pos.get(target[i]);
+                pos.put(original[i], curPos);
+                original[curPos] = original[i];
+            }
+        }
+        return swaps;
+    }
+}
+
+or
+
+
+class Solution {
+
+    // Constants for bit manipulation
+    final int SHIFT = 20;
+    final int MASK = 0xFFFFF;
+
+    public int minimumOperations(TreeNode root) {
+        Queue<TreeNode> queue = new LinkedList();
+        queue.add(root);
+        int swaps = 0;
+
+        // Process tree level by level using BFS
+        while (!queue.isEmpty()) {
+            int levelSize = queue.size();
+            long[] nodes = new long[levelSize];
+
+            // Store node values with encoded positions
+            for (int i = 0; i < levelSize; i++) {
+                TreeNode node = queue.poll();
+                // Encode value and index: high 20 bits = value, low 20 bits = index
+                nodes[i] = ((long) node.val << SHIFT) + i;
+
+                if (node.left != null) queue.add(node.left);
+                if (node.right != null) queue.add(node.right);
+            }
+
+            // Sort nodes by their values (high 20 bits)
+            Arrays.sort(nodes);
+
+            // Count swaps needed to match indices with original positions
+            for (int i = 0; i < levelSize; i++) {
+                int origPos = (int) (nodes[i] & MASK);
+                if (origPos != i) {
+                    // Swap nodes and decrement i to recheck current position
+                    long temp = nodes[i];
+                    nodes[i--] = nodes[origPos];
+                    nodes[origPos] = temp;
+                    swaps++;
+                }
+            }
+        }
+        return swaps;
+    }
+}
+
+
+or
+
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public int minimumOperations(TreeNode root) {
+        int count = 0;
+        Queue<TreeNode> q = new LinkedList<>();
+        q.offer(root);
+        while(!q.isEmpty()) {
+            int size = q.size();
+            List<Integer> list = new ArrayList<>();
+            while(size-- > 0) {
+                TreeNode node = q.poll();
+                if(node.left != null) {
+                    q.offer(node.left);
+                    list.add(node.left.val);
+                }
+                if(node.right != null) {
+                    q.offer(node.right);
+                    list.add(node.right.val);
+                }
+            }
+            count += helper(list);
+        }
+        
+        return count;
+    }
+    
+    int helper(List<Integer> list) {
+        int swaps = 0;
+        int[] sorted = new int[list.size()];
+        for(int i=0; i<sorted.length; i++) sorted[i] = list.get(i);
+        Arrays.sort(sorted);
+        Map<Integer, Integer> ind = new HashMap<>();
+        for(int i=0; i<list.size(); i++) ind.put(list.get(i), i);
+        
+        for(int i=0; i<list.size(); i++) {
+            if(list.get(i) != sorted[i]) {
+                swaps++;
+                ind.put(list.get(i), ind.get(sorted[i]));
+                list.set(ind.get(sorted[i]), list.get(i));
+            }
+        }
+        return swaps;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int minSwapsToSort(int[] arr) {
+        int n = arr.length;
+        int[][] indexedArr = new int[n][2];
+        for (int i = 0; i < n; i++) {
+            indexedArr[i][0] = arr[i];
+            indexedArr[i][1] = i;
+        }
+        Arrays.sort(indexedArr, (a, b) -> Integer.compare(a[0], b[0]));
+        boolean[] visited = new boolean[n];
+        int swaps = 0;
+
+        for (int i = 0; i < n; i++) {
+            if (visited[i] || indexedArr[i][1] == i) {
+                continue;
+            }
+
+            int cycleSize = 0;
+            int j = i;
+            while (!visited[j]) {
+                visited[j] = true;
+                j = indexedArr[j][1];
+                cycleSize++;
+            }
+
+            if (cycleSize > 1) {
+                swaps += cycleSize - 1;
+            }
+        }
+
+        return swaps;
+    }
+
+    public int minimumOperations(TreeNode root) {
+        if (root == null) return 0;
+
+        Queue<TreeNode> q = new LinkedList<>();
+        q.add(root);
+        int operations = 0;
+
+        while (!q.isEmpty()) {
+            int levelSize = q.size();
+            int[] level = new int[levelSize];
+            for (int i = 0; i < levelSize; i++) {
+                TreeNode node = q.poll();
+                level[i] = node.val;
+
+                if (node.left != null) q.add(node.left);
+                if (node.right != null) q.add(node.right);
+            }
+            operations += minSwapsToSort(level);
+        }
+
+        return operations;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minimumOperations(TreeNode root) {
+        return solve(root);
+    }
+    
+	// normal Level Order Traversal
+    int solve(TreeNode node) {
+		Queue<TreeNode> queue = new LinkedList<>();        // stores nodes at a particular level
+		queue.add(node);                                   // add the first node to get started
+        
+        int count = 0;
+        
+		while (!queue.isEmpty()) {
+			int size = queue.size();
+			int[] arr = new int[size];                     // This stores all the node values of a particular level
+			for (int i = 0; i < size; i++) {
+				TreeNode currNode = queue.poll();          // take a node out of queue
+				if (currNode.left != null) {               // if the node has a left child
+					queue.add(currNode.left);              // add left child to queue for further processing
+				}
+				if (currNode.right != null) {              // if the node has a right child
+					queue.add(currNode.right);             // add right child to queue for further processing
+				}
+				arr[i] = currNode.val;                     // store the node [this node is at current level]
+			}
+            count += minSwaps(arr);                        // count minimum swaps to make this array sorted
+		}
+		return count;
+	}
+    
+	// calculating minimum swaps required to make array sorted
+    int minSwaps(int[] arr) {
+        Map<Integer, Integer> map = new HashMap<>();            // stores [a number, its index]
+        int[] sortedArr = arr.clone();                          //  make a copy of this array
+        
+        for (int i = 0; i < arr.length; i++) {
+            map.put(arr[i], i);                                 // stores [a number, its index] of original array
+        }
+        
+        Arrays.sort(sortedArr);                                 // sort this copied array
+        
+        int swaps = 0;
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] != sortedArr[i]) {                       // whenever a number is not in its correct position, swap it with correct position
+                int index1 = map.get(sortedArr[i]);             // correct index - the number is to be swapped with this index
+                int index2 = map.get(arr[i]);                   // wrong index - the number is currently at this index
+                
+				// update index in map
+                map.put(arr[i], index1);                      
+                map.put(sortedArr[i], index2);
+				
+				// swap the numbers in original array with updated index
+                arr[index1] = arr[i];
+                arr[index2] = sortedArr[i];
+                swaps++;                                        // increase swap count
+            }
+        }
+        
+        return swaps;
+    }
+}
+
+
+
+or
+
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public int minimumOperations(TreeNode root) {
+        Queue<TreeNode> que=new LinkedList<>();
+        boolean[] visit=new boolean[100001];
+        List<Integer> list;
+        int cnt=0;
+
+
+        // Initialize BFS
+        visit[root.val]=true;
+        que.add(root);
+        while(!que.isEmpty()){
+            
+            Queue<TreeNode> tmpQ=new LinkedList<>(); 
+            tmpQ.addAll(que); //Maintaining temp Queue for storing next level nodes into "que"
+            que.clear(); 
+
+            list=new ArrayList(); //Storing list of nodes for the same level 
+            while(!tmpQ.isEmpty()){
+                TreeNode node=tmpQ.poll();
+                if( node.left!=null && !visit[node.left.val] ){
+                    visit[node.left.val]=true;
+                    que.add(node.left);
+                    list.add(node.left.val);
+                }
+                if( node.right!=null && !visit[node.right.val] ){
+                    visit[node.right.val]=true;
+                    que.add(node.right);
+                    list.add(node.right.val);
+                }
+            }
+            cnt+=minNoOperations(list); //Finding the minimum operations for strictly increasing order
+        }
+
+
+        return cnt;
+    }
+
+
+    int minNoOperations(List<Integer> list){
+        int cnt=0;
+        List<Integer> listSort=new ArrayList();
+        Map<Integer, Integer> map=new HashMap();
+
+        //Storing Hash(key, value) for list-value and list-index
+        for(int i=0; i<list.size(); i++){
+            map.put(list.get(i), i);
+        }
+
+        listSort.addAll(list);
+        Collections.sort(listSort); //Having sorted list into variable "listSort"
+
+        //Comparing "list" with "sortedList" and swapping with help of "map"
+        for(int i=0; i<list.size(); i++){
+            if(list.get(i)!=listSort.get(i)){
+                int idxS=i;
+                int idxT=map.get(listSort.get(i));
+
+                Collections.swap(list, idxS, idxT); //Swapping the values between idxS and idxT
+                map.put(list.get(idxS), idxS); //Updating "map" value for idxS
+                map.put(list.get(idxT), idxT); //Updating "map" value for idxT
+
+                cnt++;
+            }
+        }
+
+        
+        return cnt;
+    }
+
+}
