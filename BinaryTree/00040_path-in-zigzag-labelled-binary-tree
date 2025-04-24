@@ -1,0 +1,203 @@
+https://leetcode.com/problems/path-in-zigzag-labelled-binary-tree/description/
+
+1104. Path In Zigzag Labelled Binary Tree
+Medium
+Topics
+Companies
+Hint
+In an infinite binary tree where every node has two children, the nodes are labelled in row order.
+
+In the odd numbered rows (ie., the first, third, fifth,...), the labelling is left to right, while in the even numbered rows (second, fourth, sixth,...), the labelling is right to left.
+
+
+
+Given the label of a node in this tree, return the labels in the path from the root of the tree to the node with that label.
+
+ 
+
+Example 1:
+
+Input: label = 14
+Output: [1,3,4,14]
+Example 2:
+
+Input: label = 26
+Output: [1,2,6,10,26]
+ 
+
+Constraints:
+
+1 <= label <= 10^6
+
+
+# java
+
+class Solution {
+  public List<Integer> pathInZigZagTree(int label) {
+    LinkedList<Integer> ans = new LinkedList<>();
+    int level = 0;
+
+    for (int l = 0; l < 21; ++l)
+      if (Math.pow(2, l) > label) {
+        level = l - 1;
+        break;
+      }
+
+    if (level % 2 == 1)
+      label = boundarySum(level) - label;
+
+    for (int l = level; l >= 0; --l) {
+      ans.addFirst(l % 2 == 0 ? label : boundarySum(l) - label);
+      label /= 2;
+    }
+
+    return new ArrayList<>(ans);
+  }
+
+  private int boundarySum(int level) {
+    return (int) Math.pow(2, level) + (int) Math.pow(2, level + 1) - 1;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public List<Integer> pathInZigZagTree(int label) {
+        int x = 1, i = 1;
+        while ((x << 1) <= label) {
+            x <<= 1;
+            ++i;
+        }
+        List<Integer> ans = new ArrayList<>();
+        for (; i > 0; --i) {
+            ans.add(label);
+            label = ((1 << (i - 1)) + (1 << i) - 1 - label) >> 1;
+        }
+        Collections.reverse(ans);
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public List<Integer> pathInZigZagTree(int label) {
+        int level = 0;
+        int tmp = label;
+        
+        while (tmp != 0){
+            tmp /= 2;
+            level ++;
+        }
+        List<Integer> res = new ArrayList<>();
+        while (level > 0){
+            res.add(label);
+			/*At level n, the smallest label is 2^(n-1), the greatest label is 2^n - 1. 
+			Thus a label plus its complementary label is equal to 2^(n-1) + 2^n - 1.
+			The predecessor of a node with label n has label n/2 if the labels are not reversed. 
+			Now that the labels are reversed every two levels, either the node itself or its predecessor is at a reversed level. 
+			So to calculate the label of its predecessor, we use its complementary label / 2.*/
+            label = (3 * (int)Math.pow(2, level - 1) - 1 -label);
+            label /= 2;
+            level --;
+        }
+        Collections.reverse(res);
+        return res;
+    }
+}
+
+
+or
+
+class Solution {
+    public List<Integer> pathInZigZagTree(int label) {
+        List<Integer> ans = new ArrayList<>();
+        if(label==1){
+            ans.add(1);
+            return ans;
+        }
+        
+        while(label!=1){
+            ans.add(label);
+            int level = (int)(Math.log(label)/Math.log(2)) + 1;
+            if(level%2==0){
+                int dist = (int)Math.pow(2, level)-1-label;
+                int num = (int)Math.pow(2, level-1)+dist;
+                label = num/2;
+            }else{
+                int dist = label-(int)Math.pow(2, level-1);
+                int num = (int)Math.pow(2,level)-1-dist;
+                label = num/2;
+            }
+        }
+        ans.add(label);
+        Collections.reverse(ans);
+        return ans;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    // storing tree in array
+    public List<Integer> pathInZigZagTree(int n) {
+        
+        int arr[] = new int[1000000];   //space for storing tree 
+         
+        // here don't see the code think that you have to construct array as 
+        //     1 3 2 4 5 6 7 15 14 13 12 11 10 9 8 .........
+        //     so jump to next comment
+        
+        int p = 1;
+        for(int i = 0 ; i < n ; i++,p++){
+            int x = (int)Math.pow(2, p-1);
+            int start = 1,diff = 1;
+            
+            if(p%2 != 0){
+              start = (int)Math.pow(2, p-1);
+                diff = 1;
+            } 
+            else{
+              start = (int)Math.pow(2, p)-1;
+                diff = -1;                
+            }
+            while(x > 0){
+                if(i == arr.length) break;
+                x--;
+                arr[i++] = start;
+                start += diff;
+            }
+            
+                if(i == arr.length) break;
+            i--;
+       }
+        // find the  n and start finding its parents
+        //     since 
+        //     child = 2*parent + 1 || 2*parent + 2
+        //     so in general we ge parent as 
+        //     parent = (child-1)/2 
+        //      here parent and child are represented through index
+            
+        List<Integer> ans = new ArrayList<>();
+        int i = 0;
+        while(arr[i] != n){
+            i++;
+        }
+        while(i>0){
+            ans.add(arr[i]);
+            i = (i-1)/2;
+        }
+        ans.add(arr[0]);
+        // reverseing the arraylist
+        Collections.reverse(ans);
+        return ans;
+    }
+}
+
