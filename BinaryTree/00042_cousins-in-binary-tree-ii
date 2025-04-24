@@ -1,0 +1,300 @@
+https://leetcode.com/problems/cousins-in-binary-tree-ii/editorial/
+
+
+2641. Cousins in Binary Tree II
+Medium
+Topics
+Companies
+Hint
+Given the root of a binary tree, replace the value of each node in the tree with the sum of all its cousins' values.
+
+Two nodes of a binary tree are cousins if they have the same depth with different parents.
+
+Return the root of the modified tree.
+
+Note that the depth of a node is the number of edges in the path from the root node to it.
+
+ 
+
+Example 1:
+
+
+Input: root = [5,4,9,1,10,null,7]
+Output: [0,0,0,7,7,null,11]
+Explanation: The diagram above shows the initial binary tree and the binary tree after changing the value of each node.
+- Node with value 5 does not have any cousins so its sum is 0.
+- Node with value 4 does not have any cousins so its sum is 0.
+- Node with value 9 does not have any cousins so its sum is 0.
+- Node with value 1 has a cousin with value 7 so its sum is 7.
+- Node with value 10 has a cousin with value 7 so its sum is 7.
+- Node with value 7 has cousins with values 1 and 10 so its sum is 11.
+Example 2:
+
+
+Input: root = [3,1,2]
+Output: [0,0,0]
+Explanation: The diagram above shows the initial binary tree and the binary tree after changing the value of each node.
+- Node with value 3 does not have any cousins so its sum is 0.
+- Node with value 1 does not have any cousins so its sum is 0.
+- Node with value 2 does not have any cousins so its sum is 0.
+ 
+
+Constraints:
+
+The number of nodes in the tree is in the range [1, 105].
+1 <= Node.val <= 104
+
+
+
+# java
+
+
+class Solution {
+  public TreeNode replaceValueInTree(TreeNode root) {
+    List<Integer> levelSums = new ArrayList<>();
+    dfs(root, 0, levelSums);
+    return replace(root, 0, new TreeNode(0), levelSums);
+  }
+
+  private void dfs(TreeNode root, int level, List<Integer> levelSums) {
+    if (root == null)
+      return;
+    if (levelSums.size() == level)
+      levelSums.add(0);
+    levelSums.set(level, levelSums.get(level) + root.val);
+    dfs(root.left, level + 1, levelSums);
+    dfs(root.right, level + 1, levelSums);
+  }
+
+  private TreeNode replace(TreeNode root, int level, TreeNode curr, List<Integer> levelSums) {
+    final int nextLevel = level + 1;
+    final int nextLevelCousinsSum = nextLevel >= levelSums.size()
+                                        ? 0
+                                        : levelSums.get(nextLevel) -
+                                              (root.left == null ? 0 : root.left.val) -
+                                              (root.right == null ? 0 : root.right.val);
+    if (root.left != null) {
+      curr.left = new TreeNode(nextLevelCousinsSum);
+      replace(root.left, level + 1, curr.left, levelSums);
+    }
+    if (root.right != null) {
+      curr.right = new TreeNode(nextLevelCousinsSum);
+      replace(root.right, level + 1, curr.right, levelSums);
+    }
+    return curr;
+  }
+}
+
+
+
+or
+
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    private List<Integer> s = new ArrayList<>();
+
+    public TreeNode replaceValueInTree(TreeNode root) {
+        dfs1(root, 0);
+        root.val = 0;
+        dfs2(root, 1);
+        return root;
+    }
+
+    private void dfs1(TreeNode root, int d) {
+        if (root == null) {
+            return;
+        }
+        if (s.size() <= d) {
+            s.add(0);
+        }
+        s.set(d, s.get(d) + root.val);
+        dfs1(root.left, d + 1);
+        dfs1(root.right, d + 1);
+    }
+
+    private void dfs2(TreeNode root, int d) {
+        if (root == null) {
+            return;
+        }
+        int l = root.left == null ? 0 : root.left.val;
+        int r = root.right == null ? 0 : root.right.val;
+        if (root.left != null) {
+            root.left.val = s.get(d) - l - r;
+        }
+        if (root.right != null) {
+            root.right.val = s.get(d) - l - r;
+        }
+        dfs2(root.left, d + 1);
+        dfs2(root.right, d + 1);
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public TreeNode replaceValueInTree(TreeNode root) {
+        if (root == null) return root;
+
+        Queue<TreeNode> nodeQueue = new LinkedList<>();
+        nodeQueue.offer(root);
+        List<Integer> levelSums = new ArrayList<>();
+
+        // First BFS: Calculate sum of nodes at each level
+        while (!nodeQueue.isEmpty()) {
+            int levelSum = 0;
+            int levelSize = nodeQueue.size();
+            for (int i = 0; i < levelSize; ++i) {
+                TreeNode currentNode = nodeQueue.poll();
+                levelSum += currentNode.val;
+                if (currentNode.left != null) nodeQueue.offer(currentNode.left);
+                if (currentNode.right != null) nodeQueue.offer(
+                    currentNode.right
+                );
+            }
+            levelSums.add(levelSum);
+        }
+
+        // Second BFS: Update each node's value to sum of its cousins
+        nodeQueue.offer(root);
+        int levelIndex = 1;
+        root.val = 0; // Root has no cousins
+        while (!nodeQueue.isEmpty()) {
+            int levelSize = nodeQueue.size();
+            for (int i = 0; i < levelSize; ++i) {
+                TreeNode currentNode = nodeQueue.poll();
+
+                int siblingSum =
+                    (currentNode.left != null ? currentNode.left.val : 0) +
+                    (currentNode.right != null ? currentNode.right.val : 0);
+
+                if (currentNode.left != null) {
+                    currentNode.left.val =
+                        levelSums.get(levelIndex) - siblingSum;
+                    nodeQueue.offer(currentNode.left);
+                }
+                if (currentNode.right != null) {
+                    currentNode.right.val =
+                        levelSums.get(levelIndex) - siblingSum;
+                    nodeQueue.offer(currentNode.right);
+                }
+            }
+            ++levelIndex;
+        }
+
+        return root;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    private int[] levelSums = new int[100000];
+
+    public TreeNode replaceValueInTree(TreeNode root) {
+        calculateLevelSum(root, 0);
+        replaceValueInTreeInternal(root, 0, 0);
+        return root;
+    }
+
+    private void calculateLevelSum(TreeNode node, int level) {
+        if (node == null) {
+            return;
+        }
+
+        levelSums[level] += node.val;
+        calculateLevelSum(node.left, level + 1);
+        calculateLevelSum(node.right, level + 1);
+    }
+
+    private void replaceValueInTreeInternal(
+        TreeNode node,
+        int siblingSum,
+        int level
+    ) {
+        if (node == null) {
+            return;
+        }
+
+        int leftChildVal = (node.left == null) ? 0 : node.left.val;
+        int rightChildVal = (node.right == null) ? 0 : node.right.val;
+
+        if (level == 0 || level == 1) {
+            node.val = 0;
+        } else {
+            node.val = levelSums[level] - node.val - siblingSum;
+        }
+
+        replaceValueInTreeInternal(node.left, rightChildVal, level + 1);
+        replaceValueInTreeInternal(node.right, leftChildVal, level + 1);
+    }
+}
+
+
+
+or
+
+
+class Solution {
+
+    public TreeNode replaceValueInTree(TreeNode root) {
+        if (root == null) {
+            return root;
+        }
+
+        Queue<TreeNode> nodeQueue = new LinkedList<>();
+        nodeQueue.offer(root);
+        int currentLevelSum = root.val;
+
+        while (!nodeQueue.isEmpty()) {
+            int levelSize = nodeQueue.size();
+            int nextLevelSum = 0;
+
+            for (int i = 0; i < levelSize; i++) {
+                TreeNode currentNode = nodeQueue.poll();
+                // Update node value to cousin sum
+                currentNode.val = currentLevelSum - currentNode.val;
+
+                // Calculate sibling sum
+                int siblingSum =
+                    (currentNode.left != null ? currentNode.left.val : 0) +
+                    (currentNode.right != null ? currentNode.right.val : 0);
+
+                if (currentNode.left != null) {
+                    nextLevelSum += currentNode.left.val; // Accumulate next level sum
+                    currentNode.left.val = siblingSum; // Update left child's value
+                    nodeQueue.offer(currentNode.left); // Add to queue for next level
+                }
+                if (currentNode.right != null) {
+                    nextLevelSum += currentNode.right.val; // Accumulate next level sum
+                    currentNode.right.val = siblingSum; // Update right child's value
+                    nodeQueue.offer(currentNode.right); // Add to queue for next level
+                }
+            }
+
+            currentLevelSum = nextLevelSum; // Update current level sum for next iteration
+        }
+        return root;
+    }
+}
+
