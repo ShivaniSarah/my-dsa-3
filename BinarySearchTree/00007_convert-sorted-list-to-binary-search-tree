@@ -1,0 +1,243 @@
+https://leetcode.com/problems/convert-sorted-list-to-binary-search-tree/description/
+
+
+109. Convert Sorted List to Binary Search Tree
+Medium
+Topics
+Companies
+Given the head of a singly linked list where elements are sorted in ascending order, convert it to a height-balanced binary search tree.
+
+ 
+
+Example 1:
+
+
+Input: head = [-10,-3,0,5,9]
+Output: [0,-3,9,-10,null,5]
+Explanation: One possible answer is [0,-3,9,-10,null,5], which represents the shown height balanced BST.
+Example 2:
+
+Input: head = []
+Output: []
+ 
+
+Constraints:
+
+The number of nodes in head is in the range [0, 2 * 104].
+-105 <= Node.val <= 105
+
+
+# java
+
+
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+public class Solution {
+        public TreeNode sortedListToBST(ListNode head) {
+
+            if (head == null) {
+                return null;
+            }
+            if (head.next == null) {
+                return new TreeNode(head.val);
+            }
+
+            // find mid
+            ListNode dummy = new ListNode(0);
+            dummy.next = head;
+            ListNode slow = head, fast = head, prev = dummy;
+            while (fast != null && fast.next != null) {
+                prev = slow;
+                slow = slow.next;
+                fast = fast.next.next;
+            }
+
+            // prev is one before mid
+            // ListNode 2ndPartHead = slow.next; // @note@note: illegal, cannot start with number
+            ListNode newHead = slow.next;
+            prev.next = null; // @note: cut
+
+            TreeNode root = new TreeNode(slow.val);
+            root.left = sortedListToBST(head);
+            root.right = sortedListToBST(newHead);
+
+            return root;
+        }
+    }
+
+
+or
+
+
+class Solution {
+    public TreeNode sortedListToBST(ListNode head) {
+        List<Integer> nums = new ArrayList<>();
+        for (; head != null; head = head.next) {
+            nums.add(head.val);
+        }
+        return buildBST(nums, 0, nums.size() - 1);
+    }
+
+    private TreeNode buildBST(List<Integer> nums, int start, int end) {
+        if (start > end) {
+            return null;
+        }
+        int mid = (start + end) >> 1;
+        TreeNode root = new TreeNode(nums.get(mid));
+        root.left = buildBST(nums, start, mid - 1);
+        root.right = buildBST(nums, mid + 1, end);
+        return root;
+    }
+}
+
+
+or
+
+
+class Solution {
+  public TreeNode sortedListToBST(ListNode head) {
+    if (head == null)
+      return null;
+    if (head.next == null)
+      return new TreeNode(head.val);
+
+    ListNode mid = findMid(head);
+    TreeNode root = new TreeNode(mid.val);
+    root.left = sortedListToBST(head);
+    root.right = sortedListToBST(mid.next);
+    return root;
+  }
+
+  private ListNode findMid(ListNode head) {
+    ListNode prev = null;
+    ListNode slow = head;
+    ListNode fast = head;
+
+    while (fast != null && fast.next != null) {
+      prev = slow;
+      slow = slow.next;
+      fast = fast.next.next;
+    }
+    prev.next = null;
+
+    return slow;
+  }
+}
+
+or
+
+
+class Solution {
+  public TreeNode sortedListToBST(ListNode head) {
+    List<Integer> arr = new ArrayList<>();
+
+    // Construct the array.
+    for (ListNode curr = head; curr != null; curr = curr.next)
+      arr.add(curr.val);
+
+    return helper(arr, 0, arr.size() - 1);
+  }
+
+  private TreeNode helper(List<Integer> arr, int l, int r) {
+    if (l > r)
+      return null;
+    final int m = (l + r) / 2;
+    TreeNode root = new TreeNode(arr.get(m));
+    root.left = helper(arr, l, m - 1);
+    root.right = helper(arr, m + 1, r);
+    return root;
+  }
+}
+
+or
+
+
+class Solution {
+  public TreeNode sortedListToBST(ListNode head) {
+    this.head = head;
+    return helper(0, getLength(head) - 1);
+  }
+
+  private ListNode head;
+
+  private TreeNode helper(int l, int r) {
+    if (l > r)
+      return null;
+
+    final int m = (l + r) / 2;
+
+    // Simulate inorder traversal: recursively form the left half.
+    TreeNode left = helper(l, m - 1);
+
+    // Once the left half is traversed, process the current node.
+    TreeNode root = new TreeNode(head.val);
+    root.left = left;
+
+    // Maintain the invariance.
+    head = head.next;
+
+    // Simulate inorder traversal: recursively form the right half.
+    root.right = helper(m + 1, r);
+    return root;
+  }
+
+  private int getLength(ListNode head) {
+    int length = 0;
+    for (ListNode curr = head; curr != null; curr = curr.next)
+      ++length;
+    return length;
+  }
+}
+
+or
+
+
+public class Solution {
+public TreeNode sortedListToBST(ListNode head) {
+    if(head==null) return null;
+    return toBST(head,null);
+}
+public TreeNode toBST(ListNode head, ListNode tail){
+    ListNode slow = head;
+    ListNode fast = head;
+    if(head==tail) return null;
+    
+    while(fast!=tail&&fast.next!=tail){
+        fast = fast.next.next;
+        slow = slow.next;
+    }
+    TreeNode thead = new TreeNode(slow.val);
+    thead.left = toBST(head,slow);
+    thead.right = toBST(slow.next,tail);
+    return thead;
+}
+
+}
+
+
+or
+
+
