@@ -1,0 +1,212 @@
+https://leetcode.com/problems/distribute-coins-in-binary-tree/
+
+979. Distribute Coins in Binary Tree
+Medium
+Topics
+Companies
+You are given the root of a binary tree with n nodes where each node in the tree has node.val coins. There are n coins in total throughout the whole tree.
+
+In one move, we may choose two adjacent nodes and move one coin from one node to another. A move may be from parent to child, or from child to parent.
+
+Return the minimum number of moves required to make every node have exactly one coin.
+
+ 
+
+Example 1:
+
+
+Input: root = [3,0,0]
+Output: 2
+Explanation: From the root of the tree, we move one coin to its left child, and one coin to its right child.
+Example 2:
+
+
+Input: root = [0,3,0]
+Output: 3
+Explanation: From the left child of the root, we move two coins to the root [taking two moves]. Then, we move one coin from the root of the tree to the right child.
+ 
+
+Constraints:
+
+The number of nodes in the tree is n.
+1 <= n <= 100
+0 <= Node.val <= n
+The sum of all Node.val is n.
+
+
+# jjava
+
+
+class Solution {
+
+    private int moves;
+
+    public int distributeCoins(TreeNode root) {
+        moves = 0;
+        dfs(root);
+        return moves;
+    }
+
+    private int dfs(TreeNode current) {
+        if (current == null) return 0;
+
+        // Calculate the coins each subtree has available to exchange
+        int leftCoins = dfs(current.left);
+        int rightCoins = dfs(current.right);
+
+        // Add the total number of exchanges to moves
+        moves += Math.abs(leftCoins) + Math.abs(rightCoins);
+
+        // The number of coins current has available to exchange
+        return (current.val - 1) + leftCoins + rightCoins;
+    }
+}
+
+
+or
+
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    private int ans;
+
+    public int distributeCoins(TreeNode root) {
+        dfs(root);
+        return ans;
+    }
+
+    private int dfs(TreeNode root) {
+        if (root == null) {
+            return 0;
+        }
+        int left = dfs(root.left);
+        int right = dfs(root.right);
+        ans += Math.abs(left) + Math.abs(right);
+        return left + right + root.val - 1;
+    }
+}
+
+
+orr
+
+
+
+class Solution {
+  public int distributeCoins(TreeNode root) {
+    dfs(root);
+    return ans;
+  }
+
+  private int ans = 0;
+
+  // Returns the number of coins I can give (positive) / take (negative).
+  private int dfs(TreeNode root) {
+    if (root == null)
+      return 0;
+
+    final int l = dfs(root.left);
+    final int r = dfs(root.right);
+    ans += Math.abs(l) + Math.abs(r);
+
+    return (root.val - 1) + l + r;
+  }
+}
+
+
+or
+
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    private int moves = 0;
+    
+    private int dfs(TreeNode node) {
+        if (node == null) return 0;
+        int left_excess = dfs(node.left);
+        int right_excess = dfs(node.right);
+        moves += Math.abs(left_excess) + Math.abs(right_excess);
+        return node.val + left_excess + right_excess - 1;
+    }
+
+    public int distributeCoins(TreeNode root) {
+        dfs(root);
+        return moves;
+    }
+}
+
+// Time Complexity: O(n) where n is the number of nodes in the tree.
+// Space Complexity: O(h) where h is the height of the tree (due to recursion stack).
+
+
+
+or
+
+
+class Solution
+{
+    int moves= 0;//Stores the minimum number of moves to make the tree coins to be balanced 
+    public int distributeCoins(TreeNode root)
+    {
+        helper(root);//helps us in finding the minimum number of moves to be balanced 
+        return moves;//returning
+    }
+    public int helper(TreeNode root)
+    {//Postorder traversal, we know about the child situation first and then the parent 
+        if(root == null)//base case when we hit the null node, we return 0 as no coins is required null node is already balanced 
+           return 0;
+
+        int coinsLeft= helper(root.left);//recursing down the left subtree and knowing about left child, what is the status about coins 
+	    int coinsRight= helper(root.right);//recursing down the right subtree and knowing about right child, what is the status about coins 
+       
+        int coins= coinsLeft + coinsRight;//adding the information recived from left and right child //total coins collected from childrens
+        
+        //root node situation 
+        if(root.val == 0) //root node cannot contribute, but needs coin from its parent 
+          coins-= 1;//current node need one coin from parent
+      
+        else if(root.val == 1)//root node cannot contribute, at par
+          coins+= 0;
+      
+        else //root node can contribute to its parent
+          coins+= root.val- 1;//excess coin are been transfered to the parent 
+    
+        moves+= Math.abs(coins);//no matter how much coin is required by the node to get balanced or the number of coins to be transfered to the parent//we only count the steps, so we take the magnitude
+      
+        return coins;//coin tell the present sceneario to parent
+      //case 1 : coins < 0 (need coin) //case 2 : coins > 0 (excess coin) //case 3 : coins == 0(No extra coin let, at par) 
+    }
+}//Please do Upvote, it helps a lot
+
+
+
+or
+
+
