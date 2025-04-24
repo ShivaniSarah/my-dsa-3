@@ -1,0 +1,628 @@
+https://leetcode.com/problems/step-by-step-directions-from-a-binary-tree-node-to-another/
+
+2096. Step-By-Step Directions From a Binary Tree Node to Another
+Medium
+Topics
+Companies
+Hint
+You are given the root of a binary tree with n nodes. Each node is uniquely assigned a value from 1 to n. You are also given an integer startValue representing the value of the start node s, and a different integer destValue representing the value of the destination node t.
+
+Find the shortest path starting from node s and ending at node t. Generate step-by-step directions of such path as a string consisting of only the uppercase letters 'L', 'R', and 'U'. Each letter indicates a specific direction:
+
+'L' means to go from a node to its left child node.
+'R' means to go from a node to its right child node.
+'U' means to go from a node to its parent node.
+Return the step-by-step directions of the shortest path from node s to node t.
+
+ 
+
+Example 1:
+
+
+Input: root = [5,1,2,3,null,6,4], startValue = 3, destValue = 6
+Output: "UURL"
+Explanation: The shortest path is: 3 → 1 → 5 → 2 → 6.
+Example 2:
+
+
+Input: root = [2,1], startValue = 2, destValue = 1
+Output: "L"
+Explanation: The shortest path is: 2 → 1.
+ 
+
+Constraints:
+
+The number of nodes in the tree is n.
+2 <= n <= 105
+1 <= Node.val <= n
+All the values in the tree are unique.
+1 <= startValue, destValue <= n
+startValue != destValue
+
+
+# java
+
+
+class Solution {
+  public String getDirections(TreeNode root, int startValue, int destValue) {
+    // Only this subtree matters.
+    dfs(lca(root, startValue, destValue), startValue, destValue, new StringBuilder());
+    return "U".repeat(pathToStart.length()) + pathToDest;
+  }
+
+  private String pathToStart = "";
+  private String pathToDest = "";
+
+  private TreeNode lca(TreeNode root, int p, int q) {
+    if (root == null || root.val == p || root.val == q)
+      return root;
+    TreeNode left = lca(root.left, p, q);
+    TreeNode right = lca(root.right, p, q);
+    if (left != null && right != null)
+      return root;
+    return left == null ? right : left;
+  }
+
+  private void dfs(TreeNode root, int p, int q, StringBuilder path) {
+    if (root == null)
+      return;
+    if (root.val == p)
+      pathToStart = path.toString();
+    if (root.val == q)
+      pathToDest = path.toString();
+    dfs(root.left, p, q, path.append('L'));
+    path.deleteCharAt(path.length() - 1);
+    dfs(root.right, p, q, path.append('R'));
+    path.deleteCharAt(path.length() - 1);
+  }
+}
+
+
+or
+
+
+class Solution {
+  public String getDirections(TreeNode root, int startValue, int destValue) {
+    StringBuilder pathToStart = new StringBuilder();
+    StringBuilder pathToDest = new StringBuilder();
+
+    dfs(root, startValue, pathToStart);
+    dfs(root, destValue, pathToDest);
+
+    while (pathToStart.length() > 0 && pathToDest.length() > 0 &&
+           pathToStart.charAt(pathToStart.length() - 1) ==
+               pathToDest.charAt(pathToDest.length() - 1)) {
+      pathToStart.setLength(pathToStart.length() - 1);
+      pathToDest.setLength(pathToDest.length() - 1);
+    }
+
+    return "U".repeat(pathToStart.length()) + pathToDest.reverse().toString();
+  }
+
+  // Builds the string in reverse order to avoid creating a new copy.
+  private boolean dfs(TreeNode root, int val, StringBuilder sb) {
+    if (root.val == val)
+      return true;
+    if (root.left != null && dfs(root.left, val, sb))
+      sb.append("L");
+    else if (root.right != null && dfs(root.right, val, sb))
+      sb.append("R");
+    return sb.length() > 0;
+  }
+}
+
+
+
+or
+
+
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    private Map<Integer, List<List<String>>> edges;
+    private Set<Integer> visited;
+    private String ans;
+
+    public String getDirections(TreeNode root, int startValue, int destValue) {
+        edges = new HashMap<>();
+        visited = new HashSet<>();
+        ans = null;
+        traverse(root);
+        dfs(startValue, destValue, new ArrayList<>());
+        return ans;
+    }
+
+    private void traverse(TreeNode root) {
+        if (root == null) {
+            return;
+        }
+        if (root.left != null) {
+            edges.computeIfAbsent(root.val, k -> new ArrayList<>())
+                .add(Arrays.asList(String.valueOf(root.left.val), "L"));
+            edges.computeIfAbsent(root.left.val, k -> new ArrayList<>())
+                .add(Arrays.asList(String.valueOf(root.val), "U"));
+        }
+        if (root.right != null) {
+            edges.computeIfAbsent(root.val, k -> new ArrayList<>())
+                .add(Arrays.asList(String.valueOf(root.right.val), "R"));
+            edges.computeIfAbsent(root.right.val, k -> new ArrayList<>())
+                .add(Arrays.asList(String.valueOf(root.val), "U"));
+        }
+        traverse(root.left);
+        traverse(root.right);
+    }
+
+    private void dfs(int start, int dest, List<String> t) {
+        if (visited.contains(start)) {
+            return;
+        }
+        if (start == dest) {
+            if (ans == null || ans.length() > t.size()) {
+                ans = String.join("", t);
+            }
+            return;
+        }
+        visited.add(start);
+        if (edges.containsKey(start)) {
+            for (List<String> item : edges.get(start)) {
+                t.add(item.get(1));
+                dfs(Integer.parseInt(item.get(0)), dest, t);
+                t.remove(t.size() - 1);
+            }
+        }
+    }
+}
+
+
+
+or
+
+
+// BFS + DFS
+
+class Solution {
+
+    public String getDirections(TreeNode root, int startValue, int destValue) {
+        // Map to store parent nodes
+        Map<Integer, TreeNode> parentMap = new HashMap<>();
+
+        // Find the start node and populate parent map
+        TreeNode startNode = findStartNode(root, startValue);
+        populateParentMap(root, parentMap);
+
+        // Perform BFS to find the path
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.add(startNode);
+        Set<TreeNode> visitedNodes = new HashSet<>();
+        // Key: next node, Value: <current node, direction>
+        Map<TreeNode, Pair<TreeNode, String>> pathTracker = new HashMap<>();
+        visitedNodes.add(startNode);
+
+        while (!queue.isEmpty()) {
+            TreeNode currentNode = queue.poll();
+
+            // If destination is reached, return the path
+            if (currentNode.val == destValue) {
+                return backtrackPath(currentNode, pathTracker);
+            }
+
+            // Check and add parent node
+            if (parentMap.containsKey(currentNode.val)) {
+                TreeNode parentNode = parentMap.get(currentNode.val);
+                if (!visitedNodes.contains(parentNode)) {
+                    queue.add(parentNode);
+                    pathTracker.put(parentNode, new Pair(currentNode, "U"));
+                    visitedNodes.add(parentNode);
+                }
+            }
+
+            // Check and add left child
+            if (
+                currentNode.left != null &&
+                !visitedNodes.contains(currentNode.left)
+            ) {
+                queue.add(currentNode.left);
+                pathTracker.put(currentNode.left, new Pair(currentNode, "L"));
+                visitedNodes.add(currentNode.left);
+            }
+
+            // Check and add right child
+            if (
+                currentNode.right != null &&
+                !visitedNodes.contains(currentNode.right)
+            ) {
+                queue.add(currentNode.right);
+                pathTracker.put(currentNode.right, new Pair(currentNode, "R"));
+                visitedNodes.add(currentNode.right);
+            }
+        }
+
+        // This line should never be reached if the tree is valid
+        return "";
+    }
+
+    private String backtrackPath(
+        TreeNode node,
+        Map<TreeNode, Pair<TreeNode, String>> pathTracker
+    ) {
+        StringBuilder path = new StringBuilder();
+
+        // Construct the path
+        while (pathTracker.containsKey(node)) {
+            // Add the directions in reverse order and move on to the previous node
+            path.append(pathTracker.get(node).getValue());
+            node = pathTracker.get(node).getKey();
+        }
+
+        // Reverse the path
+        path.reverse();
+
+        return path.toString();
+    }
+
+    private void populateParentMap(
+        TreeNode node,
+        Map<Integer, TreeNode> parentMap
+    ) {
+        if (node == null) return;
+
+        // Add children to the map and recurse further
+        if (node.left != null) {
+            parentMap.put(node.left.val, node);
+            populateParentMap(node.left, parentMap);
+        }
+
+        if (node.right != null) {
+            parentMap.put(node.right.val, node);
+            populateParentMap(node.right, parentMap);
+        }
+    }
+
+    private TreeNode findStartNode(TreeNode node, int startValue) {
+        if (node == null) return null;
+
+        if (node.val == startValue) return node;
+
+        TreeNode leftResult = findStartNode(node.left, startValue);
+
+        // If left subtree returns a node, it must be StartNode. Return it
+        // Otherwise, return whatever is returned by right subtree.
+        if (leftResult != null) return leftResult;
+        return findStartNode(node.right, startValue);
+    }
+}
+
+
+
+or
+
+// LCS + DFS
+
+class Solution {
+
+    public String getDirections(TreeNode root, int startValue, int destValue) {
+        // Find the Lowest Common Ancestor (LCA) of start and destination nodes
+        TreeNode lowestCommonAncestor = findLowestCommonAncestor(
+            root,
+            startValue,
+            destValue
+        );
+
+        StringBuilder pathToStart = new StringBuilder();
+        StringBuilder pathToDest = new StringBuilder();
+
+        // Find paths from LCA to start and destination nodes
+        findPath(lowestCommonAncestor, startValue, pathToStart);
+        findPath(lowestCommonAncestor, destValue, pathToDest);
+
+        StringBuilder directions = new StringBuilder();
+
+        // Add "U" for each step to go up from start to LCA
+        directions.append("U".repeat(pathToStart.length()));
+
+        // Append the path from LCA to destination
+        directions.append(pathToDest);
+
+        return directions.toString();
+    }
+
+    private TreeNode findLowestCommonAncestor(
+        TreeNode node,
+        int value1,
+        int value2
+    ) {
+        if (node == null) return null;
+
+        if (node.val == value1 || node.val == value2) return node;
+
+        TreeNode leftLCA = findLowestCommonAncestor(node.left, value1, value2);
+        TreeNode rightLCA = findLowestCommonAncestor(
+            node.right,
+            value1,
+            value2
+        );
+
+        if (leftLCA == null) return rightLCA;
+        else if (rightLCA == null) return leftLCA;
+        else return node; // Both values found, this is the LCA
+    }
+
+    private boolean findPath(
+        TreeNode node,
+        int targetValue,
+        StringBuilder path
+    ) {
+        if (node == null) return false;
+
+        if (node.val == targetValue) return true;
+
+        // Try left subtree
+        path.append("L");
+        if (findPath(node.left, targetValue, path)) {
+            return true;
+        }
+        path.setLength(path.length() - 1); // Remove last character
+
+        // Try right subtree
+        path.append("R");
+        if (findPath(node.right, targetValue, path)) {
+            return true;
+        }
+        path.setLength(path.length() - 1); // Remove last character
+
+        return false;
+    }
+}
+
+
+or
+
+
+// LCA+ DFS
+
+
+
+class Solution {
+
+    public String getDirections(TreeNode root, int startValue, int destValue) {
+        StringBuilder startPath = new StringBuilder();
+        StringBuilder destPath = new StringBuilder();
+
+        // Find paths from root to start and destination nodes
+        findPath(root, startValue, startPath);
+        findPath(root, destValue, destPath);
+
+        StringBuilder directions = new StringBuilder();
+        int commonPathLength = 0;
+
+        // Find the length of the common path
+        while (
+            commonPathLength < startPath.length() &&
+            commonPathLength < destPath.length() &&
+            startPath.charAt(commonPathLength) ==
+            destPath.charAt(commonPathLength)
+        ) {
+            commonPathLength++;
+        }
+
+        // Add "U" for each step to go up from start to common ancestor
+        for (int i = 0; i < startPath.length() - commonPathLength; i++) {
+            directions.append("U");
+        }
+
+        // Add directions from common ancestor to destination
+        for (int i = commonPathLength; i < destPath.length(); i++) {
+            directions.append(destPath.charAt(i));
+        }
+
+        return directions.toString();
+    }
+
+    private boolean findPath(TreeNode node, int target, StringBuilder path) {
+        if (node == null) {
+            return false;
+        }
+
+        if (node.val == target) {
+            return true;
+        }
+
+        // Try left subtree
+        path.append("L");
+        if (findPath(node.left, target, path)) {
+            return true;
+        }
+        path.deleteCharAt(path.length() - 1); // Remove last character
+
+        // Try right subtree
+        path.append("R");
+        if (findPath(node.right, target, path)) {
+            return true;
+        }
+        path.deleteCharAt(path.length() - 1); // Remove last character
+
+        return false;
+    }
+}
+
+
+or
+
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public String getDirections(TreeNode root, int startValue, int destValue) {
+        Queue<TreeNode> q = new LinkedList<>();
+        q.offer(root);
+        TreeNode startNode = null;
+
+        while (!q.isEmpty()) {
+            TreeNode curNode = q.poll();
+
+            if (curNode.val == startValue) {
+                startNode = curNode;
+                break;
+            }
+
+            if (curNode.left != null) {
+                q.offer(curNode.left);
+            }
+            if (curNode.right != null) {
+                q.offer(curNode.right);
+            }
+        }
+
+        Map<Integer, TreeNode> nodesParents = new HashMap<>();
+        q.offer(root);
+
+        while (!q.isEmpty()) {
+            TreeNode curNode = q.poll();
+
+            if (curNode.left != null) {
+                nodesParents.put(curNode.left.val, curNode);
+                q.offer(curNode.left);
+            }
+            if (curNode.right != null) {
+                nodesParents.put(curNode.right.val, curNode);
+                q.offer(curNode.right);
+            }
+        }
+
+        Set<TreeNode> visited = new HashSet<>();
+        q.offer(startNode);
+        Map<TreeNode, Pair<TreeNode, String>> trackedPath = new HashMap<>();
+        TreeNode destinationNode = null;
+
+        while (!q.isEmpty()) {
+            TreeNode curNode = q.poll();
+            visited.add(curNode);
+
+            if (curNode.val == destValue) {
+                destinationNode = curNode;
+                break;
+            }
+
+            if (nodesParents.containsKey(curNode.val) && !visited.contains(nodesParents.get(curNode.val))) {
+                TreeNode parent = nodesParents.get(curNode.val);
+                q.offer(parent);
+                trackedPath.put(parent, new Pair<>(curNode, "U"));
+            }
+
+            if (curNode.left != null && !visited.contains(curNode.left)) {
+                q.offer(curNode.left);
+                trackedPath.put(curNode.left, new Pair<>(curNode, "L"));
+            }
+
+            if (curNode.right != null && !visited.contains(curNode.right)) {
+                q.offer(curNode.right);
+                trackedPath.put(curNode.right, new Pair<>(curNode, "R"));
+            }
+        }
+
+        List<String> resultPath = new ArrayList<>();
+        TreeNode curNode = destinationNode;
+
+        while (curNode != startNode) {
+            Pair<TreeNode, String> sourceAndDirection = trackedPath.get(curNode);
+            resultPath.add(sourceAndDirection.getValue());
+            curNode = sourceAndDirection.getKey();
+        }
+
+        Collections.reverse(resultPath);
+        return String.join("", resultPath);
+    }
+}
+
+
+
+or
+
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public String getDirections(TreeNode root, int startValue, int destValue) {
+        List<String> pathToStart = new ArrayList<>();
+        List<String> pathToDestination = new ArrayList<>();
+        findPathFromRoot(root, startValue, pathToStart);
+        findPathFromRoot(root, destValue, pathToDestination);
+
+        int commonPathLen = 0;
+        while (commonPathLen < pathToStart.size() && commonPathLen < pathToDestination.size() &&
+               pathToStart.get(commonPathLen).equals(pathToDestination.get(commonPathLen))) {
+            commonPathLen++;
+        }
+
+        List<String> res = new ArrayList<>();
+        for (int i = 0; i < pathToStart.size() - commonPathLen; i++) {
+            res.add("U");
+        }
+        res.addAll(pathToDestination.subList(commonPathLen, pathToDestination.size()));
+
+        return String.join("", res);
+    }
+
+    private boolean findPathFromRoot(TreeNode curNode, int targetValue, List<String> pathToAppend) {
+        if (curNode == null) {
+            return false;
+        }
+        if (curNode.val == targetValue) {
+            return true;
+        }
+
+        pathToAppend.add("R");
+        if (findPathFromRoot(curNode.right, targetValue, pathToAppend)) {
+            return true;
+        }
+        pathToAppend.remove(pathToAppend.size() - 1);
+
+        pathToAppend.add("L");
+        if (findPathFromRoot(curNode.left, targetValue, pathToAppend)) {
+            return true;
+        }
+        pathToAppend.remove(pathToAppend.size() - 1);
+
+        return false;
+    }
+}
