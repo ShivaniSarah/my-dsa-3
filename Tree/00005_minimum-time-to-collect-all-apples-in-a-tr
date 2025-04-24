@@ -1,0 +1,245 @@
+https://leetcode.com/problems/minimum-time-to-collect-all-apples-in-a-tree/description/
+
+1443. Minimum Time to Collect All Apples in a Tree
+Medium
+Topics
+Companies
+Hint
+Given an undirected tree consisting of n vertices numbered from 0 to n-1, which has some apples in their vertices. You spend 1 second to walk over one edge of the tree. Return the minimum time in seconds you have to spend to collect all apples in the tree, starting at vertex 0 and coming back to this vertex.
+
+The edges of the undirected tree are given in the array edges, where edges[i] = [ai, bi] means that exists an edge connecting the vertices ai and bi. Additionally, there is a boolean array hasApple, where hasApple[i] = true means that vertex i has an apple; otherwise, it does not have any apple.
+
+ 
+
+Example 1:
+
+
+Input: n = 7, edges = [[0,1],[0,2],[1,4],[1,5],[2,3],[2,6]], hasApple = [false,false,true,false,true,true,false]
+Output: 8 
+Explanation: The figure above represents the given tree where red vertices have an apple. One optimal path to collect all apples is shown by the green arrows.  
+Example 2:
+
+
+Input: n = 7, edges = [[0,1],[0,2],[1,4],[1,5],[2,3],[2,6]], hasApple = [false,false,true,false,false,true,false]
+Output: 6
+Explanation: The figure above represents the given tree where red vertices have an apple. One optimal path to collect all apples is shown by the green arrows.  
+Example 3:
+
+Input: n = 7, edges = [[0,1],[0,2],[1,4],[1,5],[2,3],[2,6]], hasApple = [false,false,false,false,false,false,false]
+Output: 0
+ 
+
+Constraints:
+
+1 <= n <= 105
+edges.length == n - 1
+edges[i].length == 2
+0 <= ai < bi <= n - 1
+hasApple.length == n
+
+
+# jvaa
+
+
+class Solution {
+  public int minTime(int n, int[][] edges, List<Boolean> hasApple) {
+    List<Integer>[] graph = new List[n];
+
+    for (int i = 0; i < n; ++i)
+      graph[i] = new ArrayList<>();
+
+    for (int[] edge : edges) {
+      final int u = edge[0];
+      final int v = edge[1];
+      graph[u].add(v);
+      graph[v].add(u);
+    }
+
+    return dfs(graph, 0, new boolean[n], hasApple);
+  }
+
+  private int dfs(List<Integer>[] graph, int u, boolean[] seen, List<Boolean> hasApple) {
+    seen[u] = true;
+    int totalCost = 0;
+
+    for (final int v : graph[u]) {
+      if (seen[v])
+        continue;
+      final int cost = dfs(graph, v, seen, hasApple);
+      if (cost > 0 || hasApple.get(v))
+        totalCost += cost + 2;
+    }
+
+    return totalCost;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int minTime(int n, int[][] edges, List<Boolean> hasApple) {
+        boolean[] vis = new boolean[n];
+        List<Integer>[] g = new List[n];
+        Arrays.setAll(g, k -> new ArrayList<>());
+        for (int[] e : edges) {
+            int u = e[0], v = e[1];
+            g[u].add(v);
+            g[v].add(u);
+        }
+        return dfs(0, 0, g, hasApple, vis);
+    }
+
+    private int dfs(int u, int cost, List<Integer>[] g, List<Boolean> hasApple, boolean[] vis) {
+        if (vis[u]) {
+            return 0;
+        }
+        vis[u] = true;
+        int nxtCost = 0;
+        for (int v : g[u]) {
+            nxtCost += dfs(v, 2, g, hasApple, vis);
+        }
+        if (!hasApple.get(u) && nxtCost == 0) {
+            return 0;
+        }
+        return cost + nxtCost;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minTime(int n, int[][] edges, List<Boolean> hasApple) {
+        
+        Map<Integer, List<Integer>> graph = createGraph(edges); // to store the graph
+        Map<Integer, Boolean> visited = new HashMap<>();
+		
+        return dfs(graph, 0, hasApple, 0, visited); // cost of reaching the root is 0. For all others, its 2.
+      
+    }
+    
+    private int dfs(Map<Integer, List<Integer>> graph, int node, List<Boolean> hasApple, int myCost, Map<Integer, Boolean> visited) {
+        Boolean v = visited.getOrDefault(node, false);
+		if (v) {
+			return 0;
+		}
+		visited.put(node, true);
+		
+        int childrenCost = 0; // cost of traversing all children. 
+      
+        for(int n : graph.getOrDefault(node, new ArrayList<>())) {
+            childrenCost += dfs(graph, n, hasApple, 2, visited); // check recursively for all apples in subtrees.
+        }
+      
+        if (childrenCost == 0 && hasApple.get(node) == false) {
+          // If no child has apples, then we won't traverse the subtree, so cost will be zero.
+          // similarly, if current node also does not have the apple, we won't traverse this branch at all, so cost will be zero.
+          return 0;
+        }
+      
+        return childrenCost + myCost;
+    }
+    
+    private Map<Integer, List<Integer>> createGraph(int[][] edges) {
+        Map<Integer, List<Integer>> graph = new HashMap<>();
+      
+        for(int i = 0; i < edges.length; i++) {
+            List<Integer> list = graph.getOrDefault(edges[i][0], new ArrayList<>()); // Adjecency list representation.
+            list.add(edges[i][1]);
+            graph.put(edges[i][0], list);
+			
+			list = graph.getOrDefault(edges[i][1], new ArrayList<>()); // Adjecency list representation.
+            list.add(edges[i][0]);
+            graph.put(edges[i][1], list);
+        }
+      
+        return graph;
+    }
+}
+
+
+or
+
+
+class Solution {
+    // Function to find the minimum time to collect all apples
+    public int minTime(int n, int[][] edges, List<Boolean> hasApple) {
+        // Create an adjacency list to represent the tree
+        List<List<Integer>> adj = new ArrayList<>();
+        for(int i = 0; i < n; i++){
+            adj.add(new ArrayList<>());
+        }
+        // populate the adjacency list
+        for(int [] edge : edges){
+            adj.get(edge[0]).add(edge[1]);
+            adj.get(edge[1]).add(edge[0]);
+
+        }
+        // call to helper function to find the minimum time
+        return minTimeToCollectApples(0, adj, hasApple, 0);
+    }
+    // Helper function
+    int minTimeToCollectApples(int index, List<List<Integer>> adj, List<Boolean> hasApple, int parent){
+        // variable to keep track of total time
+        int total = 0;
+        // for each neighbor of current node
+        for(int nbr : adj.get(index)){
+            // if the neighbor is the parent node, then we skip
+            if (nbr == parent)
+             continue;
+            // we recursively call the helper function for each neighbor
+            total += minTimeToCollectApples(nbr, adj, hasApple, index);
+        }
+        // If current node is not the root (0th) node, and it has an apple or any of its descendant has
+        //  then we need to add 2 time for moving to and from it
+        if( index != 0 && (hasApple.get(index) || total > 0))
+          total += 2;
+        return total;
+    }
+}
+
+or
+
+
+
+
+class Solution 
+{
+    public int minTime (int n, int[][] edges, List<Boolean> hasApple) 
+    {
+        ArrayList<ArrayList<Integer>> adjacencyList= new ArrayList<>();
+        
+        for (int i= 0; i< n; i++)
+            adjacencyList.add(new ArrayList<>());//allocating the space for the vertex to store their adjacent vertex 
+        
+        //Creating the adjacency list from the edge list 
+        for (int []edge: edges)
+        {
+            int u= edge[0];
+            int v= edge[1];
+            
+            //undirected graph 
+            adjacencyList.get(u).add(v);   
+            adjacencyList.get(v).add(u);    
+        }
+        boolean visited[]= new boolean[n];//boolean visited array, so that we dont visit the same vertex again 
+        return dfs(adjacencyList ,visited, hasApple, 0);//recursing down in depth of the tree and calculating the time while in postorder, like topological sort(iterative) 
+    }
+    public int dfs (ArrayList<ArrayList<Integer>> adjacencyList, boolean visited[], List<Boolean> hasApple, int source)
+    {//preorder marking visited -> recursing in deapth -> postorder time calculation //Bottom Up Approach 
+        visited[source]= true;//marking the current node as visisted 
+        
+        int totalTime= 0;//time possible 
+        for (int vertex: adjacencyList.get(source)){//recursing down in deapth 
+            if(visited[vertex] == false)//only visiting the unvisited node 
+                totalTime+= dfs(adjacencyList, visited, hasApple, vertex);//calculating the time while we are backtracking  
+        }
+        
+        if (source != 0 && (hasApple.get(source) || totalTime > 0))//we are not considering the starting vertex because we are calculating the total time from bottom to top //case-1) when the total time is greater than 0 then we would include that path(intution: apple already exists previously in the path)//case-2)we are considering the vertex with apple for total time calculation(intution: considering the edge)
+           totalTime+= 2;//adding two because of 1)moving forward(arriving) 2)moving backward(returning) 
+        return totalTime;//returning the total time to tell the current time status to the parent 
+    }
+}//Please do Upvote, it helps a lot 
