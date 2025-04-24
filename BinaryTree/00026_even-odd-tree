@@ -1,0 +1,356 @@
+https://leetcode.com/problems/even-odd-tree/description/
+
+1609. Even Odd Tree
+Medium
+Topics
+Companies
+Hint
+A binary tree is named Even-Odd if it meets the following conditions:
+
+The root of the binary tree is at level index 0, its children are at level index 1, their children are at level index 2, etc.
+For every even-indexed level, all nodes at the level have odd integer values in strictly increasing order (from left to right).
+For every odd-indexed level, all nodes at the level have even integer values in strictly decreasing order (from left to right).
+Given the root of a binary tree, return true if the binary tree is Even-Odd, otherwise return false.
+
+ 
+
+Example 1:
+
+
+Input: root = [1,10,4,3,null,7,9,12,8,6,null,null,2]
+Output: true
+Explanation: The node values on each level are:
+Level 0: [1]
+Level 1: [10,4]
+Level 2: [3,7,9]
+Level 3: [12,8,6,2]
+Since levels 0 and 2 are all odd and increasing and levels 1 and 3 are all even and decreasing, the tree is Even-Odd.
+Example 2:
+
+
+Input: root = [5,4,2,3,3,7]
+Output: false
+Explanation: The node values on each level are:
+Level 0: [5]
+Level 1: [4,2]
+Level 2: [3,3,7]
+Node values in level 2 must be in strictly increasing order, so the tree is not Even-Odd.
+Example 3:
+
+
+Input: root = [5,9,1,3,5,7]
+Output: false
+Explanation: Node values in the level 1 should be even integers.
+ 
+
+Constraints:
+
+The number of nodes in the tree is in the range [1, 105].
+1 <= Node.val <= 106
+
+
+# java
+
+
+public class Solution {
+    private List<Integer> prev = new ArrayList<>();
+
+    public boolean isEvenOddTree(TreeNode root) {
+        TreeNode current = root;
+        return dfs(current, 0);
+    }
+
+    private boolean dfs(TreeNode current, int level) {
+        // Base case, an empty tree is Even-Odd
+        if (current == null) {
+            return true;
+        }
+
+        // Compare the parity of current and level
+        if (current.val % 2 == level % 2) {
+            return false;
+        }
+
+        // Add a new level to prev if we've reached a new level
+        while (prev.size() <= level) {
+            prev.add(0);
+        }
+
+        // If there are previous nodes on this level, check increasing/decreasing
+        // If on an even level, check that current's value is greater than the previous on this level
+        // If on an odd level, check that current's value is less than the previous on this level
+        if (prev.get(level) != 0 && 
+                ((level % 2 == 0 && current.val <= prev.get(level)) || 
+                 (level % 2 == 1 && current.val >= prev.get(level)))) {
+            return false;
+        }
+
+        // Add current value to prev at index level
+        prev.set(level, current.val);
+
+        // Recursively call DFS on the left and right children
+        return dfs(current.left, level + 1) && dfs(current.right, level + 1);
+    }
+}
+
+
+
+or
+
+
+public class Solution {
+    public boolean isEvenOddTree(TreeNode root) {
+        // Create a queue for nodes that need to be visited and add the root
+        Queue<TreeNode> queue = new LinkedList<>();
+        TreeNode current = root;
+        queue.add(current);
+
+        // Keeps track of whether we are on an even level
+        boolean even = true;
+
+        // While there are more nodes in the queue
+        // Determine the size of the level and handle the nodes
+        while (!queue.isEmpty()) {
+            int size = queue.size();
+
+            // Prev holds the value of the previous node in this level
+            int prev = Integer.MAX_VALUE;
+            if (even) {
+                prev = Integer.MIN_VALUE;
+            }
+
+            // While there are more nodes in this level
+            // Remove a node, check whether it satisfies the conditions
+            // Add its children to the queue
+            while (size > 0) {
+                current = queue.poll();
+
+                // If on an even level, check that the node's value is odd and greater than prev
+                // If on an odd level, check that the node's value is even and less than prev
+                if ((even && (current.val % 2 == 0 || current.val <= prev)) ||
+                        (!even && (current.val % 2 == 1 || current.val >= prev))) {
+                    return false;
+                }
+
+                prev = current.val;
+                if (current.left != null) {
+                    queue.add(current.left);
+                }
+                if (current.right != null) {
+                    queue.add(current.right);
+                }
+                // Decrement size, we have handled a node on this level
+                size--;
+            }
+            // Flip the value of even, the next level will be opposite
+            even = !even;
+        }
+        // If every node meets the conditions, the tree is Even-Odd
+        return true;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+  public boolean isEvenOddTree(TreeNode root) {
+    Queue<TreeNode> q = new LinkedList<>(Arrays.asList(root));
+    boolean isEven = true;
+
+    for (; !q.isEmpty(); isEven = !isEven) {
+      int prevVal = isEven ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+      for (int sz = q.size(); sz > 0; --sz) {
+        TreeNode node = q.poll();
+        if (isEven && (node.val % 2 == 0 || node.val <= prevVal))
+          return false; // invalid case on even level
+        if (!isEven && (node.val % 2 == 1 || node.val >= prevVal))
+          return false; // invalid case on odd level
+        prevVal = node.val;
+        if (node.left != null)
+          q.offer(node.left);
+        if (node.right != null)
+          q.offer(node.right);
+      }
+    }
+
+    return true;
+  }
+}
+
+
+or
+
+
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ * int val;
+ * TreeNode left;
+ * TreeNode right;
+ * TreeNode() {}
+ * TreeNode(int val) { this.val = val; }
+ * TreeNode(int val, TreeNode left, TreeNode right) {
+ * this.val = val;
+ * this.left = left;
+ * this.right = right;
+ * }
+ * }
+ */
+class Solution {
+  public boolean isEvenOddTree(TreeNode root) {
+    Queue < TreeNode > que = new LinkedList < > ();
+    que.add(root);
+    que.add(null);
+    int res = 1;
+    int c = 0;
+    int prev = 0;
+    while (!que.isEmpty()) {
+      if (res % 2 == 0)
+        prev = Integer.MAX_VALUE;
+      else
+        prev = Integer.MIN_VALUE;
+      while (que.peek() != null) {
+        if (que.peek().val % 2 != res % 2) {
+          return false;
+        }
+        if (res % 2 == 0 && prev <= que.peek().val) {
+          return false;
+        }
+
+        if (res % 2 != 0 && prev >= que.peek().val)
+          return false;
+        if (que.peek().left != null)
+          que.add(que.peek().left);
+        if (que.peek().right != null)
+          que.add(que.peek().right);
+        prev = que.poll().val;
+      }
+      que.poll();
+      if (que.isEmpty()) {
+        break;
+      }
+      res++;
+      que.add(null);
+
+    }
+    return true;
+  }
+}
+
+
+or
+
+class Solution {
+    public boolean isEvenOddTree(TreeNode root) {
+        if (root == null) {
+            return true;
+        }
+        Queue<TreeNode> queue = new LinkedList<>();
+        boolean flag = true;
+        queue.offer(root);
+        while (!queue.isEmpty()) {
+            int size = queue.size();
+            int prev = flag ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+            for (int i = 0; i < size; i++) {
+                TreeNode node = queue.poll();
+                if (flag) {
+                    if (node.val % 2 == 0 || node.val <= prev) {
+                        return false;
+                    }
+                } else {
+                    if (node.val % 2 != 0 || node.val >= prev) {
+                        return false;
+                    }
+                }
+                if (node.left != null) {
+                    queue.offer(node.left);
+                }
+                if (node.right != null) {
+                    queue.offer(node.right);
+                }
+                prev = node.val;
+            }
+            flag = !flag;
+        }
+        return true;
+    }
+}
+
+
+
+or
+
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public boolean isEvenOddTree(TreeNode root) {
+        if(root == null) return false;
+        ArrayDeque<TreeNode> queue = new ArrayDeque<>();
+        queue.add(root);
+        int level = -1;
+        while(!queue.isEmpty()){
+            level++;
+            int size = queue.size(), prev = 0;
+            for(int i = 0; i < size; i++){
+                TreeNode curr = queue.poll();
+
+                if(level == 0 && curr.val % 2 == 0){                        
+                    return false;
+                }
+                if(i == 0){
+                    if((level % 2 == 0 && curr.val % 2 == 1)
+                    || (level % 2 == 1 && curr.val % 2 == 0)
+                    ){                    
+                        prev = curr.val;
+                    }else{
+                        return false;
+                    }
+                }
+                else{                    
+                    if (level % 2 == 1){
+                        if(curr.val % 2 == 0 && prev > curr.val){
+                            prev = curr.val;
+                        }else{
+                            return false;
+                        }
+                    }else{
+                        if(curr.val % 2 == 1 && prev < curr.val){
+                            prev = curr.val;
+                        }else{
+                            return false;
+                        }
+                    }
+                }
+                                        
+                if(curr.left != null){
+                    queue.add(curr.left);
+                }
+                
+                if(curr.right != null){
+                    queue.add(curr.right);
+                }
+
+            }
+        }
+        return true;
+    }
+}
+
