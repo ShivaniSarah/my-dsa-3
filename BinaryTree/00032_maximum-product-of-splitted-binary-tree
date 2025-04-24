@@ -1,0 +1,216 @@
+https://leetcode.com/problems/maximum-product-of-splitted-binary-tree/description/
+
+
+1339. Maximum Product of Splitted Binary Tree
+Medium
+Topics
+Companies
+Hint
+Given the root of a binary tree, split the binary tree into two subtrees by removing one edge such that the product of the sums of the subtrees is maximized.
+
+Return the maximum product of the sums of the two subtrees. Since the answer may be too large, return it modulo 109 + 7.
+
+Note that you need to maximize the answer before taking the mod and not after taking it.
+
+ 
+
+Example 1:
+
+
+Input: root = [1,2,3,4,5,6]
+Output: 110
+Explanation: Remove the red edge and get 2 binary trees with sum 11 and 10. Their product is 110 (11*10)
+Example 2:
+
+
+Input: root = [1,null,2,3,4,null,null,5,6]
+Output: 90
+Explanation: Remove the red edge and get 2 binary trees with sum 15 and 6.Their product is 90 (15*6)
+ 
+
+Constraints:
+
+The number of nodes in the tree is in the range [2, 5 * 104].
+1 <= Node.val <= 104
+
+
+# java
+
+
+class Solution {
+  public int maxProduct(TreeNode root) {
+    final int MOD = 1_000_000_007;
+    long ans = 0;
+    List<Integer> allSums = new ArrayList<>();
+    final long totalSum = treeSum(root, allSums);
+
+    for (final long sum : allSums)
+      ans = Math.max(ans, sum * (totalSum - sum));
+
+    return (int) (ans % MOD);
+  }
+
+  private int treeSum(TreeNode root, List<Integer> allSums) {
+    if (root == null)
+      return 0;
+
+    final int leftSum = treeSum(root.left, allSums);
+    final int rightSum = treeSum(root.right, allSums);
+    final int sum = root.val + leftSum + rightSum;
+    allSums.add(sum);
+    return sum;
+  }
+}
+
+
+or
+
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    private long ans;
+    private long s;
+
+    public int maxProduct(TreeNode root) {
+        final int mod = (int) 1e9 + 7;
+        s = sum(root);
+        dfs(root);
+        return (int) (ans % mod);
+    }
+
+    private long dfs(TreeNode root) {
+        if (root == null) {
+            return 0;
+        }
+        long t = root.val + dfs(root.left) + dfs(root.right);
+        if (t < s) {
+            ans = Math.max(ans, t * (s - t));
+        }
+        return t;
+    }
+
+    private long sum(TreeNode root) {
+        if (root == null) {
+            return 0;
+        }
+        return root.val + sum(root.left) + sum(root.right);
+    }
+}
+
+
+or
+
+
+class Solution {
+    
+    static int MOD = (int)(1e9 + 7);
+    
+    int nodesSum;
+    long maximumProduct;
+    public int maxProduct(TreeNode root) {
+        
+        //find all the node sum
+        nodesSum = getAllNodeSum(root);
+        
+        maximumProduct = 0l;
+        
+        //find the max product
+        findMaxProduct(root);
+        
+        return (int)(maximumProduct % MOD);
+    }
+    
+    private int getAllNodeSum(TreeNode node){
+        if(node == null) return 0;
+        
+        return getAllNodeSum(node.left) + getAllNodeSum(node.right) + node.val;
+    }
+    
+    
+    private int findMaxProduct(TreeNode node){
+        if(node == null) return 0;
+        
+        int substree1Sum = findMaxProduct(node.left) + findMaxProduct(node.right) + node.val;
+        
+        
+        //remaining node, will be subtree 2 sum
+        int substree2Sum = nodesSum - substree1Sum;
+        
+        maximumProduct = Math.max(maximumProduct, (long)substree1Sum * substree2Sum);
+        
+        return substree1Sum;
+    }
+}
+
+or
+
+
+class Solution {
+    public int maxProduct(TreeNode root) {
+        long sum = sumOfTree(root);
+        maxSum(root, sum);
+        return (int)(max % (int)(Math.pow(10, 9) + 7));
+    }
+    
+    long max = 0;
+    
+    public long maxSum(TreeNode root, long sum){
+        if(root == null) return 0;
+        
+        long left = maxSum(root.left, sum);
+        long right = maxSum(root.right, sum);
+        
+        long curr = left + right + root.val;
+        max = Math.max(max, curr * (sum - curr));
+        return curr;
+    }
+    
+    public long sumOfTree(TreeNode root){
+        if(root == null) return 0;
+        
+        long left = sumOfTree(root.left);
+        long right = sumOfTree(root.right);
+        
+        return left + right + root.val;
+    }
+}
+
+
+or
+
+
+class Solution {
+    long sum; // Total sum of binary tree
+    long max=0; // Max Product
+    public int maxProduct(TreeNode root) {
+        sum=dfs(root); // 1st pass to find total sum and sum of subtrees
+        solve(root);  // 2nd pass to find the max product of sum of nodes of subtrees
+        return (int)(max%1000000007);
+    }
+    public int dfs(TreeNode root){
+        if(root==null) return 0;
+		// store sum of nodes of every subtree recursively
+        return root.val = root.val+dfs(root.left)+dfs(root.right); 
+    }
+    public void solve(TreeNode root){
+        if(root==null) return;
+		// update max product if trees had to be split from current node
+        max=Math.max(max,root.val*(sum-root.val)); 
+        solve(root.left);
+        solve(root.right);
+    }
+}
