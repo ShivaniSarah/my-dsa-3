@@ -1,0 +1,434 @@
+https://leetcode.com/problems/digit-operations-to-make-two-integers-equal/
+
+
+3377. Digit Operations to Make Two Integers Equal
+Medium
+Topics
+Companies
+Hint
+You are given two integers n and m that consist of the same number of digits.
+
+You can perform the following operations any number of times:
+
+Choose any digit from n that is not 9 and increase it by 1.
+Choose any digit from n that is not 0 and decrease it by 1.
+The integer n must not be a prime number at any point, including its original value and after each operation.
+
+The cost of a transformation is the sum of all values that n takes throughout the operations performed.
+
+Return the minimum cost to transform n into m. If it is impossible, return -1.
+
+ 
+
+Example 1:
+
+Input: n = 10, m = 12
+
+Output: 85
+
+Explanation:
+
+We perform the following operations:
+
+Increase the first digit, now n = 20.
+Increase the second digit, now n = 21.
+Increase the second digit, now n = 22.
+Decrease the first digit, now n = 12.
+Example 2:
+
+Input: n = 4, m = 8
+
+Output: -1
+
+Explanation:
+
+It is impossible to make n equal to m.
+
+Example 3:
+
+Input: n = 6, m = 2
+
+Output: -1
+
+Explanation: 
+
+Since 2 is already a prime, we can't make n equal to m.
+
+ 
+
+Constraints:
+
+1 <= n, m < 104
+n and m consist of the same number of digits.
+
+
+
+# java
+
+
+3377. Digit Operations to Make Two Integers Equal
+Medium
+Topics
+Companies
+Hint
+You are given two integers n and m that consist of the same number of digits.
+
+You can perform the following operations any number of times:
+
+Choose any digit from n that is not 9 and increase it by 1.
+Choose any digit from n that is not 0 and decrease it by 1.
+The integer n must not be a prime number at any point, including its original value and after each operation.
+
+The cost of a transformation is the sum of all values that n takes throughout the operations performed.
+
+Return the minimum cost to transform n into m. If it is impossible, return -1.
+
+ 
+
+Example 1:
+
+Input: n = 10, m = 12
+
+Output: 85
+
+Explanation:
+
+We perform the following operations:
+
+Increase the first digit, now n = 20.
+Increase the second digit, now n = 21.
+Increase the second digit, now n = 22.
+Decrease the first digit, now n = 12.
+Example 2:
+
+Input: n = 4, m = 8
+
+Output: -1
+
+Explanation:
+
+It is impossible to make n equal to m.
+
+Example 3:
+
+Input: n = 6, m = 2
+
+Output: -1
+
+Explanation: 
+
+Since 2 is already a prime, we can't make n equal to m.
+
+ 
+
+Constraints:
+
+1 <= n, m < 104
+n and m consist of the same number of digits.
+
+
+
+# java
+
+
+class Solution {
+  public int minOperations(int n, int m) {
+    final int MAX = 10000;
+    boolean[] isPrime = sieveEratosthenes(MAX);
+    if (isPrime[n] || isPrime[m])
+      return -1;
+    return dijkstra(n, m, isPrime);
+  }
+
+  private int dijkstra(int src, int dst, boolean[] isPrime) {
+    Set<Integer> seen = new HashSet<>(Arrays.asList(src));
+    // (cost, num)
+    Queue<Pair<Integer, Integer>> minHeap =
+        new PriorityQueue<>(Comparator.comparingInt(Pair::getKey));
+    minHeap.offer(new Pair<>(src, src));
+
+    while (!minHeap.isEmpty()) {
+      final int cost = minHeap.peek().getKey();
+      final int curr = minHeap.poll().getValue();
+      if (curr == dst)
+        return cost;
+      final String s = Integer.toString(curr);
+      for (int i = 0; i < s.length(); ++i) {
+        char[] chars = s.toCharArray();
+        if (chars[i] < '9') {
+          ++chars[i];
+          final int next = Integer.parseInt(new String(chars));
+          if (!isPrime[next] && !seen.contains(next)) {
+            minHeap.offer(new Pair<>(cost + next, next));
+            seen.add(next);
+          }
+          --chars[i];
+        }
+        if (chars[i] > '0' && !(i == 0 && chars[i] == '1')) {
+          --chars[i];
+          final int next = Integer.parseInt(new String(chars));
+          if (!isPrime[next] && !seen.contains(next)) {
+            minHeap.offer(new Pair<>(cost + next, next));
+            seen.add(next);
+          }
+        }
+      }
+    }
+
+    return -1;
+  }
+
+  private boolean[] sieveEratosthenes(int n) {
+    boolean[] isPrime = new boolean[n];
+    Arrays.fill(isPrime, true);
+    isPrime[0] = false;
+    isPrime[1] = false;
+    for (int i = 2; i * i < n; ++i)
+      if (isPrime[i])
+        for (int j = i * i; j < n; j += i)
+          isPrime[j] = false;
+    return isPrime;
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    private boolean[] sieve;
+
+    private void runSieve() {
+        sieve = new boolean[100000];
+        Arrays.fill(sieve, true);
+        sieve[0] = false;
+        sieve[1] = false;
+        for (int i = 2; i < 100000; i++) {
+            if (sieve[i]) {
+                for (int j = 2 * i; j < 100000; j += i) {
+                    sieve[j] = false;
+                }
+            }
+        }
+    }
+
+    private int solve(int n, int m) {
+        PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(a -> a[0]));
+        pq.add(new int[] {n, n});
+        Set<Integer> visited = new HashSet<>();
+
+        while (!pq.isEmpty()) {
+            int[] top = pq.poll();
+            int sum = top[0], cur = top[1];
+
+            if (visited.contains(cur)) {
+                continue;
+            }
+            visited.add(cur);
+
+            if (cur == m) {
+                return sum;
+            }
+
+            char[] s = String.valueOf(cur).toCharArray();
+            for (int i = 0; i < s.length; i++) {
+                char c = s[i];
+
+                if (s[i] < '9') {
+                    s[i] = (char) (s[i] + 1);
+                    int next = Integer.parseInt(new String(s));
+                    if (!sieve[next] && !visited.contains(next)) {
+                        pq.add(new int[] {sum + next, next});
+                    }
+                    s[i] = c;
+                }
+
+                if (s[i] > '0' && !(i == 0 && s[i] == '1')) {
+                    s[i] = (char) (s[i] - 1);
+                    int next = Integer.parseInt(new String(s));
+                    if (!sieve[next] && !visited.contains(next)) {
+                        pq.add(new int[] {sum + next, next});
+                    }
+                    s[i] = c;
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    public int minOperations(int n, int m) {
+        runSieve();
+        if (sieve[n] || sieve[m]) {
+            return -1;
+        }
+        return solve(n, m);
+    }
+}
+
+
+
+or
+
+// best
+
+class Solution {
+    public int minOperations(int n, int m) {
+         if(!notPrime(n) || !notPrime(m) ){
+            return -1;
+        } 
+        if(n==m){
+            return n;
+        }
+       
+        PriorityQueue<int[]> pq = new PriorityQueue<>((x, y) -> x[1] - y[1]);
+        Set<Integer> set = new HashSet<>();
+        pq.add(new int[] { n, n });
+        set.add(n);
+        while (!pq.isEmpty()) {
+            int[] curr = pq.remove();
+            int temp = curr[0];
+            int idx = 0;
+            while (temp != 0) {
+                int dig = temp % 10;
+                if (dig != 0) { // reduce
+                    int n1 = curr[0] - (int) Math.pow(10, idx);
+                    if (n1 == m) {
+                        return curr[1] + n1;
+                    }
+                    if (!set.contains(n1) && notPrime(n1)) {
+                        set.add(n1);
+                        pq.add(new int[] { n1, curr[1] + n1 });
+                    }
+                }
+                if (dig != 9) { //increase
+                    int n1 = curr[0] + (int) Math.pow(10, idx);
+                    if (n1 == m) {
+                        return curr[1] + n1;
+                    }
+                    if (!set.contains(n1) && notPrime(n1)) {
+                        set.add(n1);
+                        pq.add(new int[] { n1, curr[1] + n1 });
+                    }
+                }
+                idx++;
+                temp /= 10;
+            }
+        }
+        return -1;
+
+    }
+
+    private boolean notPrime(int n) {
+        if ( n == 2 || n == 3 || n == 5) {
+            return false;
+        }
+        if (n==1 || n % 2 == 0 || n % 3 == 0 || n % 5 == 0) {
+            return true;
+        }
+        for (int i = 7; i <= Math.sqrt(n); i++) {
+            if (n % i == 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+
+or
+
+
+import java.util.*;
+
+class Solution {
+
+    // Step 1: Sieve of Eratosthenes to find all primes up to a given number
+    private void findPrime(boolean[] isPrime, int n) {
+        Arrays.fill(isPrime, true);
+        isPrime[0] = isPrime[1] = false; // 0 and 1 are not prime numbers
+        
+        for (int i = 2; i * i < n; i++) {
+            if (isPrime[i]) {
+                for (int j = i * i; j < n; j += i) {
+                    isPrime[j] = false; // Mark all multiples of i as non-prime
+                }
+            }
+        }
+    }
+
+    // Step 2: Generate possible "neighboring nodes" by increasing or decreasing digits
+    private List<Integer> findNode(int n) {
+        List<Integer> neighbors = new ArrayList<>();
+        
+        for (int i = 1; i <= n; i *= 10) {
+            int d = (n / i) % 10; // Extract the current digit
+            
+            // Decrease the current digit if possible
+            if (d > 0) {
+                neighbors.add(n - i);
+            }
+
+            // Increase the current digit if possible
+            if (d < 9) {
+                neighbors.add(n + i);
+            }
+        }
+
+        return neighbors;
+    }
+
+    // Step 3: Main function to find the minimum operations
+    public int minOperations(int n, int m) {
+        final int MAX = 10000; // Limit for prime computation
+        final int INF = Integer.MAX_VALUE; // Represent unreachable distances
+        
+        // Step 3.1: Precompute all primes up to MAX
+        boolean[] isPrime = new boolean[MAX];
+        findPrime(isPrime, MAX);
+        
+        // Edge case: If starting or ending node is prime, return -1
+        if (isPrime[n] || isPrime[m]) {
+            return -1;
+        }
+
+        // Step 3.2: Initialize distance array and priority queue
+        int[] dist = new int[MAX];
+        Arrays.fill(dist, INF);
+        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] - b[0]);
+
+        // Start from node `n`
+        dist[n] = 0;
+        pq.add(new int[]{dist[n], n});
+
+        // Step 3.3: Dijkstra's algorithm to find shortest path
+        while (!pq.isEmpty()) {
+            int[] current = pq.poll();
+            int dis = current[0]; // Current distance
+            int num = current[1]; // Current node
+
+            // Skip processing if the node is prime
+            if (isPrime[num]) {
+                continue;
+            }
+
+            // Explore all neighboring nodes
+            for (int neighbor : findNode(num)) {
+                // Skip processing if the neighbor is prime
+                if (isPrime[neighbor]) {
+                    continue;
+                }
+
+                // Relax the distance for the neighbor
+                if (dist[neighbor] > dis + num) {
+                    dist[neighbor] = dis + num;
+                    pq.add(new int[]{dist[neighbor], neighbor});
+                }
+            }
+        }
+
+        // Step 3.4: Return the result
+        return dist[m] == INF ? -1 : m + dist[m];
+    }
+}
