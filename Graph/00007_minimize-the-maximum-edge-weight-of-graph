@@ -1,0 +1,334 @@
+https://leetcode.com/problems/minimize-the-maximum-edge-weight-of-graph/
+
+
+3419. Minimize the Maximum Edge Weight of Graph
+Medium
+Topics
+Companies
+Hint
+You are given two integers, n and threshold, as well as a directed weighted graph of n nodes numbered from 0 to n - 1. The graph is represented by a 2D integer array edges, where edges[i] = [Ai, Bi, Wi] indicates that there is an edge going from node Ai to node Bi with weight Wi.
+
+You have to remove some edges from this graph (possibly none), so that it satisfies the following conditions:
+
+Node 0 must be reachable from all other nodes.
+The maximum edge weight in the resulting graph is minimized.
+Each node has at most threshold outgoing edges.
+Return the minimum possible value of the maximum edge weight after removing the necessary edges. If it is impossible for all conditions to be satisfied, return -1.
+
+ 
+
+Example 1:
+
+Input: n = 5, edges = [[1,0,1],[2,0,2],[3,0,1],[4,3,1],[2,1,1]], threshold = 2
+
+Output: 1
+
+Explanation:
+
+
+
+Remove the edge 2 -> 0. The maximum weight among the remaining edges is 1.
+
+Example 2:
+
+Input: n = 5, edges = [[0,1,1],[0,2,2],[0,3,1],[0,4,1],[1,2,1],[1,4,1]], threshold = 1
+
+Output: -1
+
+Explanation: 
+
+It is impossible to reach node 0 from node 2.
+
+Example 3:
+
+Input: n = 5, edges = [[1,2,1],[1,3,3],[1,4,5],[2,3,2],[3,4,2],[4,0,1]], threshold = 1
+
+Output: 2
+
+Explanation: 
+
+
+
+Remove the edges 1 -> 3 and 1 -> 4. The maximum weight among the remaining edges is 2.
+
+Example 4:
+
+Input: n = 5, edges = [[1,2,1],[1,3,3],[1,4,5],[2,3,2],[4,0,1]], threshold = 1
+
+Output: -1
+
+ 
+
+Constraints:
+
+2 <= n <= 105
+1 <= threshold <= n - 1
+1 <= edges.length <= min(105, n * (n - 1) / 2).
+edges[i].length == 3
+0 <= Ai, Bi < n
+Ai != Bi
+1 <= Wi <= 106
+There may be multiple edges between a pair of nodes, but they must have unique weights.
+
+
+# java
+
+
+
+class Solution {
+  public int minMaxWeight(int n, int[][] pairs, int threshold) {
+    final int MAX = 1_000_000;
+    List<Pair<Integer, Integer>>[] reversedGraph = new List[n];
+
+    for (int i = 0; i < n; i++)
+      reversedGraph[i] = new ArrayList<>();
+
+    for (int[] pair : pairs) {
+      final int u = pair[0];
+      final int v = pair[1];
+      final int w = pair[2];
+      reversedGraph[v].add(new Pair<>(u, w));
+    }
+
+    int l = 1;
+    int r = MAX + 1;
+
+    while (l < r) {
+      final int m = (l + r) / 2;
+      if (dfs(reversedGraph, 0, m, new boolean[n]) == n)
+        r = m;
+      else
+        l = m + 1;
+    }
+
+    return l == (MAX + 1) ? -1 : l;
+  }
+
+  // Returns the number of nodes reachable from u with weight <= maxWeight.
+  private int dfs(List<Pair<Integer, Integer>>[] reversedGraph, int u, int maxWeight,
+                  boolean[] seen) {
+    int res = 1;
+    seen[u] = true;
+    for (Pair<Integer, Integer> pair : reversedGraph[u]) {
+      final int v = pair.getKey();
+      final int w = pair.getValue();
+      if (w > maxWeight || seen[v])
+        continue;
+      res += dfs(reversedGraph, v, maxWeight, seen);
+    }
+    return res;
+  }
+}
+
+
+
+
+
+or
+
+
+
+
+class Solution {
+    public int minMaxWeight(int n, int[][] edges, int threshold) {        
+        List<List<Integer>> rev = new ArrayList<>(n);
+        for(int i = 0; i < n; i++) {
+            rev.add(new ArrayList<>());
+        }
+        
+        Set<Integer> weightSet = new HashSet<>();
+        for(int[] e : edges) {
+            int u = e[0], v = e[1];
+            int w = e[2];
+            rev.get(v).add(u);
+            weightSet.add(w);
+        }
+        
+        if(!can(n, rev)) {
+            return -1;
+        }
+        
+        List<Integer> weights = new ArrayList<>(weightSet);
+        Collections.sort(weights);
+        
+        int left = 0;
+        int right = weights.size() - 1;
+        int ans = -1;
+        
+        while(left <= right) {
+            int mid = (left + right) / 2;
+            int W = weights.get(mid);
+            
+            List<List<Integer>> temp = new ArrayList<>(n);
+            for (int i = 0; i < n; i++) {
+                temp.add(new ArrayList<>());
+            }
+            for (int[] e : edges) {
+                int u = e[0], v = e[1], w = e[2];
+                if (w <= W) {
+                    temp.get(v).add(u);
+                }
+            }
+            
+            if(canVisitAll(n, temp)) {
+                ans = W;
+                right = mid - 1;
+            } else {
+                left = mid + 1;
+            }
+        }
+        
+        return ans;
+    }
+    
+    public boolean canVisitAll(int n, List<List<Integer>> revGraph) {
+        boolean[] visited = new boolean[n];
+        visited[0] = true;
+        int count = 1;
+        
+        Deque<Integer> queue = new ArrayDeque<>();
+        queue.offer(0);
+        
+        while(!queue.isEmpty()) {
+            int cur = queue.poll();
+            for(int nxt : revGraph.get(cur)) {
+                if(!visited[nxt]) {
+                    visited[nxt] = true;
+                    count++;
+                    queue.offer(nxt);
+                }
+            }
+        }
+        
+        return count == n;
+    }
+    
+    public boolean can(int n, List<List<Integer>> rev) {
+        boolean[] visited = new boolean[n];
+        visited[0] = true;
+        int count = 1;
+        
+        Deque<Integer> queue = new ArrayDeque<>();
+        queue.offer(0);
+        
+        while(!queue.isEmpty()) {
+            int cur = queue.poll();
+            for(int nxt : rev.get(cur)) {
+                if(!visited[nxt]) {
+                    visited[nxt] = true;
+                    count++;
+                    queue.offer(nxt);
+                }
+            }
+        }
+        return count == n;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minMaxWeight(int n, int[][] edges, int threshold) {
+        int minW = Integer.MAX_VALUE ;
+        int maxW = 0 ; 
+        for(int[] edge : edges){
+            minW = Math.min(minW , edge[2]);
+            maxW = Math.max(maxW , edge[2]);
+        }
+        int ans = -1 ; 
+        int l = minW ; 
+        int r = maxW ; 
+        while(l <= r){
+            int mid = l + (r-l)/2 ;
+            if(isPossible(n , edges , mid)){
+                ans = mid ;
+                r = mid-1 ; 
+            }else{
+                l = mid+1 ;
+            }
+        }
+        return ans ; 
+    }
+    public boolean isPossible(int n, int[][] edges, int threshold) {
+        List<List<Integer>> revGraph = new ArrayList<>();
+        for(int i = 0 ; i < n ; i++) revGraph.add(new ArrayList<>());
+        for(int[] edge : edges){
+            int u = edge[0];
+            int v = edge[1];
+            if(edge[2] <= threshold){
+                revGraph.get(v).add(u);
+            }
+        }
+        boolean[] visited = new boolean[n];
+        Queue<Integer> q = new LinkedList<>();
+        q.offer(0);
+        visited[0] = true ;
+        int count = 1 ;
+
+        while(!q.isEmpty()){
+            int curr = q.poll();
+            for(Integer neighbor : revGraph.get(curr)){
+                if(visited[neighbor] == false){
+                    visited[neighbor] = true ; 
+                    q.add(neighbor);
+                    count++ ;
+                }
+            }
+        }
+        return count == n ;
+    }
+
+}
+
+
+
+or
+
+
+class Solution {
+    public int minMaxWeight(int n, int[][] e, int th) {
+        List<int[]> g[] = new ArrayList[n];
+        for(int i=0;i<n;i++)
+            g[i]=new ArrayList<>();
+        int[] cnt = new int[n];
+        int[] vis = new int[n];
+        for(int[] ed : e)
+        {
+            g[ed[1]].add(new int[]{ed[0],ed[2]});
+        }
+        for(int i=0;i<n;i++)
+        {
+            g[i].sort(Comparator.comparingInt(a -> a[1]));
+        }
+        int ans = 0;
+        PriorityQueue<int[]> q = new PriorityQueue<>((q1,q2)->(q1[1]-q2[1]));
+        q.add(new int[]{0,0});
+        while(q.size() > 0)
+        {
+            int[] rem = q.poll();
+            int node = rem[0];
+            int wt = rem[1];
+            if(vis[node] == 1 || cnt[node] >= th)
+                continue;
+            ++cnt[node];
+            vis[node] = 1;
+            ans = Math.max(ans,wt);
+            for(int i=0;i<g[node].size();i++)
+            {
+                int[] nbr =  g[node].get(i);
+                q.add(nbr);
+            }
+        }
+        for(int i=0;i<n;i++)
+            if(vis[i] == 0)
+                return -1;
+        return ans;
+    }
+}
+
+
+or
+
+
