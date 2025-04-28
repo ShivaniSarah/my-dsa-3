@@ -1,0 +1,461 @@
+https://leetcode.com/problems/count-the-number-of-complete-components/
+
+2685. Count the Number of Complete Components
+Medium
+Topics
+Companies
+Hint
+You are given an integer n. There is an undirected graph with n vertices, numbered from 0 to n - 1. You are given a 2D integer array edges where edges[i] = [ai, bi] denotes that there exists an undirected edge connecting vertices ai and bi.
+
+Return the number of complete connected components of the graph.
+
+A connected component is a subgraph of a graph in which there exists a path between any two vertices, and no vertex of the subgraph shares an edge with a vertex outside of the subgraph.
+
+A connected component is said to be complete if there exists an edge between every pair of its vertices.
+
+ 
+
+Example 1:
+
+
+
+Input: n = 6, edges = [[0,1],[0,2],[1,2],[3,4]]
+Output: 3
+Explanation: From the picture above, one can see that all of the components of this graph are complete.
+Example 2:
+
+
+
+Input: n = 6, edges = [[0,1],[0,2],[1,2],[3,4],[3,5]]
+Output: 1
+Explanation: The component containing vertices 0, 1, and 2 is complete since there is an edge between every pair of two vertices. On the other hand, the component containing vertices 3, 4, and 5 is not complete since there is no edge between vertices 4 and 5. Thus, the number of complete components in this graph is 1.
+ 
+
+Constraints:
+
+1 <= n <= 50
+0 <= edges.length <= n * (n - 1) / 2
+edges[i].length == 2
+0 <= ai, bi <= n - 1
+ai != bi
+There are no repeated edges.
+
+
+# javva
+
+
+public class Solution {
+
+    public int countCompleteComponents(int n, int[][] edges) {
+        // Adjacency lists for each vertex
+        List<Integer>[] graph = new ArrayList[n];
+        // Map to store frequency of each unique adjacency list
+        Map<List<Integer>, Integer> componentFreq = new HashMap<>();
+
+        // Initialize adjacency lists with self-loops
+        for (int vertex = 0; vertex < n; vertex++) {
+            graph[vertex] = new ArrayList<>();
+            graph[vertex].add(vertex);
+        }
+
+        // Build adjacency lists from edges
+        for (int[] edge : edges) {
+            graph[edge[0]].add(edge[1]);
+            graph[edge[1]].add(edge[0]);
+        }
+
+        // Count frequency of each unique adjacency pattern
+        for (int vertex = 0; vertex < n; vertex++) {
+            List<Integer> neighbors = graph[vertex];
+            Collections.sort(neighbors);
+            componentFreq.put(
+                neighbors,
+                componentFreq.getOrDefault(neighbors, 0) + 1
+            );
+        }
+
+        // Count complete components where size equals frequency
+        int completeCount = 0;
+        for (Map.Entry<
+            List<Integer>,
+            Integer
+        > entry : componentFreq.entrySet()) {
+            if (entry.getKey().size() == entry.getValue()) {
+                completeCount++;
+            }
+        }
+
+        return completeCount;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public int countCompleteComponents(int n, int[][] edges) {
+        // Adjacency lists for each vertex
+        List<Integer>[] graph = new ArrayList[n];
+
+        // Initialize empty adjacency lists
+        for (int vertex = 0; vertex < n; vertex++) {
+            graph[vertex] = new ArrayList<>();
+        }
+
+        // Build adjacency lists from edges
+        for (int[] edge : edges) {
+            graph[edge[0]].add(edge[1]);
+            graph[edge[1]].add(edge[0]);
+        }
+
+        int completeCount = 0;
+        Set<Integer> visited = new HashSet<>();
+
+        // Process each unvisited vertex
+        for (int vertex = 0; vertex < n; vertex++) {
+            if (visited.contains(vertex)) continue;
+
+            // arr[0] = vertices count, arr[1] = total edges count
+            int[] componentInfo = new int[2];
+            dfs(vertex, graph, visited, componentInfo);
+
+            // Check if component is complete - edges should be vertices * (vertices-1)
+            if (componentInfo[0] * (componentInfo[0] - 1) == componentInfo[1]) {
+                completeCount++;
+            }
+        }
+        return completeCount;
+    }
+
+    private void dfs(
+        int curr,
+        List<Integer>[] graph,
+        Set<Integer> visited,
+        int[] componentInfo
+    ) {
+        visited.add(curr);
+        componentInfo[0]++; // Increment vertex count
+        componentInfo[1] += graph[curr].size(); // Add edges from current vertex
+
+        // Explore unvisited neighbors
+        for (int next : graph[curr]) {
+            if (!visited.contains(next)) {
+                dfs(next, graph, visited, componentInfo);
+            }
+        }
+    }
+}
+
+
+or
+
+
+public class Solution {
+
+    public int countCompleteComponents(int n, int[][] edges) {
+        // Create adjacency list representation of the graph
+        List<Integer>[] graph = new ArrayList[n];
+        for (int vertex = 0; vertex < n; vertex++) {
+            graph[vertex] = new ArrayList<>();
+        }
+
+        // Build graph from edges
+        for (int[] edge : edges) {
+            int u = edge[0], v = edge[1];
+            graph[u].add(v);
+            graph[v].add(u);
+        }
+
+        boolean[] visited = new boolean[n];
+        int completeComponents = 0;
+
+        // Process each unvisited vertex
+        for (int vertex = 0; vertex < n; vertex++) {
+            if (!visited[vertex]) {
+                // BFS to find all vertices in the current component
+                List<Integer> component = new ArrayList<>();
+                Queue<Integer> queue = new LinkedList<>();
+                queue.add(vertex);
+                visited[vertex] = true;
+
+                while (!queue.isEmpty()) {
+                    int current = queue.poll();
+                    component.add(current);
+
+                    // Process neighbors
+                    for (int neighbor : graph[current]) {
+                        if (!visited[neighbor]) {
+                            queue.add(neighbor);
+                            visited[neighbor] = true;
+                        }
+                    }
+                }
+
+                // Check if component is complete (all vertices have the right number of edges)
+                boolean isComplete = true;
+                for (int node : component) {
+                    if (graph[node].size() != component.size() - 1) {
+                        isComplete = false;
+                        break;
+                    }
+                }
+
+                if (isComplete) {
+                    completeComponents++;
+                }
+            }
+        }
+
+        return completeComponents;
+    }
+}
+
+
+or
+
+
+
+public class Solution {
+
+    public int countCompleteComponents(int n, int[][] edges) {
+        // Initialize Union Find and edge counter
+        UnionFind dsu = new UnionFind(n);
+        Map<Integer, Integer> edgeCount = new HashMap<>();
+
+        // Connect components using edges
+        for (int[] edge : edges) {
+            dsu.union(edge[0], edge[1]);
+        }
+
+        // Count edges in each component
+        for (int[] edge : edges) {
+            int root = dsu.find(edge[0]);
+            edgeCount.put(root, edgeCount.getOrDefault(root, 0) + 1);
+        }
+
+        // Check if each component is complete
+        int completeCount = 0;
+        for (int vertex = 0; vertex < n; vertex++) {
+            if (dsu.find(vertex) == vertex) { // If vertex is root
+                int nodeCount = dsu.size[vertex];
+                int expectedEdges = (nodeCount * (nodeCount - 1)) / 2;
+                if (edgeCount.getOrDefault(vertex, 0) == expectedEdges) {
+                    completeCount++;
+                }
+            }
+        }
+        return completeCount;
+    }
+
+    class UnionFind {
+
+        int[] parent;
+        int[] size; // Tracks size of each component
+
+        UnionFind(int n) {
+            parent = new int[n];
+            size = new int[n];
+            Arrays.fill(parent, -1);
+            Arrays.fill(size, 1);
+        }
+
+        // Find root of component with path compression
+        int find(int node) {
+            if (parent[node] == -1) {
+                return node;
+            }
+            return parent[node] = find(parent[node]);
+        }
+
+        // Union by size
+        void union(int node1, int node2) {
+            int root1 = find(node1);
+            int root2 = find(node2);
+
+            if (root1 == root2) {
+                return;
+            }
+
+            // Merge smaller component into larger one
+            if (size[root1] > size[root2]) {
+                parent[root2] = root1;
+                size[root1] += size[root2];
+            } else {
+                parent[root1] = root2;
+                size[root2] += size[root1];
+            }
+        }
+    }
+}
+
+
+or
+
+
+class UnionFind {
+  public UnionFind(int n) {
+    id = new int[n];
+    rank = new int[n];
+    nodeCount = new int[n];
+    edgeCount = new int[n];
+    for (int i = 0; i < n; ++i) {
+      id[i] = i;
+      nodeCount[i] = 1;
+    }
+  }
+
+  public void unionByRank(int u, int v) {
+    final int i = find(u);
+    final int j = find(v);
+    ++edgeCount[i];
+    if (i == j)
+      return;
+    if (rank[i] < rank[j]) {
+      id[i] = j;
+      edgeCount[j] += edgeCount[i];
+      nodeCount[j] += nodeCount[i];
+    } else if (rank[i] > rank[j]) {
+      id[j] = i;
+      edgeCount[i] += edgeCount[j];
+      nodeCount[i] += nodeCount[j];
+    } else {
+      id[i] = j;
+      edgeCount[j] += edgeCount[i];
+      nodeCount[j] += nodeCount[i];
+      ++rank[j];
+    }
+  }
+
+  public int find(int u) {
+    return id[u] == u ? u : (id[u] = find(id[u]));
+  }
+
+  public boolean isComplete(int u) {
+    return nodeCount[u] * (nodeCount[u] - 1) / 2 == edgeCount[u];
+  }
+
+  private int[] id;
+  private int[] rank;
+  private int[] nodeCount;
+  private int[] edgeCount;
+}
+
+class Solution {
+  public int countCompleteComponents(int n, int[][] edges) {
+    int ans = 0;
+    UnionFind uf = new UnionFind(n);
+    Set<Integer> parents = new HashSet<>();
+
+    for (int[] edge : edges) {
+      final int u = edge[0];
+      final int v = edge[1];
+      uf.unionByRank(u, v);
+    }
+
+    for (int i = 0; i < n; ++i) {
+      final int parent = uf.find(i);
+      if (parents.add(parent) && uf.isComplete(parent))
+        ++ans;
+    }
+
+    return ans;
+  }
+}
+
+or
+
+class Solution {
+    private List<Integer>[] g;
+    private boolean[] vis;
+
+    public int countCompleteComponents(int n, int[][] edges) {
+        g = new List[n];
+        vis = new boolean[n];
+        Arrays.setAll(g, k -> new ArrayList<>());
+        for (int[] e : edges) {
+            int a = e[0], b = e[1];
+            g[a].add(b);
+            g[b].add(a);
+        }
+        int ans = 0;
+        for (int i = 0; i < n; ++i) {
+            if (!vis[i]) {
+                int[] t = dfs(i);
+                if (t[0] * (t[0] - 1) == t[1]) {
+                    ++ans;
+                }
+            }
+        }
+        return ans;
+    }
+
+    private int[] dfs(int i) {
+        vis[i] = true;
+        int x = 1, y = g[i].size();
+        for (int j : g[i]) {
+            if (!vis[j]) {
+                int[] t = dfs(j);
+                x += t[0];
+                y += t[1];
+            }
+        }
+        return new int[] {x, y};
+    }
+}
+
+or
+
+
+class Solution {
+    public int countCompleteComponents(int n, int[][] edges) {
+            List<List<Integer>>g=new ArrayList<>();
+            for(int i=0;i<n;i++)
+            {
+                g.add(new ArrayList<>());
+            }
+            for(int i=0;i<edges.length;i++)
+            {
+                g.get(edges[i][0]).add(edges[i][1]);
+                g.get(edges[i][1]).add(edges[i][0]);
+            }
+            int c=0;
+            boolean vis[]=new boolean[n];
+            for(int i=0;i<n;i++)
+            {
+                if(!vis[i])
+                {
+                    Queue<Integer>q=new LinkedList<>();
+                    q.offer(i);
+                    List<Integer>li=new ArrayList<>();
+                    vis[i]=true;
+                    while(!q.isEmpty())
+                    {
+                        int x=q.poll();
+                        li.add(x);
+                        for(int  j:g.get(x))
+                        {
+                            if(!vis[j] )
+                            {
+                                q.offer(j);
+                                vis[j]=true;
+                            }
+                        }
+                    }
+                    boolean flag=true;
+                    for(int j:li)
+                    {
+                        if(g.get(j).size()!=li.size()-1)
+                         {
+                            flag=false;
+                            break;
+                         }
+                    }
+                    if(flag)
+                     c++;
+                }
+            }
+            return c;
+    }
+}
