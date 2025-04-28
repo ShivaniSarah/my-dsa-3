@@ -1,0 +1,301 @@
+https://leetcode.com/problems/minimize-hamming-distance-after-swap-operations/description/
+
+1722. Minimize Hamming Distance After Swap Operations
+Medium
+Topics
+Companies
+Hint
+You are given two integer arrays, source and target, both of length n. You are also given an array allowedSwaps where each allowedSwaps[i] = [ai, bi] indicates that you are allowed to swap the elements at index ai and index bi (0-indexed) of array source. Note that you can swap elements at a specific pair of indices multiple times and in any order.
+
+The Hamming distance of two arrays of the same length, source and target, is the number of positions where the elements are different. Formally, it is the number of indices i for 0 <= i <= n-1 where source[i] != target[i] (0-indexed).
+
+Return the minimum Hamming distance of source and target after performing any amount of swap operations on array source.
+
+ 
+
+Example 1:
+
+Input: source = [1,2,3,4], target = [2,1,4,5], allowedSwaps = [[0,1],[2,3]]
+Output: 1
+Explanation: source can be transformed the following way:
+- Swap indices 0 and 1: source = [2,1,3,4]
+- Swap indices 2 and 3: source = [2,1,4,3]
+The Hamming distance of source and target is 1 as they differ in 1 position: index 3.
+Example 2:
+
+Input: source = [1,2,3,4], target = [1,3,2,4], allowedSwaps = []
+Output: 2
+Explanation: There are no allowed swaps.
+The Hamming distance of source and target is 2 as they differ in 2 positions: index 1 and index 2.
+Example 3:
+
+Input: source = [5,1,2,4,3], target = [1,5,4,2,3], allowedSwaps = [[0,4],[4,2],[1,3],[1,4]]
+Output: 0
+ 
+
+Constraints:
+
+n == source.length == target.length
+1 <= n <= 105
+1 <= source[i], target[i] <= 105
+0 <= allowedSwaps.length <= 105
+allowedSwaps[i].length == 2
+0 <= ai, bi <= n - 1
+ai != bi
+
+
+# java
+
+
+class UnionFind {
+  public UnionFind(int n) {
+    id = new int[n];
+    rank = new int[n];
+    for (int i = 0; i < n; ++i)
+      id[i] = i;
+  }
+
+  public void unionByRank(int u, int v) {
+    final int i = find(u);
+    final int j = find(v);
+    if (i == j)
+      return;
+    if (rank[i] < rank[j]) {
+      id[i] = j;
+    } else if (rank[i] > rank[j]) {
+      id[j] = i;
+    } else {
+      id[i] = j;
+      ++rank[j];
+    }
+  }
+
+  public int find(int u) {
+    return id[u] == u ? u : (id[u] = find(id[u]));
+  }
+
+  private int[] id;
+  private int[] rank;
+}
+
+class Solution {
+  public int minimumHammingDistance(int[] source, int[] target, int[][] allowedSwaps) {
+    final int n = source.length;
+    int ans = 0;
+    UnionFind uf = new UnionFind(n);
+    Map<Integer, Integer>[] groupIdToCount = new Map[n];
+
+    for (int i = 0; i < n; ++i)
+      groupIdToCount[i] = new HashMap<>();
+
+    for (int[] allowedSwap : allowedSwaps) {
+      final int a = allowedSwap[0];
+      final int b = allowedSwap[1];
+      uf.unionByRank(a, b);
+    }
+
+    for (int i = 0; i < n; ++i)
+      groupIdToCount[uf.find(i)].merge(source[i], 1, Integer::sum);
+
+    for (int i = 0; i < n; ++i) {
+      final int groupId = uf.find(i);
+      Map<Integer, Integer> count = groupIdToCount[groupId];
+      if (!count.containsKey(target[i]))
+        ++ans;
+      else if (count.merge(target[i], -1, Integer::sum) == 0)
+        count.remove(target[i]);
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    private int[] p;
+
+    public int minimumHammingDistance(int[] source, int[] target, int[][] allowedSwaps) {
+        int n = source.length;
+        p = new int[n];
+        for (int i = 0; i < n; i++) {
+            p[i] = i;
+        }
+        for (int[] a : allowedSwaps) {
+            p[find(a[0])] = find(a[1]);
+        }
+        Map<Integer, Map<Integer, Integer>> cnt = new HashMap<>();
+        for (int i = 0; i < n; ++i) {
+            int j = find(i);
+            cnt.computeIfAbsent(j, k -> new HashMap<>()).merge(source[i], 1, Integer::sum);
+        }
+        int ans = 0;
+        for (int i = 0; i < n; ++i) {
+            int j = find(i);
+            Map<Integer, Integer> t = cnt.get(j);
+            if (t.merge(target[i], -1, Integer::sum) < 0) {
+                ++ans;
+            }
+        }
+        return ans;
+    }
+
+    private int find(int x) {
+        if (p[x] != x) {
+            p[x] = find(p[x]);
+        }
+        return p[x];
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minimumHammingDistance(int[] source, int[] target, int[][] allowedSwaps) {
+        int minHamming = 0;
+        UnionFind uf = new UnionFind(source.length);
+        for (int [] swap : allowedSwaps) {
+            int firstIndex = swap[0];
+            int secondIndex = swap[1];
+           // int firstParent = uf.find(firstIndex);
+           // int secondParent = uf.find(secondIndex);
+           // if (firstParent != secondParent)
+           //     uf.parent[firstParent] = secondParent;
+		   uf.union(firstIndex, secondIndex);
+        }
+        Map<Integer, Map<Integer, Integer>> map = new HashMap<>();
+        for (int i=0; i<source.length; i++) {
+            int num = source[i];
+            int root = uf.find(i);
+            map.putIfAbsent(root, new HashMap<>());
+            Map<Integer, Integer> store = map.get(root);
+            store.put(num, store.getOrDefault(num, 0) + 1);
+        }
+        for (int i=0; i<source.length; i++) {
+            int num = target[i];
+            int root = uf.find(i);
+            Map<Integer, Integer> store = map.get(root);
+            if (store.getOrDefault(num, 0) == 0)
+                minHamming += 1;
+            else
+                store.put(num, store.get(num) - 1);
+        }
+        return minHamming;
+    }
+}
+
+class UnionFind {
+    int size;
+    int components;
+    int [] parent;
+    int [] rank;
+    UnionFind(int n) {
+        if (n <= 0) throw new IllegalArgumentException("Size <= 0 is not allowed");
+        size = n;
+        components = n;
+        parent = new int [n];
+        rank = new int [n];
+        for (int i=0; i<n; i++)
+            parent[i] = i;
+    }
+    
+    public int find(int p) {
+        while (p != parent[p]) {
+            parent[p] = parent[parent[p]];
+            p = parent[p];
+        }
+        return p;
+    }
+    
+    public void union(int p, int q) {
+        int rootP = find(p);
+        int rootQ = find(q);
+        if (rank[rootQ] > rank[rootP]) {
+            parent[rootP] = rootQ;
+        }
+        else {
+            parent[rootQ] = rootP;
+            if (rank[rootQ] == rank[rootP])
+                rank[rootP] += 1;
+        }
+        components -= 1;
+    }
+    
+    public int size() {
+        return size;
+    }
+    
+    public boolean isConnected(int p, int q) {
+        return find(p) == find(q);
+    }
+    
+    public int numberComponents() {
+        return components;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int minimumHammingDistance(int[] source, int[] target, int[][] swaps) {
+        int length = source.length, minDistance = 0;
+        int[] parent = new int[length];
+        Arrays.fill(parent, -1);
+        
+        for(int i = 0; i < swaps.length; i++) {
+            int x = find(parent, swaps[i][0]);
+            int y = find(parent, swaps[i][1]);
+            if(x != y) union(parent, x, y);
+        }
+        
+        HashMap<Integer, HashMap<Integer, Integer>> map = new HashMap<>();
+        for(int i = 0; i < length; i++) {
+            int val = source[i];
+            int root = find(parent, i);
+            
+            map.putIfAbsent(root, new HashMap<>());
+            HashMap<Integer, Integer> count = map.get(root);
+            count.put(val, count.getOrDefault(val, 0)+1);
+        }
+        
+        for(int i = 0; i < length; i++) {
+            int val = target[i];
+            int root = find(parent, i);
+            
+            HashMap<Integer, Integer> count = map.get(root);
+            if(count.getOrDefault(val, 0) == 0) {
+                minDistance++;
+            } else {
+                count.put(val, count.getOrDefault(val,0)-1);
+            }
+        }
+        
+        return minDistance;
+    }
+    
+    private int find(int[] parent, int key) {
+        if(parent[key] == -1) return key;
+        return find(parent, parent[key]); 
+    }
+    
+    private void union(int[] parent, int x, int y) {
+        int xSet = find(parent, x);
+        int ySet = find(parent, y);
+        parent[ySet] = xSet;
+    }
+}
+
+
+
+or
+
+
