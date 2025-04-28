@@ -1,0 +1,554 @@
+https://leetcode.com/problems/number-of-closed-islands/description/
+
+
+1254. Number of Closed Islands
+Medium
+Topics
+Companies
+Hint
+Given a 2D grid consists of 0s (land) and 1s (water).  An island is a maximal 4-directionally connected group of 0s and a closed island is an island totally (all left, top, right, bottom) surrounded by 1s.
+
+Return the number of closed islands.
+
+ 
+
+Example 1:
+
+
+
+Input: grid = [[1,1,1,1,1,1,1,0],[1,0,0,0,0,1,1,0],[1,0,1,0,1,1,1,0],[1,0,0,0,0,1,0,1],[1,1,1,1,1,1,1,0]]
+Output: 2
+Explanation: 
+Islands in gray are closed because they are completely surrounded by water (group of 1s).
+Example 2:
+
+
+
+Input: grid = [[0,0,1,0,0],[0,1,0,1,0],[0,1,1,1,0]]
+Output: 1
+Example 3:
+
+Input: grid = [[1,1,1,1,1,1,1],
+               [1,0,0,0,0,0,1],
+               [1,0,1,1,1,0,1],
+               [1,0,1,0,1,0,1],
+               [1,0,1,1,1,0,1],
+               [1,0,0,0,0,0,1],
+               [1,1,1,1,1,1,1]]
+Output: 2
+ 
+
+Constraints:
+
+1 <= grid.length, grid[0].length <= 100
+0 <= grid[i][j] <=1
+
+
+# java
+
+
+
+class Solution {
+  public int closedIsland(int[][] grid) {
+    final int m = grid.length;
+    final int n = grid[0].length;
+
+    // Remove the lands connected to the edge.
+    for (int i = 0; i < m; ++i)
+      for (int j = 0; j < n; ++j)
+        if (i * j == 0 || i == m - 1 || j == n - 1)
+          if (grid[i][j] == 0)
+            dfs(grid, i, j);
+
+    int ans = 0;
+
+    // Reduce to 200. Number of Islands
+    for (int i = 0; i < m; ++i)
+      for (int j = 0; j < n; ++j)
+        if (grid[i][j] == 0) {
+          dfs(grid, i, j);
+          ++ans;
+        }
+
+    return ans;
+  }
+
+  private void dfs(int[][] grid, int i, int j) {
+    if (i < 0 || i == grid.length || j < 0 || j == grid[0].length)
+      return;
+    if (grid[i][j] == 1)
+      return;
+    grid[i][j] = 1;
+    dfs(grid, i + 1, j);
+    dfs(grid, i - 1, j);
+    dfs(grid, i, j + 1);
+    dfs(grid, i, j - 1);
+  }
+}
+
+
+or
+
+
+class Solution {
+    private int m;
+    private int n;
+    private int[][] grid;
+
+    public int closedIsland(int[][] grid) {
+        m = grid.length;
+        n = grid[0].length;
+        this.grid = grid;
+        int ans = 0;
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (grid[i][j] == 0) {
+                    ans += dfs(i, j);
+                }
+            }
+        }
+        return ans;
+    }
+
+    private int dfs(int i, int j) {
+        int res = i > 0 && i < m - 1 && j > 0 && j < n - 1 ? 1 : 0;
+        grid[i][j] = 1;
+        int[] dirs = {-1, 0, 1, 0, -1};
+        for (int k = 0; k < 4; ++k) {
+            int x = i + dirs[k], y = j + dirs[k + 1];
+            if (x >= 0 && x < m && y >= 0 && y < n && grid[x][y] == 0) {
+                res &= dfs(x, y);
+            }
+        }
+        return res;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int closedIsland(int[][] grid) {
+        int m = grid.length;
+        int n = grid[0].length;
+        boolean[][] visit = new boolean[m][n];
+        int count = 0;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (grid[i][j] == 0 && !visit[i][j] && bfs(i, j, m, n, grid, visit)) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    public boolean bfs(int x, int y, int m, int n, int[][] grid, boolean[][] visit) {
+        Queue<int[]> q = new LinkedList<>();
+        q.offer(new int[]{x, y});
+        visit[x][y] = true;
+        boolean isClosed = true;
+
+        int[] dirx = {0, 1, 0, -1};
+        int[] diry = {-1, 0, 1, 0};
+
+        while (!q.isEmpty()) {
+            int[] temp = q.poll();
+            x = temp[0];
+            y = temp[1];
+
+            for (int i = 0; i < 4; i++) {
+                int r = x +dirx[i];
+                int c = y +diry[i];
+                if (r < 0 || r >= m || c < 0 || c >= n) {
+                    // (x, y) is a boundary cell.
+                    isClosed = false;
+                } else if (grid[r][c] == 0 && !visit[r][c]) {
+                    q.offer(new int[]{r, c});
+                    visit[r][c] = true;
+                }
+            }
+        }
+
+        return isClosed;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int closedIsland(int[][] grid) {
+        int m = grid.length;
+        int n = grid[0].length;
+        boolean[][] visit = new boolean[m][n];
+        int count = 0;
+        for (int i = 0; i < grid.length; i++) {
+            for (int j = 0; j < grid[0].length; j++) {
+                if (grid[i][j] == 0 && !visit[i][j] && dfs(i, j, m, n, grid, visit)) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    public boolean dfs(int x, int y, int m, int n, int[][] grid, boolean[][] visit) {
+        if (x < 0 || x >= m || y < 0 || y >= n) {
+            return false;
+        }
+        if (grid[x][y] == 1 || visit[x][y]) {
+            return true;
+        }
+
+        visit[x][y] = true;
+        bool isClosed = true;
+        int[] dirx = {0, 1, 0, -1};
+        int[] diry = {-1, 0, 1, 0};
+
+        for (int i = 0; i < 4; i++) {
+            int r = x + dirx[i];
+            int c = y + diry[i];
+            if (!dfs(r, c, m, n, grid, visit)) {
+                isClosed = false;
+            }
+        }
+
+        return isClosed;
+    }
+}
+
+
+or
+
+
+class Solution {
+       int[][] g;
+
+    public int closedIsland(int[][] grid) {
+        g = grid;
+        int rows = g.length, cols = g[0].length;
+        //mark edge land cells as water cells
+        for (int r = 0; r < rows; ++r) {
+            dfs(r, 0);
+            dfs(r, cols - 1);
+        }
+        for (int c = 1; c < cols - 1; ++c) {
+            dfs(0, c);
+            dfs(rows - 1, c);
+        }
+        //init UF, now we can count the rest of islands without limit for the edge cells
+        UnionFind uf = new UnionFind(g);
+        //skip 0 and last row and column - we can't take land cell from there even if we meet one
+        for (int r = 1; r < rows - 1; ++r) {
+            for (int c = 1; c < cols - 1; ++c) {
+                //if this is island - mark is as water and union neighbouring cells
+                if (g[r][c] == 0) {
+                    g[r][c] = 1;
+                    int coord = r * cols + c;
+                    //check four neighbours
+                    if (r - 1 > 0 && g[r - 1][c] == 0)
+                        uf.union(coord, coord - cols);
+                    if (c - 1 > 0 && g[r][c - 1] == 0)
+                        uf.union(coord, coord- 1);
+                    if (r + 1 < rows - 1 && g[r + 1][c] == 0)
+                        uf.union(coord, coord + cols);
+                    if (c + 1 < cols - 1 && g[r][c + 1] == 0)
+                        uf.union(coord, coord + 1);
+                }
+            }
+        }
+        return uf.count;
+    }
+
+
+    void dfs(int r, int c) {
+        if (g[r][c] == 0) {
+            g[r][c] = 1;
+            if (r > 0) dfs(r - 1, c);
+            if (c > 0) dfs(r, c - 1);
+            if (r < g.length - 1) dfs(r + 1, c);
+            if (c < g[0].length - 1) dfs(r, c + 1);
+        }
+    }
+}
+
+class UnionFind {
+    int[] parent;
+    int count = 0;
+    int ranks[];
+
+    UnionFind(int[][] g) {
+        int rows = g.length, cols = g[0].length;
+        parent = new int[rows * cols];
+        for (int r = 0; r < rows; ++r) {
+            for (int c = 0; c < cols; ++c) {
+                if (g[r][c] == 0) {
+                    int i = (r * cols) + c;
+                    parent[i] = i;
+                    count++;
+                }
+            }
+        }
+        ranks = new int[rows * cols];
+    }
+
+    int find(int n) {
+        if (n != parent[n])
+            parent[n] = find(parent[n]);
+        return parent[n];
+    }
+
+    void union(int a, int b) {
+        int rootA = find(a);
+        int rootB = find(b);
+
+        if (rootA != rootB) {
+            if (ranks[rootA] > ranks[rootB]) {
+                parent[rootB] = rootA;
+            } else if (ranks[rootB] > ranks[rootA]) {
+                parent[rootA] = rootB;
+            } else {
+                parent[rootA] = rootB;
+                ranks[rootB] += 1;
+            }
+            count--;
+        }
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+
+    /** Forms an island by connecting the lands */
+    public void connectLands(int[][] grid,int row,int col,boolean[][] visited){
+
+        Queue<int[]> q = new LinkedList<>();
+        int rows = grid.length; 
+        int cols = grid[0].length; 
+
+        q.offer(new int[]{row, col});
+        visited[row][col] = true; 
+
+        int dir[][] = {{-1,0},{1,0},{0,-1},{0,1}};
+
+        while(!q.isEmpty()){
+            int[] curr = q.poll();
+
+            for(int i=0; i<dir.length; i++){
+                int nRow = curr[0] + dir[i][0];
+                int nCol = curr[1] + dir[i][1];
+
+                if(nRow>=rows || nCol>=cols || nRow<0 || nCol<0)
+                    continue; 
+                
+                if(grid[nRow][nCol] == 0 && visited[nRow][nCol]==false){
+                    q.offer(new int[]{nRow, nCol});
+                    visited[nRow][nCol] = true; 
+                }
+            }
+        }
+    }
+
+
+    public int closedIsland(int[][] grid) {
+        
+        int rows = grid.length; 
+        int cols = grid[0].length; 
+
+        boolean[][] visited = new boolean[rows][cols];
+
+        int islandCount = 0; 
+
+        /** Count all islands */
+        for(int i=0;i<rows;i++){
+            for(int j=0; j<cols; j++){
+                if(visited[i][j] == false && grid[i][j]==0){
+                    connectLands(grid, i, j, visited);
+                    islandCount++; 
+                }    
+            }
+        }
+
+        int boundaryIslands = 0; 
+
+        visited = new boolean[rows][cols];
+
+        /** first & last column : vertical boundary */
+        for(int i=0; i<rows;i++){
+            if(visited[i][0]==false && grid[i][0]==0){
+                connectLands(grid, i, 0, visited);
+                boundaryIslands++;
+            }
+
+            if(grid[i][cols-1]==0 && visited[i][cols-1]==false){
+                connectLands(grid, i, cols-1, visited);
+                boundaryIslands++; 
+            }
+        }
+
+        /** first & last row : horizontal boundary */
+        for(int i=0; i<cols;i++){
+            if(grid[0][i]==0 && visited[0][i]==false){
+                connectLands(grid, 0, i, visited);
+                boundaryIslands++;
+            }
+
+            if(grid[rows-1][i]==0 && visited[rows-1][i]==false){
+                connectLands(grid, rows-1, i, visited);
+                boundaryIslands++; 
+            }
+        }
+
+        /** Inner/closed islands = totalIslands - boundaryIslands */
+        return islandCount - boundaryIslands; 
+    }
+}
+
+or
+
+
+class UF {
+    Map<Integer, Integer> root;
+    Map<Integer, Integer> rank;
+    int count;
+    
+    public UF() {
+        this.root = new HashMap<>();
+        this.rank = new HashMap<>();
+        this.count = 0;
+    }
+    
+    public void add(int x) {
+        if(root.containsKey(x) || rank.containsKey(x)){
+            return;
+        }
+        
+        root.put(x, x);
+        rank.put(x, 1);
+        count++;
+    }
+    
+    public int find(int x){
+        while(x != root.get(x)){
+            int father = root.get(x);
+            int grand = root.get(father);
+            
+            root.put(x, grand);
+            
+            x = father;
+        }
+        return x;
+    }
+    
+    public void union(int x, int y){
+        int rx = find(x);
+        int ry = find(y);
+        
+        if(rx == ry){
+            return;
+        }
+        
+        if(rank.get(rx) > rank.get(ry)){
+            // rx parth larger, merge ry into rx
+            root.put(ry, rx);
+            rank.put(rx, rank.get(rx) + 1);
+        }else{
+            root.put(rx, ry);
+            rank.put(ry, rank.get(ry) + 1);
+        }
+        count--;
+    }
+}
+
+
+class Solution {
+    public int closedIsland(int[][] grid) {
+        int n = grid.length;
+        int m = grid[0].length;
+        int[][] dirs = new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        
+        UF uf = new UF();
+        // init.
+        for(int i = 0; i < n; i++){
+            for(int j = 0; j < m; j++){
+                if(grid[i][j] == 0){
+                    uf.add(i * m + j);
+                }
+            }
+        }
+        
+        // dummy node
+        uf.add(n * m);
+        
+        // union connected part
+        for(int i = 0; i < n; i++){
+            for(int j = 0; j < m; j++){
+                if(grid[i][j] != 0) continue;
+                // if boundary and land, connected to the dummy
+                if(i == 0 || i == n - 1 || j == 0 || j == m - 1){
+                    uf.union(i * m + j, n * m);
+                }
+                
+                // check four directions
+                for(int[] dir : dirs){
+                    int ni = i + dir[0];
+                    int nj = j + dir[1];
+                    
+                    // if in bound and 0, connected 
+                    if(ni >= 0 && ni < n && nj >= 0 && nj < m && grid[ni][nj] == 0){
+                        uf.union(i * m + j, ni * m + nj);
+                    }
+                }
+                
+            }
+        }
+        
+        return uf.count - 1;
+    }
+}
+
+
+
+or
+
+// dfs best
+
+class Solution {
+    public int closedIsland(int[][] grid) {
+        int rows = grid.length, cols = grid[0].length, count = 0;
+        
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (grid[i][j] == 0 && dfs(grid,i, j)) {
+                    count++;
+                }
+            }
+        }
+        
+        return count;
+    }
+    public boolean dfs(int[][] grid,int i, int j) {
+        int rows = grid.length, cols = grid[0].length;
+        if (i < 0 || j < 0 || i >= rows || j >= cols) {
+            return false;
+        }
+        if (grid[i][j] == 1) {
+            return true;
+        }
+        grid[i][j] = 1; // mark as visited
+        boolean left = dfs(grid,i, j-1), right = dfs(grid,i, j+1);
+        boolean up = dfs(grid,i-1, j), down = dfs(grid,i+1, j);
+        return left && right && up && down;
+    }
+}
