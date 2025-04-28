@@ -1,0 +1,390 @@
+https://leetcode.com/problems/possible-bipartition/description/
+
+
+886. Possible Bipartition
+Medium
+Topics
+Companies
+We want to split a group of n people (labeled from 1 to n) into two groups of any size. Each person may dislike some other people, and they should not go into the same group.
+
+Given the integer n and the array dislikes where dislikes[i] = [ai, bi] indicates that the person labeled ai does not like the person labeled bi, return true if it is possible to split everyone into two groups in this way.
+
+ 
+
+Example 1:
+
+Input: n = 4, dislikes = [[1,2],[1,3],[2,4]]
+Output: true
+Explanation: The first group has [1,4], and the second group has [2,3].
+Example 2:
+
+Input: n = 3, dislikes = [[1,2],[1,3],[2,3]]
+Output: false
+Explanation: We need at least 3 groups to divide them. We cannot put them in two groups.
+ 
+
+Constraints:
+
+1 <= n <= 2000
+0 <= dislikes.length <= 104
+dislikes[i].length == 2
+1 <= ai < bi <= n
+All the pairs of dislikes are unique.
+
+
+
+# java
+
+
+
+enum Color { WHITE, RED, GREEN }
+
+class Solution {
+  public boolean possibleBipartition(int n, int[][] dislikes) {
+    List<Integer>[] graph = new List[n + 1];
+    Color[] colors = new Color[n + 1];
+    Arrays.fill(colors, Color.WHITE);
+
+    for (int i = 1; i <= n; ++i)
+      graph[i] = new ArrayList<>();
+
+    for (int[] d : dislikes) {
+      final int u = d[0];
+      final int v = d[1];
+      graph[u].add(v);
+      graph[v].add(u);
+    }
+
+    // Reduce to 785. Is Graph Bipartite?
+    for (int i = 1; i <= n; ++i)
+      if (colors[i] == Color.WHITE && !isValidColor(graph, i, colors, Color.RED))
+        return false;
+
+    return true;
+  }
+
+  private boolean isValidColor(List<Integer>[] graph, int u, Color[] colors, Color color) {
+    // Always paint red for a white node.
+    if (colors[u] != Color.WHITE)
+      return colors[u] == color;
+
+    colors[u] = color; // Always paint the node with `color`.
+
+    // All the children should have valid colors.
+    for (final int v : graph[u])
+      if (!isValidColor(graph, v, colors, color == Color.RED ? Color.GREEN : Color.RED))
+        return false;
+
+    return true;
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    private int[] p;
+
+    public boolean possibleBipartition(int n, int[][] dislikes) {
+        p = new int[n];
+        List<Integer>[] g = new List[n];
+        Arrays.setAll(g, k -> new ArrayList<>());
+        for (int i = 0; i < n; ++i) {
+            p[i] = i;
+        }
+        for (var e : dislikes) {
+            int a = e[0] - 1, b = e[1] - 1;
+            g[a].add(b);
+            g[b].add(a);
+        }
+        for (int i = 0; i < n; ++i) {
+            for (int j : g[i]) {
+                if (find(i) == find(j)) {
+                    return false;
+                }
+                p[find(j)] = find(g[i].get(0));
+            }
+        }
+        return true;
+    }
+
+    private int find(int x) {
+        if (p[x] != x) {
+            p[x] = find(p[x]);
+        }
+        return p[x];
+    }
+}
+
+
+or
+
+
+class Solution {
+  public boolean possibleBipartition(int n, int[][] dislikes) {    
+    Map<Integer, Set<Integer>> graph = buildGraph(dislikes, n);
+    UnionFind uf = new UnionFind(n);
+    
+    for(int i = 1; i < n+1; i++) {
+      Set<Integer> neighbors = graph.get(i);
+      if(neighbors.size() == 0) continue;
+      int firstNeighbor = neighbors.iterator().next(); // gets the first item in the set
+      
+      for(int neighbor : neighbors) {
+        if(uf.isConnected(i, neighbor)) return false; // if vertex i is connected with any of its neighbors, graph is not bipartite
+        uf.union(firstNeighbor, neighbor); // unionize all its neighbors
+      }
+    }
+        
+    return true;
+  }
+  
+  public Map<Integer, Set<Integer>> buildGraph(int[][] edges, int n) {
+    Map<Integer, Set<Integer>> graph = new HashMap<>();
+    
+    for(int i = 1; i < n+1; i++) graph.put(i, new HashSet<>());
+    
+    for(int[] edge : edges) {
+      int src = edge[0];
+      int dest = edge[1];
+      
+      graph.get(src).add(dest);
+      graph.get(dest).add(src);
+    }
+    
+    return graph;
+  }
+  
+  class UnionFind {
+    int[] parent;
+    int[] rank;
+    
+    public UnionFind(int n) {
+      parent = new int[n+1];
+      rank = new int[n+1];
+      
+      for(int i = 0; i < n+1; i++) {
+        parent[i] = i;
+      }
+    }
+    
+    public void union(int x, int y) {
+      int rootX = find(x);
+      int rootY = find(y);
+      
+      if(rootX != rootY) {
+        if(rank[rootX] > rank[rootY]) {
+          rank[rootX]++;
+          parent[rootY] = rootX;
+        } else {
+          rank[rootY]++;
+          parent[rootX] = rootY;
+        }
+      }
+    }
+    
+    public int find(int x) {
+      if(parent[x] == x) return x;
+      
+      int root = find(parent[x]);
+      parent[x] = root; //path compression
+      return root;
+    }
+    
+    public boolean isConnected(int x, int y) {
+      return find(x) == find(y);
+    }
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    public boolean possibleBipartition(int N, int[][] dislikes) {        
+        List<Integer>[] graph = new List[N + 1];  
+
+        for (int i = 1; i <= N; ++i) graph[i] = new ArrayList<>();        
+
+        for (int[] dislike : dislikes) {
+            graph[dislike[0]].add(dislike[1]);
+            graph[dislike[1]].add(dislike[0]);
+        }
+
+        Integer[] colors = new Integer[N + 1];
+
+        for (int i = 1; i <= N; ++i) {
+            // If the connected component that node i belongs to hasn't been colored yet then try coloring it.
+            if (colors[i] == null && !dfs(graph, colors, i, 1)) return false;
+        }
+        return true;   
+    }
+
+    private boolean dfs(List<Integer>[] graph, Integer[] colors, int currNode, int currColor) {
+        colors[currNode] = currColor;
+
+        // Color all uncolored adjacent nodes.
+        for (Integer adjacentNode : graph[currNode]) {
+
+            if (colors[adjacentNode] == null) {
+                if (!dfs(graph, colors, adjacentNode, currColor * -1)) return false;     
+
+            } else if (colors[adjacentNode] == currColor) {
+                return false;                                     
+            }
+        }
+        return true;        
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public boolean possibleBipartition(int n, int[][] dislikes) {
+	List<Integer>[] graph = new ArrayList[n];
+	for (int i = 0; i < n; i++) {
+	  graph[i] = new ArrayList<>();
+	}
+
+	for (int[] dislike : dislikes) {
+	  int u = dislike[0] - 1;
+	  int v = dislike[1] - 1;
+
+	  graph[u].add(v);
+	  graph[v].add(u);
+	}
+
+	int[] colors = new int[n];
+
+	for (int i = 0; i < n; i++) {
+	  if (colors[i] != 0) {
+		continue;
+	  }
+
+	  colors[i] = 1;
+
+	  Queue<Integer> queue = new LinkedList<>();
+	  queue.add(i);
+
+	  while (!queue.isEmpty()) {
+		int node = queue.poll();
+
+		for (int adj : graph[node]) {
+		  if (colors[adj] == colors[node]) {
+			return false;
+		  }
+
+		  if (colors[adj] == 0) {
+			colors[adj] = -colors[node];
+			queue.add(adj);
+		  }
+		}
+	  }
+	}
+
+	return true;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public boolean possibleBipartition(int n, int[][] dislikes) {
+  List<Integer>[] graph = new ArrayList[n + 1];
+  for (int i = 1; i <= n; i++) {
+    graph[i] = new ArrayList<>();
+  }
+
+  for (int[] dislike : dislikes) {
+    graph[dislike[0]].add(dislike[1]);
+    graph[dislike[1]].add(dislike[0]);
+  }
+
+  int[] colors = new int[n + 1];
+
+  for (int node = 1; node <= n; node++) {
+    if (colors[node] == 0 && !paint(colors, node, graph, 1)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+private boolean paint(int[] colors, int node, List<Integer>[] graph, int color) {
+  if (colors[node] != 0) {
+    return colors[node] == color;
+  }
+
+  colors[node] = color;
+
+  for (int adj : graph[node]) {
+    if (!paint(colors, adj, graph, -color)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+}
+
+
+or
+
+
+class Solution {
+ public boolean possibleBipartition(int n, int[][] dislikes) {
+  List<Integer>[] graph = new ArrayList[n + 1];
+  for (int i = 1; i <= n; i++) {
+    graph[i] = new ArrayList<>();
+  }
+
+  for (int[] dislike : dislikes) {
+    graph[dislike[0]].add(dislike[1]);
+    graph[dislike[1]].add(dislike[0]);
+  }
+
+  int[] colors = new int[n + 1];
+
+  for (int node = 1; node <= n; node++) {
+    if (colors[node] == 0) {
+      colors[node] = 1;
+
+      if (!dfs(colors, node, graph)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+private boolean dfs(int[] colors, int person, List<Integer>[] graph) {
+  for (int p : graph[person]) {
+    if (colors[person] == colors[p]) {
+      return false;
+    }
+
+    if (colors[p] == 0) {
+      colors[p] = -colors[person];
+
+      if (!dfs(colors, p, graph)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+}
