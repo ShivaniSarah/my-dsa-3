@@ -1,0 +1,443 @@
+https://leetcode.com/problems/satisfiability-of-equality-equations/description/
+
+
+990. Satisfiability of Equality Equations
+Medium
+Topics
+Companies
+You are given an array of strings equations that represent relationships between variables where each string equations[i] is of length 4 and takes one of two different forms: "xi==yi" or "xi!=yi".Here, xi and yi are lowercase letters (not necessarily different) that represent one-letter variable names.
+
+Return true if it is possible to assign integers to variable names so as to satisfy all the given equations, or false otherwise.
+
+ 
+
+Example 1:
+
+Input: equations = ["a==b","b!=a"]
+Output: false
+Explanation: If we assign say, a = 1 and b = 1, then the first equation is satisfied, but not the second.
+There is no way to assign the variables to satisfy both equations.
+Example 2:
+
+Input: equations = ["b==a","a==b"]
+Output: true
+Explanation: We could assign a = 1 and b = 1 to satisfy both equations.
+ 
+
+Constraints:
+
+1 <= equations.length <= 500
+equations[i].length == 4
+equations[i][0] is a lowercase letter.
+equations[i][1] is either '=' or '!'.
+equations[i][2] is '='.
+equations[i][3] is a lowercase letter.
+
+
+# java
+
+
+class UnionFind {
+  public UnionFind(int n) {
+    id = new int[n];
+    rank = new int[n];
+    for (int i = 0; i < n; ++i)
+      id[i] = i;
+  }
+
+  public void unionByRank(int u, int v) {
+    final int i = find(u);
+    final int j = find(v);
+    if (i == j)
+      return;
+    if (rank[i] < rank[j]) {
+      id[i] = j;
+    } else if (rank[i] > rank[j]) {
+      id[j] = i;
+    } else {
+      id[i] = j;
+      ++rank[j];
+    }
+  }
+
+  public int find(int u) {
+    return id[u] == u ? u : (id[u] = find(id[u]));
+  }
+
+  private int[] id;
+  private int[] rank;
+}
+
+class Solution {
+  public boolean equationsPossible(String[] equations) {
+    UnionFind uf = new UnionFind(26);
+
+    for (final String e : equations)
+      if (e.charAt(1) == '=') {
+        final int x = e.charAt(0) - 'a';
+        final int y = e.charAt(3) - 'a';
+        uf.unionByRank(x, y);
+      }
+
+    for (final String e : equations)
+      if (e.charAt(1) == '!') {
+        final int x = e.charAt(0) - 'a';
+        final int y = e.charAt(3) - 'a';
+        if (uf.find(x) == uf.find(y))
+          return false;
+      }
+
+    return true;
+  }
+}
+
+or
+
+
+class Solution {
+    private int[] p;
+
+    public boolean equationsPossible(String[] equations) {
+        p = new int[26];
+        for (int i = 0; i < 26; ++i) {
+            p[i] = i;
+        }
+        for (String e : equations) {
+            int a = e.charAt(0) - 'a', b = e.charAt(3) - 'a';
+            if (e.charAt(1) == '=') {
+                p[find(a)] = find(b);
+            }
+        }
+        for (String e : equations) {
+            int a = e.charAt(0) - 'a', b = e.charAt(3) - 'a';
+            if (e.charAt(1) == '!' && find(a) == find(b)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private int find(int x) {
+        if (p[x] != x) {
+            p[x] = find(p[x]);
+        }
+        return p[x];
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    
+    static int[] par;
+    
+    public static int findLeaderParent(int u){
+        return par[u]==u ? u : (par[u]=findLeaderParent(par[u]));
+    }
+    public boolean equationsPossible(String[] equations) {
+        
+        par=new int[26];
+        for(int i=0;i<26;i++){
+            par[i]=i;
+        }
+        
+        int[] notArray=new int[26];
+        
+        for(String str : equations){
+            if(str.charAt(1) == '='){
+                int p1=findLeaderParent(str.charAt(0) - 'a');
+                int p2=findLeaderParent(str.charAt(3) - 'a');
+                
+                if(p1!=p2){
+                    par[p2]=p1;
+                }
+            }
+        }
+        
+        for(String str : equations){
+            if(str.charAt(1)=='!'){
+                int p1=findLeaderParent(str.charAt(0) - 'a');
+                int p2=findLeaderParent(str.charAt(3) - 'a');
+                
+                if(p1==p2){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    int[] parent = new int[26];
+    public int find(int x) {
+        // with path compression
+        if (parent[x] == x) return x;
+        return parent[x] = find(parent[x]);
+        // without path compression
+        // return parent[x] == x ? x : find(parent[x]);
+    }
+    // the idea is to put all characters in the same group if they are equal
+    // in order to do that, we can use Disjoint Set Union (dsu) aka Union Find
+    // for dsu tutorial, please check out https://wingkwong.github.io/leetcode-the-hard-way/tutorials/graph-theory/disjoint-set-union
+    public boolean equationsPossible(String[] equations) {
+        // at the beginning, put each character index in its own group
+        // so we will have 26 groups with one character each
+        // i.e. 'a' in group 0, 'b' in group 1, ..., 'z' in group 25
+        for (int i = 0; i < 26; i++) parent[i] = i;
+        for (String e : equations) {
+            // if two character is equal, 
+            if (e.charAt(1) == '=') {
+                // e.g. a = b
+                // then we group them together
+                // how? we use `find` function to find out the parent group of the target character index
+                // then update parent. a & b would be in group 1 (i.e. a merged into the group where b belongs to)
+                // or you can also do `parent[find(e.charAt(3)- 'a')] = find(e.charAt(0) - 'a');` (i.e. b merged into the group where a belongs to)
+                parent[find(e.charAt(0)- 'a')] = find(e.charAt(3) - 'a');
+            }
+        }
+        // handle != case
+        for (String e : equations) {
+            // if two characters are not equal
+            // then which means their parent must not be equal
+            if (e.charAt(1) == '!' && find(e.charAt(0) - 'a') == find(e.charAt(3) - 'a')) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+
+or
+
+
+class Solution {
+    
+    int[] parent;
+    int[] rank;
+    
+    public int find(int x){
+        if(parent[x] == x)      return x;
+        return parent[x] = find(parent[x]);
+    }
+    
+    public void union(char a, char b){
+        int P1 = find(a - 'a');
+        int P2 = find(b - 'a');
+        
+        if(P1 == P2)    return;
+        
+        if(rank[P1] > rank[P2]){
+            parent[P2] = P1;
+        }
+        else if(rank[P2] > rank[P1]){
+            parent[P1] = P2;
+        }
+        else{
+            parent[P2] = P1;
+            rank[P1]++;
+        }
+        
+    }
+    
+    public boolean equationsPossible(String[] equations) {
+        
+        parent = new int[26];
+        rank = new int[26];
+        
+        for(int i = 0; i < 26; i++)     parent[i] = i;
+        
+        // union of equal equations
+        for(String str: equations){
+            char a = str.charAt(0);
+            char b = str.charAt(3);
+            char op = str.charAt(1);
+            if(op == '=')    union(a, b);
+           
+        }
+        
+        // check != conditions
+        for(String str: equations){
+            char a = str.charAt(0);
+            char b = str.charAt(3);
+            char op = str.charAt(1);
+             if(op == '!'){
+                int P1 = find(a - 'a');
+                int P2 = find(b - 'a');
+                if(P1 == P2)    return false;
+            } 
+        }
+        return true;
+    }
+}
+
+
+or
+
+
+
+/*
+
+THOUGHT PROCESS ::
+
+URL = https://leetcode.com/problems/satisfiability-of-equality-equations/
+1. Consider using the union find or DFS algorithm ( common sets approach : seen in Tarjan's SCC algorithm ) 
+2. Do we need to account for self loops here too? YES!
+Equations guaranteed to be in count of [1,500] - no need for production ENV null/0-length arrays handling :-)
+
+Make sure to build up graph structure ( accounting for all nodes ) before performing the algorithm!
+May need to account for a VISITED set here too
+Model graph connections based on whether there is an equation! 
+Then iterate over non-equation cases, and perform DFS/Union-Find and assert that value in that node does not match too
+
+Utilize negative or 0 values to denote a lack of a value
+Natural numbers are an infinite set : keep incrementing thy counter variable too
+
+
+
+COMPUTATIONAL COMPLEXITY : 
+TIME = O(|V^2|)
+SPACE = O(|V^2|) for the adjacency matrix
+Let V := number of Vertices and let E := number of edges total ( worst case is that E = V^2 ) 
+Let N := total number of equations ( where E := number of working equations too ) 
+
+
+EDGE CASE TESTING : 
+1. Singletons { a==b, a != b} - TRUE
+2. Isolated sets { a!=b, b!=c,c!=d,d!=e,e!=f} - TRUE
+3. One fully connected set { a==b,b==c,c==d,d==e,e==f} - TRUE
+4. A mix of connected and isolated sets { a==b,b==c,d!=e} - TRUE
+5. A test that breaks {"a==b","b!=c","c==a"} = FALSE
+6. A self loop test { c==c } = TRUE
+7. A self-loop not equals case { a!=a } AND { a==a, a != a } 
+
+
+1. ["a==b","a!=b"]
+2. ["a!=b","b!=c","c!=d","d!=e","e!=f"]
+3. ["a==b","b==c","c==d","d==e"]
+4. ["a==b","b==c","d!=e"]
+5. ["a==b","b!=c","c==a"]
+6. ["c==c"]
+7. ["a!=a"], ["a==a","a!=a"]
+
+8. ["a==b","b!=c","c==a"]
+9. ["a==b","c==d","a==c","a!=d"]
+
+Equations [i][0|3] guaranteed to be a lower-letter only : a (26x26) at maximum element matrix is possible only!
+Each time you perform DFS, a visited set is desired ( to avoid any self-loops ) -> but make sure to update this, for each equation executed
+
+*/
+
+
+
+class Solution 
+{
+    int[][] adjMat = new int[26][26];
+
+    public boolean equationsPossible(String[] equations) 
+    {
+        // [0] Set up space for adjacency matrix here
+        // Technically a constant operation ( O(1)) space 
+        for(int i = 0; i < adjMat.length; ++i)
+            for(int j = 0; j < adjMat[0].length; ++j)
+                adjMat[i][j] = -1;
+
+        // [1] Iterate over all equations where EQUALITY holds true 
+        for(int i = 0; i < equations.length; ++i)
+        {
+            String eq = equations[i];
+            char[] eqCh = eq.toCharArray();
+            int src = (int)(eqCh[0] - 'a');
+            int dst = (int)(eqCh[3] - 'a');
+            if(eqCh[1] == '=')
+            {
+                adjMat[src][dst] = 1;
+                adjMat[dst][src] = 1;
+            }
+        }
+        
+        
+        // [2] Iterate over all equations where INEQUALITY holds true 
+        for(int i = 0; i < equations.length; ++i)
+        {
+            String eq = equations[i];
+            char[] eqCh = eq.toCharArray();
+            int src = (int)(eqCh[0] - 'a');
+            int dst = (int)(eqCh[3] - 'a');
+            if(eqCh[1] == '!')
+            {
+                if(dfs(src,dst) == true)
+                {
+                    return false;                    
+                }
+            }
+        }
+        
+        return true;
+    }
+
+    // Runs DFS only when equation does not hold true ( inequality case ) 
+    public boolean dfs(int src, int dst)
+    {
+        if(dst == src)
+            return true; // already known : can't have a != a anyways ( even if a==a exist ) !
+        Set<Integer> visited = new HashSet<Integer>(); // always make a fresh "deep" copy here
+        helper(src,dst,visited);
+        if(visited.contains(dst))
+            return true;
+        return false;
+    }
+    
+    // DFS backtracking -> dfs here returns a boolean : how to ensure each case is under consideration too!
+    // Booleans really don't work that well in a recursive DFS !
+    /*
+    public boolean dfsHelper(int src, int dst, Set<Integer> visited)
+    {
+        System.out.printf("(src,dst) = (%s,%s)\n", (char)(src+'a'), (char)(dst+'a'));
+        visited.add(src); // CONSIDER "parent" visited before exploring children here      
+        for(int i = 0; i < 26; ++i)
+        {
+            if(adjMat[src][i] == 1)
+            {
+                System.out.printf("(src,i) = (%s,%s)\n", (char)(src+'a'), (char)(i+'a'));
+                if(i == dst)
+                {
+                    System.out.printf("i = %d\tdst=%d\n", i, dst);
+                    return true;
+                }
+                if(!visited.contains(i))
+                {
+                    return dfsHelper(i, dst, visited);                    
+                }
+            }
+        }
+        return false;
+    }
+    */
+
+    public void helper(int src, int dst, Set<Integer> visited)
+    {
+        visited.add(src); 
+        for(int i = 0; i < 26; ++i)
+        {
+            if(adjMat[src][i] == 1)
+            {
+                if(!visited.contains(i))
+                    helper(i, dst, visited);                    
+            }
+        }
+    }
+    
+
+}
+
+
