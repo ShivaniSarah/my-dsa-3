@@ -1,0 +1,214 @@
+https://leetcode.com/problems/detect-cycles-in-2d-grid/
+
+
+1559. Detect Cycles in 2D Grid
+Medium
+Topics
+Companies
+Hint
+Given a 2D array of characters grid of size m x n, you need to find if there exists any cycle consisting of the same value in grid.
+
+A cycle is a path of length 4 or more in the grid that starts and ends at the same cell. From a given cell, you can move to one of the cells adjacent to it - in one of the four directions (up, down, left, or right), if it has the same value of the current cell.
+
+Also, you cannot move to the cell that you visited in your last move. For example, the cycle (1, 1) -> (1, 2) -> (1, 1) is invalid because from (1, 2) we visited (1, 1) which was the last visited cell.
+
+Return true if any cycle of the same value exists in grid, otherwise, return false.
+
+ 
+
+Example 1:
+
+
+
+Input: grid = [["a","a","a","a"],["a","b","b","a"],["a","b","b","a"],["a","a","a","a"]]
+Output: true
+Explanation: There are two valid cycles shown in different colors in the image below:
+
+Example 2:
+
+
+
+Input: grid = [["c","c","c","a"],["c","d","c","c"],["c","c","e","c"],["f","c","c","c"]]
+Output: true
+Explanation: There is only one valid cycle highlighted in the image below:
+
+Example 3:
+
+
+
+Input: grid = [["a","b","b"],["b","z","b"],["b","b","a"]]
+Output: false
+ 
+
+Constraints:
+
+m == grid.length
+n == grid[i].length
+1 <= m, n <= 500
+grid consists only of lowercase English letters.
+
+
+# java
+
+
+class Solution {
+  public boolean containsCycle(char[][] grid) {
+    final int m = grid.length;
+    final int n = grid[0].length;
+    boolean[][] seen = new boolean[m][n];
+
+    for (int i = 0; i < m; ++i)
+      for (int j = 0; j < n; ++j) {
+        if (seen[i][j])
+          continue;
+        if (dfs(grid, i, j, -1, -1, grid[i][j], seen))
+          return true;
+      }
+
+    return false;
+  }
+
+  private static final int[][] DIRS = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+
+  private boolean dfs(char[][] grid, int i, int j, int prevI, int prevJ, char c, boolean[][] seen) {
+    seen[i][j] = true;
+
+    for (int[] dir : DIRS) {
+      final int x = i + dir[0];
+      final int y = j + dir[1];
+      if (x < 0 || x == grid.length || y < 0 || y == grid[0].length)
+        continue;
+      if (x == prevI && y == prevJ)
+        continue;
+      if (grid[x][y] != c)
+        continue;
+      if (seen[x][y])
+        return true;
+      if (dfs(grid, x, y, i, j, c, seen))
+        return true;
+    }
+
+    return false;
+  }
+}
+
+or
+
+
+
+class Solution {
+    private int[] p;
+
+    public boolean containsCycle(char[][] grid) {
+        int m = grid.length;
+        int n = grid[0].length;
+        p = new int[m * n];
+        for (int i = 0; i < p.length; ++i) {
+            p[i] = i;
+        }
+        int[] dirs = {0, 1, 0};
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                for (int k = 0; k < 2; ++k) {
+                    int x = i + dirs[k];
+                    int y = j + dirs[k + 1];
+                    if (x < m && y < n && grid[i][j] == grid[x][y]) {
+                        if (find(x * n + y) == find(i * n + j)) {
+                            return true;
+                        }
+                        p[find(x * n + y)] = find(i * n + j);
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private int find(int x) {
+        if (p[x] != x) {
+            p[x] = find(p[x]);
+        }
+        return p[x];
+    }
+}
+
+
+or
+
+
+class Solution {
+    int count = 0;
+    public boolean dfs(char[][] grid, int i,int j,int[][] visited, int previ,int prevj, char c){
+        
+        if(i<0 || j<0 || i>=grid.length || j>=grid[0].length || grid[i][j]!=c)
+            return false;
+       
+        if(visited[i][j]-visited[previ][prevj]>=3)
+            return true;
+
+        if(visited[i][j]!=0)
+            return false;
+        
+        visited[i][j]=count++;
+        
+        return dfs(grid,i+1,j,visited,i,j,c) || dfs(grid,i-1,j,visited,i,j,c) || dfs(grid,i,j+1,visited,i,j,c) || dfs(grid,i,j-1,visited,i,j,c);
+    }
+    public boolean containsCycle(char[][] grid) {
+        
+        int n = grid.length, m = grid[0].length;
+        int[][]visited = new int[n][m];
+        for(int i=0;i<n;i++){
+            for(int j=0;j<m;j++){
+                if(visited[i][j]==0 && dfs(grid,i,j,visited,i,j,grid[i][j]))
+                    return true;
+            }
+        }
+        return false;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public boolean containsCycle(char[][] grid) {
+        int n = grid.length, m = grid[0].length;
+        UnionFind uf = new UnionFind(n*m);
+        
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                if (i+1 < n && grid[i+1][j] == grid[i][j]) { // connect to bottom
+                    if (!uf.union(i*m +j, (i+1)*m + j)) return true;
+                }
+                if (j+1 < m && grid[i][j+1] == grid[i][j]) { // connect to right
+                    if (!uf.union(i*m +j, i*m + (j+1))) return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    class UnionFind {
+        int[] parent;
+        UnionFind(int sz) {
+            parent = new int[sz];
+            for (int i = 0; i < sz; i++) parent[i] = i;
+        }
+        
+        boolean union(int a, int b) {
+            int par_a = find(a);
+            int par_b = find(b);
+            
+            if (par_a == par_b) return false;
+            parent[par_a] = par_b;
+            return true;
+        }
+        
+        int find(int a) {
+            if (a == parent[a]) return a;
+            return parent[a] = find(parent[a]);
+        }
+    }
+}
