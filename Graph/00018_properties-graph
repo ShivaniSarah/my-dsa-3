@@ -1,0 +1,395 @@
+https://leetcode.com/problems/properties-graph/description/
+
+3493. Properties Graph
+Medium
+Topics
+Companies
+Hint
+You are given a 2D integer array properties having dimensions n x m and an integer k.
+
+Define a function intersect(a, b) that returns the number of distinct integers common to both arrays a and b.
+
+Construct an undirected graph where each index i corresponds to properties[i]. There is an edge between node i and node j if and only if intersect(properties[i], properties[j]) >= k, where i and j are in the range [0, n - 1] and i != j.
+
+Return the number of connected components in the resulting graph.
+
+ 
+
+Example 1:
+
+Input: properties = [[1,2],[1,1],[3,4],[4,5],[5,6],[7,7]], k = 1
+
+Output: 3
+
+Explanation:
+
+The graph formed has 3 connected components:
+
+
+
+Example 2:
+
+Input: properties = [[1,2,3],[2,3,4],[4,3,5]], k = 2
+
+Output: 1
+
+Explanation:
+
+The graph formed has 1 connected component:
+
+
+
+Example 3:
+
+Input: properties = [[1,1],[1,1]], k = 2
+
+Output: 2
+
+Explanation:
+
+intersect(properties[0], properties[1]) = 1, which is less than k. This means there is no edge between properties[0] and properties[1] in the graph.
+
+ 
+
+Constraints:
+
+1 <= n == properties.length <= 100
+1 <= m == properties[i].length <= 100
+1 <= properties[i][j] <= 100
+1 <= k <= m
+
+
+# java
+
+
+class Solution {
+    private List<Integer>[] g;
+    private boolean[] vis;
+
+    public int numberOfComponents(int[][] properties, int k) {
+        int n = properties.length;
+        g = new List[n];
+        Set<Integer>[] ss = new Set[n];
+        Arrays.setAll(g, i -> new ArrayList<>());
+        Arrays.setAll(ss, i -> new HashSet<>());
+        for (int i = 0; i < n; ++i) {
+            for (int x : properties[i]) {
+                ss[i].add(x);
+            }
+        }
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < i; ++j) {
+                int cnt = 0;
+                for (int x : ss[i]) {
+                    if (ss[j].contains(x)) {
+                        ++cnt;
+                    }
+                }
+                if (cnt >= k) {
+                    g[i].add(j);
+                    g[j].add(i);
+                }
+            }
+        }
+
+        int ans = 0;
+        vis = new boolean[n];
+        for (int i = 0; i < n; ++i) {
+            if (!vis[i]) {
+                dfs(i);
+                ++ans;
+            }
+        }
+        return ans;
+    }
+
+    private void dfs(int i) {
+        vis[i] = true;
+        for (int j : g[i]) {
+            if (!vis[j]) {
+                dfs(j);
+            }
+        }
+    }
+}
+
+
+or
+
+
+
+class UnionFind {
+  public UnionFind(int n) {
+    count = n;
+    id = new int[n];
+    rank = new int[n];
+    for (int i = 0; i < n; ++i)
+      id[i] = i;
+  }
+
+  public void unionByRank(int u, int v) {
+    final int i = find(u);
+    final int j = find(v);
+    if (i == j)
+      return;
+    if (rank[i] < rank[j]) {
+      id[i] = j;
+    } else if (rank[i] > rank[j]) {
+      id[j] = i;
+    } else {
+      id[i] = j;
+      ++rank[j];
+    }
+    --count;
+  }
+
+  public int getCount() {
+    return count;
+  }
+
+  private int count;
+  private int[] id;
+  private int[] rank;
+
+  private int find(int u) {
+    return id[u] == u ? u : (id[u] = find(id[u]));
+  }
+}
+
+class Solution {
+  public int numberOfComponents(int[][] properties, int k) {
+    final int n = properties.length;
+    Set<Integer>[] propertySets = getPropertySets(properties);
+    UnionFind uf = new UnionFind(n);
+
+    for (int i = 0; i < n; ++i)
+      for (int j = i + 1; j < n; ++j) {
+        Set<Integer> intersection = new HashSet<>(propertySets[i]);
+        intersection.retainAll(propertySets[j]);
+        if (intersection.size() >= k)
+          uf.unionByRank(i, j);
+      }
+
+    return uf.getCount();
+  }
+
+  private Set<Integer>[] getPropertySets(int[][] properties) {
+    Set<Integer>[] propertySets = new Set[properties.length];
+    for (int i = 0; i < properties.length; ++i)
+      propertySets[i] = Arrays.stream(properties[i]).boxed().collect(Collectors.toSet());
+    return propertySets;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    boolean isConnected(Map<Integer, Set<Integer>> map, int k, int i, int j) {
+        for (Integer t : map.get(i))
+            k -= (map.get(j).contains(t)) ? 1 : 0;
+        return (k <= 0);
+    }
+
+    int find(int node, int[] par) {
+        System.out.println(node + " " + par[node]);
+        return par[node] = ((par[node] == node) ? node : find(par[node], par));
+    }
+
+    int add(int a, int b, int[] par) {
+        int pa = find(a, par), pb = find(b, par);
+        par[pb] = pa;
+        return (pa != pb) ? 1 : 0; // return 1 if bothe are in different group before ese return 0
+    }
+
+    int numberOfComponents(int[][] p, int k) {
+        int count = p.length;
+        int[] par = new int[p.length];
+        for (int i = 0; i < par.length; ++i)
+            par[i] = i;
+        Map<Integer, Set<Integer>> map = new HashMap<>();
+        for (int i = 0; i < p.length; ++i) { // create the lookup map 
+            for (int j = 0; j < p[i].length; ++j)
+                map.computeIfAbsent(i, key -> new HashSet<>()).add(p[i][j]);
+        }
+        for (int i = 0; i < p.length; ++i) {
+            for (int j = i + 1; j < p.length; ++j) {
+                System.out.println(i + " " + j);
+                if (isConnected(map, k, i, j))
+                    count -= add(i, j, par); // check connected or not, if connected then add them and if we are merging two disconnected group then reduce the total count by 1
+            }
+        }
+        return count;
+    }
+}
+
+
+or
+
+// DSU
+
+class Solution {
+    private int[] parent;
+    private int[] rank;
+
+    private int find(int x) {
+        if (parent[x] == -1) {
+            return x;
+        }
+
+        return parent[x] = find(parent[x]);
+    }
+
+    private void unionSet(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+
+        if (rootX == rootY) {
+            return;
+        }
+
+        if (rank[rootX] > rank[rootY]) {
+            parent[rootY] = rootX;
+            rank[rootX] += rank[rootY];
+        } else {
+            parent[rootX] = rootY;
+            rank[rootY] += rank[rootX];
+        }
+    }
+
+    private boolean intersect(int k, int[] v1, int[] v2) {
+        int[] count1 = new int[101];
+        int[] count2 = new int[101];
+
+        for (int v : v1) {
+            count1[v]++;
+        }
+
+        for (int v : v2) {
+            count2[v]++;
+        }
+
+        int commonCount = 0;
+        for (int i = 1; i <= 100; i++) {
+            if (count1[i] > 0 && count2[i] > 0) {
+                commonCount++;
+            }
+        }
+
+        return commonCount >= k;
+    }
+    public int numberOfComponents(int[][] properties, int k) {
+        int rows = properties.length;
+        parent = new int[rows];
+        rank = new int[rows];
+
+        Arrays.fill(parent, -1);
+        Arrays.fill(rank, 1);
+
+        for (int r = 0; r < rows; r++) {
+            for (int n = r + 1; n < rows; n++) {
+                if (intersect(k, properties[r], properties[n])) {
+                    unionSet(r, n);
+                }
+            }
+        }
+
+        int components = 0;
+        for (int i = 0; i < rows; i++) {
+            if (parent[i] == -1) {
+                components++;
+            }
+        }
+
+        return components;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    Map<Integer,List<Integer>> graph = new HashMap<>();
+    public int numberOfComponents(int[][] properties, int k) {
+        int v = properties.length;
+        for(int i = 0 ; i < v; i++){
+            graph.put(i,new ArrayList<>());
+        }
+        for(int i = 0 ; i < v; i++){
+            for(int j = 0; j < v; j++){
+                if(i != j && checkIntersection(properties[i],properties[j],k)){
+                    addEdge(graph,i,j);
+                }
+            }
+        }
+        int cc = connectedComponent(graph, v);
+        System.out.println(cc);
+        return cc;
+    }
+    public boolean checkIntersection(int arr1[], int arr2[], int k){
+        Arrays.sort(arr1);
+        Arrays.sort(arr2);
+        int i = 0;
+        int j = 0;
+        Set<Integer> set = new HashSet<>();
+        while(i < arr1.length && j < arr2.length){
+            if(arr1[i] == arr2[j]){
+                set.add(arr1[i]);
+                i++;
+                j++;
+            }
+            else if(arr1[i] > arr2[j]){
+                j++;
+            }else{
+                i++;
+            }
+        }
+        if(set.size() >= k){
+            return true;
+        }
+        return false;
+    }
+    public void addEdge(Map<Integer,List<Integer>> graph, int v1, int v2){
+        graph.get(v1).add(v2);
+        graph.get(v2).add(v1);
+    }
+    public int connectedComponent(Map<Integer,List<Integer>> graph,int v) {
+        // one thing that you know Graph is disconnected(Some of them are connected)
+        // to go on each starting node you have to create an array of visited array
+        int visited[] = new int[v];
+
+        // after that i will try to find all possible diconnected component via
+        // using visited array...
+        int count = 0;
+        for(int i = 0; i < visited.length; i++){
+            if(visited[i] == 0){
+                count++;
+                dfs(graph,visited,i);
+            }
+        }
+        return count;
+    }
+    public void dfs(Map<Integer,List<Integer>> graph, int []visited,int src){
+        Stack<Integer> stack = new Stack<>();
+        stack.push(src);
+        while(!stack.isEmpty()){
+            int v = stack.pop();
+            if(visited[v] == 1){
+                continue;
+            }
+            visited[v] = 1;
+            for(int nbrs : graph.get(v)){
+                if(visited[nbrs] != 1){
+                    stack.push(nbrs);
+                }
+            }
+        }
+
+    }
+    
+}
