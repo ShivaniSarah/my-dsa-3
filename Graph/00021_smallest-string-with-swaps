@@ -1,0 +1,299 @@
+https://leetcode.com/problems/smallest-string-with-swaps/description/
+
+
+1202. Smallest String With Swaps
+Medium
+Topics
+Companies
+Hint
+You are given a string s, and an array of pairs of indices in the string pairs where pairs[i] = [a, b] indicates 2 indices(0-indexed) of the string.
+
+You can swap the characters at any pair of indices in the given pairs any number of times.
+
+Return the lexicographically smallest string that s can be changed to after using the swaps.
+
+ 
+
+Example 1:
+
+Input: s = "dcab", pairs = [[0,3],[1,2]]
+Output: "bacd"
+Explaination: 
+Swap s[0] and s[3], s = "bcad"
+Swap s[1] and s[2], s = "bacd"
+Example 2:
+
+Input: s = "dcab", pairs = [[0,3],[1,2],[0,2]]
+Output: "abcd"
+Explaination: 
+Swap s[0] and s[3], s = "bcad"
+Swap s[0] and s[2], s = "acbd"
+Swap s[1] and s[2], s = "abcd"
+Example 3:
+
+Input: s = "cba", pairs = [[0,1],[1,2]]
+Output: "abc"
+Explaination: 
+Swap s[0] and s[1], s = "bca"
+Swap s[1] and s[2], s = "bac"
+Swap s[0] and s[1], s = "abc"
+ 
+
+Constraints:
+
+1 <= s.length <= 10^5
+0 <= pairs.length <= 10^5
+0 <= pairs[i][0], pairs[i][1] < s.length
+s only contains lower case English letters.
+
+
+# java
+
+
+class UnionFind {
+  public UnionFind(int n) {
+    id = new int[n];
+    rank = new int[n];
+    for (int i = 0; i < n; ++i)
+      id[i] = i;
+  }
+
+  public void unionByRank(int u, int v) {
+    final int i = find(u);
+    final int j = find(v);
+    if (i == j)
+      return;
+    if (rank[i] < rank[j]) {
+      id[i] = j;
+    } else if (rank[i] > rank[j]) {
+      id[j] = i;
+    } else {
+      id[i] = j;
+      ++rank[j];
+    }
+  }
+
+  public int find(int u) {
+    return id[u] == u ? u : (id[u] = find(id[u]));
+  }
+
+  private int[] id;
+  private int[] rank;
+}
+
+class Solution {
+  public String smallestStringWithSwaps(String s, List<List<Integer>> pairs) {
+    StringBuilder sb = new StringBuilder();
+    UnionFind uf = new UnionFind(s.length());
+    Map<Integer, Queue<Character>> indexToLetters = new HashMap<>();
+
+    for (List<Integer> pair : pairs) {
+      final int a = pair.get(0);
+      final int b = pair.get(1);
+      uf.unionByRank(a, b);
+    }
+
+    for (int i = 0; i < s.length(); ++i)
+      indexToLetters.computeIfAbsent(uf.find(i), k -> new PriorityQueue<>()).offer(s.charAt(i));
+
+    for (int i = 0; i < s.length(); ++i)
+      sb.append(indexToLetters.get(uf.find(i)).poll());
+
+    return sb.toString();
+  }
+}
+
+
+or
+
+
+class Solution {
+    private int[] p;
+
+    public String smallestStringWithSwaps(String s, List<List<Integer>> pairs) {
+        int n = s.length();
+        p = new int[n];
+        List<Character>[] d = new List[n];
+        for (int i = 0; i < n; ++i) {
+            p[i] = i;
+            d[i] = new ArrayList<>();
+        }
+        for (var pair : pairs) {
+            int a = pair.get(0), b = pair.get(1);
+            p[find(a)] = find(b);
+        }
+        char[] cs = s.toCharArray();
+        for (int i = 0; i < n; ++i) {
+            d[find(i)].add(cs[i]);
+        }
+        for (var e : d) {
+            e.sort((a, b) -> b - a);
+        }
+        for (int i = 0; i < n; ++i) {
+            var e = d[find(i)];
+            cs[i] = e.remove(e.size() - 1);
+        }
+        return String.valueOf(cs);
+    }
+
+    private int find(int x) {
+        if (p[x] != x) {
+            p[x] = find(p[x]);
+        }
+        return p[x];
+    }
+}
+
+
+or
+
+
+class Solution {
+    int[] parent;
+    int[] level;
+    public String smallestStringWithSwaps(String s, List<List<Integer>> pairs) {
+        char[] cs = s.toCharArray();
+        parent = new int[cs.length];
+        level = new int[cs.length];
+        HashMap<Integer, PriorityQueue<Character>> map = new HashMap<>();
+        for (int i = 0; i < parent.length; i++)
+            parent[i] = i;
+        for (List<Integer> pair : pairs) 
+            union(pair.get(0), pair.get(1));
+        for (int i = 0; i < cs.length; i++) {
+            int p = find(i);
+            PriorityQueue<Character> pq = map.getOrDefault(p, new PriorityQueue<Character>());
+            pq.offer(cs[i]);
+            map.putIfAbsent(p, pq);
+        }
+        for (int i = 0; i < cs.length; i++) 
+            cs[i] = map.get(find(i)).poll();
+        return new String(cs);
+    }
+    
+    private void union(int a, int b) {
+        int pa = find(a);
+        int pb = find(b);
+        if (pa != pb) {
+            if (level[pa] > level[pb])
+                parent[pb] = pa;
+            else if (level[pb] > level[pa])
+                parent[pa] = pb;
+            else {
+                parent[pb] = pa;
+                level[pa]++;
+            }
+        }
+    }
+    
+    private int find(int a) {
+        if (parent[a] == a)
+            return a;
+        parent[a] = find(parent[a]);
+        return parent[a];
+    }
+}
+
+or
+
+
+class UF {
+  public UF(int n) {
+    id = new int[n];
+    for (int i = 0; i < n; ++i)
+      id[i] = i;
+  }
+
+  public void union(int u, int v) {
+    id[find(u)] = find(v);
+  }
+
+  public int find(int u) {
+    return id[u] == u ? u : (id[u] = find(id[u]));
+  }
+
+  private int[] id;
+}
+
+class Solution {
+  public String smallestStringWithSwaps(String s, List<List<Integer>> pairs) {
+    StringBuilder ans = new StringBuilder();
+    UF uf = new UF(s.length());
+    Map<Integer, Queue<Character>> map = new HashMap<>();
+
+    for (List<Integer> pair : pairs)
+      uf.union(pair.get(0), pair.get(1));
+
+    for (int i = 0; i < s.length(); ++i)
+      map.computeIfAbsent(uf.find(i), k -> new PriorityQueue<>()).offer(s.charAt(i));
+
+    for (int i = 0; i < s.length(); ++i)
+      ans.append(map.get(uf.find(i)).poll());
+
+    return ans.toString();
+  }
+}
+
+
+or
+
+
+class Solution {
+    public String smallestStringWithSwaps(String s, List<List<Integer>> pairs) {
+        int n = s.length();
+
+        // 1. Initialise a union find object.
+        UnionFind groups = new UnionFind(n);
+
+        // 2. Iterate swaps to find connected paths.
+        for (List<Integer> pair: pairs) {
+            int node1 = pair.get(0);
+            int node2 = pair.get(1);
+            groups.union(node1, node2);
+        }
+
+        // 3. Collect sorted letters in each path 
+        Map<Integer, PriorityQueue<Character>> map = new HashMap<>();
+        for (int i = 0; i < n; i++) {
+            int parent = groups.find(i);
+            map.putIfAbsent(parent, new PriorityQueue<>());
+            map.get(parent).add(s.charAt(i));
+        }
+
+        // 4. Get path and append smallest letter
+        StringBuilder res = new StringBuilder();
+        for (int i = 0; i < n; i++) {
+            int parent = groups.find(i);
+            Character a = map.get(parent).poll();
+            res.append(a);
+        }
+        return res.toString();
+    }
+}
+
+class UnionFind {
+    int[] parent;
+    public UnionFind(int n) {
+        parent = new int[n];
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+        }
+    }
+    public int find(int x) {
+        if (parent[x] != x) parent[x] = find(parent[x]);
+        return parent[x];
+    }
+
+    public void union(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+        if (rootX != rootY) {
+            if (rootX < rootY) {
+                parent[rootY] = rootX;
+            } else {
+                parent[rootX] = rootY;
+            }
+        }
+    }
+}
+
