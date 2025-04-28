@@ -1,0 +1,366 @@
+https://leetcode.com/problems/max-area-of-island/description/
+
+
+695. Max Area of Island
+Medium
+Topics
+Companies
+You are given an m x n binary matrix grid. An island is a group of 1's (representing land) connected 4-directionally (horizontal or vertical.) You may assume all four edges of the grid are surrounded by water.
+
+The area of an island is the number of cells with a value 1 in the island.
+
+Return the maximum area of an island in grid. If there is no island, return 0.
+
+ 
+
+Example 1:
+
+
+Input: grid = [[0,0,1,0,0,0,0,1,0,0,0,0,0],[0,0,0,0,0,0,0,1,1,1,0,0,0],[0,1,1,0,1,0,0,0,0,0,0,0,0],[0,1,0,0,1,1,0,0,1,0,1,0,0],[0,1,0,0,1,1,0,0,1,1,1,0,0],[0,0,0,0,0,0,0,0,0,0,1,0,0],[0,0,0,0,0,0,0,1,1,1,0,0,0],[0,0,0,0,0,0,0,1,1,0,0,0,0]]
+Output: 6
+Explanation: The answer is not 11, because the island must be connected 4-directionally.
+Example 2:
+
+Input: grid = [[0,0,0,0,0,0,0,0]]
+Output: 0
+ 
+
+Constraints:
+
+m == grid.length
+n == grid[i].length
+1 <= m, n <= 50
+grid[i][j] is either 0 or 1.
+
+
+# java
+
+
+class Solution {
+  public int maxAreaOfIsland(int[][] grid) {
+    int ans = 0;
+
+    for (int i = 0; i < grid.length; ++i)
+      for (int j = 0; j < grid[0].length; ++j)
+        ans = Math.max(ans, dfs(grid, i, j));
+
+    return ans;
+  }
+
+  private int dfs(int[][] grid, int i, int j) {
+    if (i < 0 || i == grid.length || j < 0 || j == grid[0].length)
+      return 0;
+    if (grid[i][j] != 1)
+      return 0;
+
+    grid[i][j] = 2;
+
+    return 1 +                                      //
+        dfs(grid, i + 1, j) + dfs(grid, i - 1, j) + //
+        dfs(grid, i, j + 1) + dfs(grid, i, j - 1);
+  }
+}
+
+
+or
+
+
+class Solution {
+    private int m;
+    private int n;
+    private int[][] grid;
+
+    public int maxAreaOfIsland(int[][] grid) {
+        m = grid.length;
+        n = grid[0].length;
+        this.grid = grid;
+        int ans = 0;
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                ans = Math.max(ans, dfs(i, j));
+            }
+        }
+        return ans;
+    }
+
+    private int dfs(int i, int j) {
+        if (grid[i][j] == 0) {
+            return 0;
+        }
+        int ans = 1;
+        grid[i][j] = 0;
+        int[] dirs = {-1, 0, 1, 0, -1};
+        for (int k = 0; k < 4; ++k) {
+            int x = i + dirs[k], y = j + dirs[k + 1];
+            if (x >= 0 && x < m && y >= 0 && y < n) {
+                ans += dfs(x, y);
+            }
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+// tle
+
+
+class Solution {
+    int[][] grid;
+    boolean[][] seen;
+
+    public int area(int r, int c) {
+        if (r < 0 || r >= grid.length || c < 0 || c >= grid[0].length ||
+                seen[r][c] || grid[r][c] == 0)
+            return 0;
+        seen[r][c] = true;
+        return (1 + area(r+1, c) + area(r-1, c)
+                  + area(r, c-1) + area(r, c+1));
+    }
+
+    public int maxAreaOfIsland(int[][] grid) {
+        this.grid = grid;
+        seen = new boolean[grid.length][grid[0].length];
+        int ans = 0;
+        for (int r = 0; r < grid.length; r++) {
+            for (int c = 0; c < grid[0].length; c++) {
+                ans = Math.max(ans, area(r, c));
+            }
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int maxAreaOfIsland(int[][] grid) {
+        boolean[][] seen = new boolean[grid.length][grid[0].length];
+        int[] dr = new int[]{1, -1, 0, 0};
+        int[] dc = new int[]{0, 0, 1, -1};
+
+        int ans = 0;
+        for (int r0 = 0; r0 < grid.length; r0++) {
+            for (int c0 = 0; c0 < grid[0].length; c0++) {
+                if (grid[r0][c0] == 1 && !seen[r0][c0]) {
+                    int shape = 0;
+                    Stack<int[]> stack = new Stack();
+                    stack.push(new int[]{r0, c0});
+                    seen[r0][c0] = true;
+                    while (!stack.empty()) {
+                        int[] node = stack.pop();
+                        int r = node[0], c = node[1];
+                        shape++;
+                        for (int k = 0; k < 4; k++) {
+                            int nr = r + dr[k];
+                            int nc = c + dc[k];
+                            if (0 <= nr && nr < grid.length &&
+                                    0 <= nc && nc < grid[0].length &&
+                                    grid[nr][nc] == 1 && !seen[nr][nc]) {
+                                stack.push(new int[]{nr, nc});
+                                seen[nr][nc] = true;
+                            }
+                        }
+                    }
+                    ans = Math.max(ans, shape);
+                }
+            }
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+// TC : O(rows*cols)
+// SC : O(rows*cols)
+
+class Solution {
+    public int maxAreaOfIsland(int[][] grid) {
+        int maxArea = 0;
+        int rows = grid.length;
+        int cols = grid[0].length;
+        boolean visited[][] = new boolean[rows][cols];
+            
+        for(int row=0;row<rows;row++){
+            for(int col=0;col<cols;col++){
+                if(grid[row][col]==1&&!visited[row][col]){
+                    int currArea = dfs(grid,visited,row,col,rows,cols);
+                    maxArea = Math.max(maxArea,currArea);
+                }
+            }
+        }
+        
+        return maxArea;
+    }
+    
+    private int dfs(int grid[][],boolean visited[][],int row,int col,int rows,int cols){
+        if(row<0||col<0||row>=rows||col>=cols||visited[row][col]||grid[row][col]==0) 
+        return 0;
+        
+        visited[row][col] = true;
+        
+        int currArea = 1;
+        currArea+=dfs(grid,visited,row-1,col,rows,cols);
+        currArea+=dfs(grid,visited,row+1,col,rows,cols);
+        currArea+=dfs(grid,visited,row,col+1,rows,cols);
+        currArea+=dfs(grid,visited,row,col-1,rows,cols);
+        
+        return currArea;
+    }
+}
+
+
+or
+
+
+// TC : O(rows*cols)
+// SC : O(rows*cols)
+
+class Solution {
+    public int maxAreaOfIsland(int[][] grid) {
+        int maxArea = 0;
+        int rows = grid.length;
+        int cols = grid[0].length;
+        boolean visited[][] = new boolean[rows][cols];
+            
+        for(int row=0;row<rows;row++){
+            for(int col=0;col<cols;col++){
+                if(grid[row][col]==1&&!visited[row][col]){
+                    int currArea = bfs(grid,visited,row,col,rows,cols);
+                    maxArea = Math.max(maxArea,currArea);
+                }
+            }
+        }
+        
+        return maxArea;
+    }
+    
+    private int bfs(int grid[][],boolean visited[][],int row,int col,int rows,int cols){
+        Queue<int[]> queue = new ArrayDeque();
+        queue.add(new int[]{row,col});
+        int currArea = 0;
+        
+        while(queue.size()>0){
+            int arr[] = queue.remove();
+            row = arr[0];
+            col = arr[1];
+            
+            if(visited[row][col]) continue;
+            
+            visited[row][col] = true;
+            currArea++;
+            
+            if(row-1>=0&&grid[row-1][col]==1&&!visited[row-1][col]){
+                queue.add(new int[]{row-1,col});
+            }
+            if(row+1<rows&&grid[row+1][col]==1&&!visited[row+1][col]){
+                queue.add(new int[]{row+1,col});
+            }
+            if(col-1>=0&&grid[row][col-1]==1&&!visited[row][col-1]){
+                queue.add(new int[]{row,col-1});
+            }
+            if(col+1<cols&&grid[row][col+1]==1&&!visited[row][col+1]){
+                queue.add(new int[]{row,col+1});
+            }
+        }
+        
+        return currArea;
+    }
+}
+
+
+
+or
+
+
+
+// TC : O(rows*cols*alpha) , alpha being constant can be ignored
+// SC : O(rows*cols)
+
+class Solution {
+    public int maxAreaOfIsland(int[][] grid) {
+        int maxArea = 0;
+        int rows = grid.length;
+        int cols = grid[0].length;
+        int totalCells = rows*cols;
+        int parent[] = new int[totalCells];
+        int rank[] = new int[totalCells];
+        int size[] = new int[totalCells];
+        
+        for(int row=0;row<rows;row++){
+            for(int col=0;col<cols;col++){
+                if(grid[row][col]==1){
+                    int cell = row*cols+col;
+                    parent[cell] = cell;
+                    size[cell] = 1;
+                }
+            }
+        }
+        
+        for(int row=0;row<rows;row++){
+            for(int col=0;col<cols;col++){
+                if(grid[row][col]==1){
+                    if(row-1>=0&&grid[row-1][col]==1){
+                        union(row,col,row-1,col,cols,parent,rank,size);
+                    }
+                    if(row+1<rows&&grid[row+1][col]==1){
+                        union(row,col,row+1,col,cols,parent,rank,size);
+                    }
+                    if(col-1>=0&&grid[row][col-1]==1){
+                        union(row,col,row,col-1,cols,parent,rank,size);
+                    }
+                    if(col+1<cols&&grid[row][col+1]==1){
+                        union(row,col,row,col+1,cols,parent,rank,size);
+                    }
+                }
+            }
+        }
+        
+        for(int head=0;head<totalCells;head++){
+            maxArea = Math.max(maxArea,size[head]);
+        }
+        
+        return maxArea;
+    }
+    
+    private void union(int row1,int col1,int row2,int col2,int cols,int parent[],int rank[],int size[]){
+        int cell1 = row1*cols+col1;
+        int cell2 = row2*cols+col2;
+        
+        int parCell1 = find(parent,cell1);
+        int parCell2 = find(parent,cell2);
+        
+        if(parCell1==parCell2) return;
+        
+        if(rank[parCell1]>rank[parCell2]){
+            parent[parCell2] = parCell1;
+            size[parCell1]+=size[parCell2];
+            size[parCell2] = 0;
+        }else if(rank[parCell1]<rank[parCell2]){
+            parent[parCell1] = parCell2;
+            size[parCell2]+=size[parCell1];
+            size[parCell1] = 0;
+        }else{
+            parent[parCell2] = parCell1;
+            size[parCell1]+=size[parCell2];
+            size[parCell2] = 0;
+            rank[parCell1]++;
+        }
+    }
+    
+    private int find(int parent[],int cell){
+        if(parent[cell]==cell) return cell;
+        return parent[cell] = find(parent,parent[cell]);
+    }
+}
+
