@@ -1,0 +1,405 @@
+https://leetcode.com/problems/redundant-connection/description/
+
+684. Redundant Connection
+Medium
+Topics
+Companies
+In this problem, a tree is an undirected graph that is connected and has no cycles.
+
+You are given a graph that started as a tree with n nodes labeled from 1 to n, with one additional edge added. The added edge has two different vertices chosen from 1 to n, and was not an edge that already existed. The graph is represented as an array edges of length n where edges[i] = [ai, bi] indicates that there is an edge between nodes ai and bi in the graph.
+
+Return an edge that can be removed so that the resulting graph is a tree of n nodes. If there are multiple answers, return the answer that occurs last in the input.
+
+ 
+
+Example 1:
+
+
+Input: edges = [[1,2],[1,3],[2,3]]
+Output: [2,3]
+Example 2:
+
+
+Input: edges = [[1,2],[2,3],[3,4],[1,4],[1,5]]
+Output: [1,4]
+ 
+
+Constraints:
+
+n == edges.length
+3 <= n <= 1000
+edges[i].length == 2
+1 <= ai < bi <= edges.length
+ai != bi
+There are no repeated edges.
+The given graph is connected.
+
+
+
+ #jvaa
+
+
+class UnionFind {
+  public UnionFind(int n) {
+    id = new int[n];
+    rank = new int[n];
+    for (int i = 0; i < n; ++i)
+      id[i] = i;
+  }
+
+  public boolean unionByRank(int u, int v) {
+    final int i = find(u);
+    final int j = find(v);
+    if (i == j)
+      return false;
+    if (rank[i] < rank[j]) {
+      id[i] = j;
+    } else if (rank[i] > rank[j]) {
+      id[j] = i;
+    } else {
+      id[i] = j;
+      ++rank[j];
+    }
+    return true;
+  }
+
+  private int[] id;
+  private int[] rank;
+
+  private int find(int u) {
+    return id[u] == u ? u : (id[u] = find(id[u]));
+  }
+}
+
+class Solution {
+  public int[] findRedundantConnection(int[][] edges) {
+    UnionFind uf = new UnionFind(edges.length + 1);
+
+    for (int[] edge : edges) {
+      final int u = edge[0];
+      final int v = edge[1];
+      if (!uf.unionByRank(u, v))
+        return edge;
+    }
+
+    throw new IllegalArgumentException();
+  }
+}
+
+
+or
+
+
+class Solution {
+    private int[] p;
+
+    public int[] findRedundantConnection(int[][] edges) {
+        p = new int[1010];
+        for (int i = 0; i < p.length; ++i) {
+            p[i] = i;
+        }
+        for (int[] e : edges) {
+            int a = e[0], b = e[1];
+            if (find(a) == find(b)) {
+                return e;
+            }
+            p[find(a)] = find(b);
+        }
+        return null;
+    }
+
+    private int find(int x) {
+        if (p[x] != x) {
+            p[x] = find(p[x]);
+        }
+        return p[x];
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    // Performs DFS and returns true if there's a path between src and target.
+    private boolean isConnected(
+        int src,
+        int target,
+        boolean[] visited,
+        List<Integer>[] adjList
+    ) {
+        visited[src] = true;
+
+        if (src == target) {
+            return true;
+        }
+
+        boolean isFound = false;
+        for (int adj : adjList[src]) {
+            if (!visited[adj]) {
+                isFound = isFound || isConnected(adj, target, visited, adjList);
+            }
+        }
+
+        return isFound;
+    }
+
+    public int[] findRedundantConnection(int[][] edges) {
+        int N = edges.length;
+
+        List<Integer>[] adjList = new ArrayList[N];
+        for (int i = 0; i < N; i++) {
+            adjList[i] = new ArrayList<>();
+        }
+
+        for (int[] edge : edges) {
+            boolean[] visited = new boolean[N];
+
+            // If DFS returns true, we will return the edge.
+            if (isConnected(edge[0] - 1, edge[1] - 1, visited, adjList)) {
+                return new int[] { edge[0], edge[1] };
+            }
+
+            adjList[edge[0] - 1].add(edge[1] - 1);
+            adjList[edge[1] - 1].add(edge[0] - 1);
+        }
+
+        return new int[] {};
+    }
+}
+
+
+
+or
+
+
+// dfs - single traversal
+
+
+
+class Solution {
+
+    int cycleStart = -1;
+
+    // Perform the DFS and store a node in the cycle as cycleStart.
+    private void DFS(
+        int src,
+        boolean[] visited,
+        List<Integer>[] adjList,
+        int[] parent
+    ) {
+        visited[src] = true;
+
+        for (int adj : adjList[src]) {
+            if (!visited[adj]) {
+                parent[adj] = src;
+                DFS(adj, visited, adjList, parent);
+                // If the node is visited and the parent is different then the
+                // node is part of the cycle.
+            } else if (adj != parent[src] && cycleStart == -1) {
+                cycleStart = adj;
+                parent[adj] = src;
+            }
+        }
+    }
+
+    public int[] findRedundantConnection(int[][] edges) {
+        int N = edges.length;
+
+        boolean[] visited = new boolean[N];
+        int[] parent = new int[N];
+        Arrays.fill(parent, -1);
+
+        List<Integer>[] adjList = new ArrayList[N];
+        for (int i = 0; i < N; i++) {
+            adjList[i] = new ArrayList<>();
+        }
+
+        for (int[] edge : edges) {
+            adjList[edge[0] - 1].add(edge[1] - 1);
+            adjList[edge[1] - 1].add(edge[0] - 1);
+        }
+
+        DFS(0, visited, adjList, parent);
+
+        Map<Integer, Integer> cycleNodes = new HashMap<>();
+        int node = cycleStart;
+        // Start from the cycleStart node and backtrack to get all the nodes in
+        // the cycle. Mark them all in the map.
+        do {
+            cycleNodes.put(node, 1);
+            node = parent[node];
+        } while (node != cycleStart);
+
+        // If both nodes of the edge were marked as cycle nodes then this edge
+        // can be removed.
+        for (int i = edges.length - 1; i >= 0; i--) {
+            if (
+                cycleNodes.containsKey(edges[i][0] - 1) &&
+                cycleNodes.containsKey(edges[i][1] - 1)
+            ) {
+                return edges[i];
+            }
+        }
+
+        return new int[] {}; // This line should theoretically never be reached
+    }
+}
+
+
+or
+
+
+// DSU
+
+
+
+class Solution {
+
+    class DSU {
+
+        private int N;
+        private int[] size;
+        private int[] representative;
+
+        // Initialize DSU class, size of each component will be one and each node
+        // will be representative of it's own.
+        public DSU(int N) {
+            this.N = N;
+            size = new int[N];
+            representative = new int[N];
+
+            for (int node = 0; node < N; node++) {
+                size[node] = 1;
+                representative[node] = node;
+            }
+        }
+
+        // Returns the ultimate representative of the node.
+        public int find(int node) {
+            if (representative[node] == node) {
+                return node;
+            }
+
+            return representative[node] = find(representative[node]);
+        }
+
+        // Returns true if node nodeOne and nodeTwo belong to different component and update the
+        // representatives accordingly, otherwise returns false.
+        public boolean doUnion(int nodeOne, int nodeTwo) {
+            nodeOne = find(nodeOne);
+            nodeTwo = find(nodeTwo);
+
+            if (nodeOne == nodeTwo) {
+                return false;
+            } else {
+                if (size[nodeOne] > size[nodeTwo]) {
+                    representative[nodeTwo] = nodeOne;
+                    size[nodeOne] += size[nodeTwo];
+                } else {
+                    representative[nodeOne] = nodeTwo;
+                    size[nodeTwo] += size[nodeOne];
+                }
+                return true;
+            }
+        }
+    }
+
+    public int[] findRedundantConnection(int[][] edges) {
+        int N = edges.length;
+
+        DSU dsu = new DSU(N);
+        for (int[] edge : edges) {
+            // If union returns false, we know the nodes are already connected
+            // and hence we can return this edge.
+            if (!dsu.doUnion(edge[0] - 1, edge[1] - 1)) {
+                return edge;
+            }
+        }
+
+        return new int[] {}; // This line should theoretically never be reached
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int[] findRedundantConnection(int[][] edges) {
+        par = new int[edges.length+1];
+        for (int i = 0; i < par.length; i++)
+            par[i] = i;
+        for (int[] e : edges)
+            if (find(e[0]) == find(e[1])) return e;
+            else union(e[0],e[1]);
+        return edges[0];
+    }
+    private int[] par;
+    private int find(int x) {
+        if (x != par[x]) par[x] = find(par[x]);
+        return par[x];
+    }
+    private void union(int x, int y) {
+        par[find(y)] = find(x);
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    private int[] parent;
+    private int[] rank;
+
+    public int[] findRedundantConnection(int[][] edges) {
+        int n = edges.length;
+        parent = new int[n + 1];
+        rank = new int[n + 1];
+
+        // Initialize each node as its own parent
+        for (int i = 1; i <= n; i++) {
+            parent[i] = i;
+        }
+
+        for (int[] edge : edges) {
+            int u = edge[0];
+            int v = edge[1];
+
+            if (find(u) == find(v)) {
+                return edge; // Cycle detected
+            }
+            join(u, v); // Merge sets
+        }
+
+        return new int[0]; // Unreachable for valid inputs
+    }
+
+    private int find(int i) {
+        if (parent[i] != i) {
+            parent[i] = find(parent[i]); // Path compression
+        }
+        return parent[i];
+    }
+
+    private void join(int u, int v) {
+        int rootU = find(u);
+        int rootV = find(v);
+
+        if (rootU != rootV) {
+            // Union by rank
+            if (rank[rootU] > rank[rootV]) {
+                parent[rootV] = rootU;
+            } else if (rank[rootU] < rank[rootV]) {
+                parent[rootU] = rootV;
+            } else {
+                parent[rootV] = rootU;
+                rank[rootU]++;
+            }
+        }
+    }
+}
+
