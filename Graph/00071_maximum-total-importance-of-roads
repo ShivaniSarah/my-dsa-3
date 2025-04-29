@@ -57,3 +57,137 @@ There are no duplicate roads.
 # java
 
 
+class Solution {
+  public long maximumImportance(int n, int[][] roads) {
+    long ans = 0;
+    long[] count = new long[n];
+
+    for (int[] road : roads) {
+      final int u = road[0];
+      final int v = road[1];
+      ++count[u];
+      ++count[v];
+    }
+
+    Arrays.sort(count);
+
+    for (int i = 0; i < n; ++i)
+      ans += (i + 1) * count[i];
+
+    return ans;
+  }
+}
+
+
+
+
+
+or
+
+
+
+class Solution {
+    public long maximumImportance(int n, int[][] roads) {
+        int[] deg = new int[n];
+        for (int[] r : roads) {
+            ++deg[r[0]];
+            ++deg[r[1]];
+        }
+        Arrays.sort(deg);
+        long ans = 0;
+        for (int i = 0; i < n; ++i) {
+            ans += (long) (i + 1) * deg[i];
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+
+    public long maximumImportance(int n, int[][] roads) {
+        long[] degree = new long[n];
+
+        for (int[] edge : roads) {
+            degree[edge[0]]++;
+            degree[edge[1]]++;
+        }
+
+        Arrays.sort(degree);
+
+        long value = 1;
+        long totalImportance = 0;
+        for (long d : degree) {
+            totalImportance += (value * d);
+            value++;
+        }
+
+        return totalImportance;
+    }
+}
+
+
+
+or
+
+
+
+import java.util.*;
+
+class Solution {
+    public long maximumImportance(int n, int[][] roads) {
+        // Array to store the degree of each city
+        int[] degree = new int[n];
+        
+        // Calculate the degree of each city
+        for (int[] road : roads) {
+            degree[road[0]]++;
+            degree[road[1]]++;
+        }
+        
+        // Create a list of cities and sort by degree
+        Integer[] cities = new Integer[n];
+        for (int i = 0; i < n; i++) {
+            cities[i] = i;
+        }
+        Arrays.sort(cities, new Comparator<Integer>() {
+            public int compare(Integer a, Integer b) {
+                return Integer.compare(degree[b], degree[a]);
+            }
+        });
+        
+        // Assign values to cities starting from the highest degree
+        long totalImportance = 0;
+        for (int i = 0; i < n; i++) {
+            totalImportance += (long) (n - i) * degree[cities[i]];
+        }
+        
+        return totalImportance;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public long maximumImportance(int n, int[][] roads) {
+        long res = 0, cost = 1;
+        long[] conn = new long[n];
+        for (int[] road : roads) {
+            conn[road[0]]++;
+            conn[road[1]]++;
+        }
+        Arrays.sort(conn);
+        for (long con : conn) {
+            res += con * (cost++);
+        }
+        return res;
+    }
+}
