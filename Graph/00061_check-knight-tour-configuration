@@ -1,0 +1,275 @@
+https://leetcode.com/problems/check-knight-tour-configuration/description/
+
+2596. Check Knight Tour Configuration
+Medium
+Topics
+Companies
+Hint
+There is a knight on an n x n chessboard. In a valid configuration, the knight starts at the top-left cell of the board and visits every cell on the board exactly once.
+
+You are given an n x n integer matrix grid consisting of distinct integers from the range [0, n * n - 1] where grid[row][col] indicates that the cell (row, col) is the grid[row][col]th cell that the knight visited. The moves are 0-indexed.
+
+Return true if grid represents a valid configuration of the knight's movements or false otherwise.
+
+Note that a valid knight move consists of moving two squares vertically and one square horizontally, or two squares horizontally and one square vertically. The figure below illustrates all the possible eight moves of a knight from some cell.
+
+
+ 
+
+Example 1:
+
+
+Input: grid = [[0,11,16,5,20],[17,4,19,10,15],[12,1,8,21,6],[3,18,23,14,9],[24,13,2,7,22]]
+Output: true
+Explanation: The above diagram represents the grid. It can be shown that it is a valid configuration.
+Example 2:
+
+
+Input: grid = [[0,3,6],[5,8,1],[2,7,4]]
+Output: false
+Explanation: The above diagram represents the grid. The 8th move of the knight is not valid considering its position after the 7th move.
+ 
+
+Constraints:
+
+n == grid.length == grid[i].length
+3 <= n <= 7
+0 <= grid[row][col] < n * n
+All integers in grid are unique.
+
+
+# javaa
+
+
+
+class Solution {
+  public boolean checkValidGrid(int[][] grid) {
+    if (grid[0][0] != 0)
+      return false;
+
+    final int n = grid.length;
+    int i = 0;
+    int j = 0;
+
+    for (int target = 1; target < n * n; ++target) {
+      Pair<Integer, Integer> pair = nextGrid(grid, i, j, target);
+      final int x = pair.getKey();
+      final int y = pair.getValue();
+      if (x == -1 && y == -1)
+        return false;
+      // Move (x, y) to (i, j).
+      i = x;
+      j = y;
+    }
+
+    return true;
+  }
+
+  private static final int[][] DIRS = {{-2, 1}, {-1, 2}, {1, 2},   {2, 1},
+                                       {2, -1}, {1, -2}, {-1, -2}, {-2, -1}};
+
+  // Returns (x, y), where grid[x][y] == target if (i, j) can reach target.
+  private Pair<Integer, Integer> nextGrid(int[][] grid, int i, int j, int target) {
+    final int n = grid.length;
+    for (int[] dir : DIRS) {
+      final int x = i + dir[0];
+      final int y = j + dir[1];
+      if (x < 0 || x >= n || y < 0 || y >= n)
+        continue;
+      if (grid[x][y] == target)
+        return new Pair<>(x, y);
+    }
+    return new Pair<>(-1, -1);
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public boolean checkValidGrid(int[][] grid) {
+        if (grid[0][0] != 0) {
+            return false;
+        }
+        int n = grid.length;
+        int[][] pos = new int[n * n][2];
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+                pos[grid[i][j]] = new int[] {i, j};
+            }
+        }
+        for (int i = 1; i < n * n; ++i) {
+            int[] p1 = pos[i - 1];
+            int[] p2 = pos[i];
+            int dx = Math.abs(p1[0] - p2[0]);
+            int dy = Math.abs(p1[1] - p2[1]);
+            boolean ok = (dx == 1 && dy == 2) || (dx == 2 && dy == 1);
+            if (!ok) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    boolean dest = false;
+    public boolean checkValidGrid(int[][] grid) {
+        check(grid, 0, 0, -1);
+        return dest;
+    }
+    void check(int[][] grid, int i, int j, int prev){
+        if(i < 0 || j < 0 || i >= grid.length || j >= grid.length || grid[i][j] != prev+1)   return;
+        if(grid[i][j] == grid.length*grid.length-1) dest = true;
+        check(grid,i+2,j+1,grid[i][j]);
+        check(grid,i+2,j-1,grid[i][j]);
+        check(grid,i+1,j+2,grid[i][j]);
+        check(grid,i+1,j-2,grid[i][j]);
+        check(grid,i-2,j+1,grid[i][j]);
+        check(grid,i-2,j-1,grid[i][j]);
+        check(grid,i-1,j+2,grid[i][j]);
+        check(grid,i-1,j-2,grid[i][j]);
+    }
+}
+
+
+or
+
+
+class Solution {
+    public static boolean isSafe(int grid[][],int row,int col,int count,int n)
+    {        
+        if(count==n*n-1){
+            return true;
+        }
+        int i;
+        int j;
+        //all right 4 conditions
+        i=row-2;
+        j=col+1;
+        if(i>=0 && j<n && grid[i][j]==count+1){
+            return isSafe(grid,i,j,count+1,n);
+        }
+        i=row-1;
+        j=col+2;
+        if(i>=0 && j<n && grid[i][j]==count+1){
+            return isSafe(grid,i,j,count+1,n);
+        }
+        i=row+1;
+        j=col+2;
+        if(i<n && j<n && grid[i][j]==count+1){
+            return isSafe(grid,i,j,count+1,n);
+        }
+        i=row+2;
+        j=col+1;
+        if(i<n && j<n && grid[i][j]==count+1){
+            return isSafe(grid,i,j,count+1,n);
+        }
+
+        //all left 4 conditions
+        i=row-2;
+        j=col-1;
+        if(i>=0 && j>=0 && grid[i][j]==count+1){
+            return isSafe(grid,i,j,count+1,n);
+        }
+        i=row-1;
+        j=col-2;
+        if(i>=0 && j>=0 && grid[i][j]==count+1){
+            return isSafe(grid,i,j,count+1,n);
+        }
+        i=row+1;
+        j=col-2;
+        if(i<n && j>=0 && grid[i][j]==count+1){
+            return isSafe(grid,i,j,count+1,n);
+        }
+        i=row+2;
+        j=col-1;
+        if(i<n && j>=0 && grid[i][j]==count+1){
+            return isSafe(grid,i,j,count+1,n);
+        }
+        return false;
+    }
+    public boolean checkValidGrid(int[][] grid) {
+        if(grid[0][0]!=0)
+        {
+            return false;
+        }
+        return isSafe(grid,0,0,0,grid.length);
+    }
+}
+
+
+
+or
+
+class Solution {
+    private static final int[][] directions = {
+        {2, -1}, {2, 1}, {-2, -1}, {-2, 1}, {1, 2}, {-1, 2}, {1, -2}, {-1, -2}
+    };
+
+    private boolean dfs(int[][] grid, int i, int j, int val) {
+        int n = grid.length;
+        // If out of bounds or not the expected value
+        if (i < 0 || i >= n || j < 0 || j >= n || grid[i][j] != val) {
+            return false;
+        }
+        // If we have reached the last value
+        if (val == n * n - 1) {
+            return true;
+        }
+        // Try all 8 knight moves
+        for (int[] direction : directions) {
+            int newI = i + direction[0];
+            int newJ = j + direction[1];
+            if (dfs(grid, newI, newJ, val + 1)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean checkValidGrid(int[][] grid) {
+        return dfs(grid, 0, 0, 0);  // Start DFS from (0, 0)
+    }
+
+}
+
+
+or
+
+
+
+class Solution {
+    public boolean checkValidGrid(int[][] grid) {
+        int n = grid.length;
+        Queue<int[]> q = new LinkedList<>();
+        q.add(new int[]{0,0,0});
+        int[][] dirs = {{-2, -1}, {-2, 1}, {2, -1}, {2, 1},{-1, -2}, {1, -2}, {1, 2}, {-1, 2}};
+
+        while(!q.isEmpty()) {
+            int[] curr = q.poll();
+            int next= curr[2]+1;
+            for(int[] dir : dirs) {
+                int i = curr[0] + dir[0], j = curr[1] + dir[1];
+                if(i < 0 || j < 0 || i >= n || j >= n) continue;
+                if(grid[i][j] == next) {
+                    if(next==n*n-1) return true;
+                    q.add(new int[]{i, j, next});
+                    break;
+                }
+            }
+        }
+        return false;
+    }
+}
+
+
+
+
