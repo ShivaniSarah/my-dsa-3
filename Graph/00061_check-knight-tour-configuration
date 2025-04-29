@@ -209,6 +209,8 @@ class Solution {
 
 or
 
+
+
 class Solution {
     private static final int[][] directions = {
         {2, -1}, {2, 1}, {-2, -1}, {-2, 1}, {1, 2}, {-1, 2}, {1, -2}, {-1, -2}
@@ -245,6 +247,7 @@ class Solution {
 or
 
 
+// 1 test case failing
 
 class Solution {
     public boolean checkValidGrid(int[][] grid) {
