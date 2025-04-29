@@ -1,0 +1,150 @@
+https://leetcode.com/problems/water-and-jug-problem/description/
+
+
+365. Water and Jug Problem
+Medium
+Topics
+Companies
+You are given two jugs with capacities x liters and y liters. You have an infinite water supply. Return whether the total amount of water in both jugs may reach target using the following operations:
+
+Fill either jug completely with water.
+Completely empty either jug.
+Pour water from one jug into another until the receiving jug is full, or the transferring jug is empty.
+ 
+
+Example 1:
+
+Input: x = 3, y = 5, target = 4
+
+Output: true
+
+Explanation:
+
+Follow these steps to reach a total of 4 liters:
+
+Fill the 5-liter jug (0, 5).
+Pour from the 5-liter jug into the 3-liter jug, leaving 2 liters (3, 2).
+Empty the 3-liter jug (0, 2).
+Transfer the 2 liters from the 5-liter jug to the 3-liter jug (2, 0).
+Fill the 5-liter jug again (2, 5).
+Pour from the 5-liter jug into the 3-liter jug until the 3-liter jug is full. This leaves 4 liters in the 5-liter jug (3, 4).
+Empty the 3-liter jug. Now, you have exactly 4 liters in the 5-liter jug (0, 4).
+Reference: The Die Hard example.
+
+Example 2:
+
+Input: x = 2, y = 6, target = 5
+
+Output: false
+
+Example 3:
+
+Input: x = 1, y = 2, target = 3
+
+Output: true
+
+Explanation: Fill both jugs. The total amount of water in both jugs is equal to 3 now.
+
+ 
+
+Constraints:
+
+1 <= x, y, target <= 103
+
+
+
+# jvaa
+
+
+class Solution {
+    public boolean canMeasureWater(int jug1Capacity, int jug2Capacity, int targetCapacity) {
+        if (jug1Capacity + jug2Capacity < targetCapacity) {
+            return false;
+        }
+        if (jug1Capacity == 0 || jug2Capacity == 0) {
+            return targetCapacity == 0 || jug1Capacity + jug2Capacity == targetCapacity;
+        }
+        return targetCapacity % gcd(jug1Capacity, jug2Capacity) == 0;
+    }
+
+    private int gcd(int a, int b) {
+        return b == 0 ? a : gcd(b, a % b);
+    }
+}
+
+
+or
+
+class Solution {
+    public boolean canMeasureWater(int j1, int j2, int t) {
+        if(t > j1+j2)
+            return false;
+        return dfs(j1, j2, 0, 0, t);
+    }
+    
+    Map<Long, Boolean> map = new HashMap<>();
+    boolean dfs(int j1, int j2, int v1, int v2, int t){
+        if(v1 < 0 || v2 < 0){
+            return false;
+        }
+        if((v1 == 1) || (v2 == 1) || v1+v2 == t){
+            return true;
+        }
+        long k = (v1*1000000000000l)+v2;
+        if(map.containsKey(k)){
+            return map.get(k);
+        }
+        map.put(k, false);
+        boolean res = dfs(j1, j2, j1, v2, t)
+        || dfs(j1, j2, v1, j2, t)
+        || dfs(j1, j2, 0, v2, t)
+        || dfs(j1, j2, v1, 0, t)
+        || dfs(j1, j2, Math.min(v1+v2, j1), Math.max(0, v2 - (j1-v1)), t)
+        || dfs(j1, j2, Math.max(0, v1 - (j2-v2)), Math.min(v2+v1, j2), t);
+        map.put(k, res);
+        return res;
+    }
+    
+}
+
+
+or
+
+
+class Solution {
+    boolean[][] vis;
+    int mx,my;
+    public boolean canMeasureWater(int x, int y, int target) {
+        if(x>y) {
+            int temp = x;
+            x = y;
+            y = temp;
+        }
+        vis = new boolean[x+1][y+1];
+        mx = x;
+        my = y;
+        return dfs(x,y,target);
+    }
+
+    boolean dfs(int x, int y, int target) {
+        if(vis[x][y]) return false;
+
+        vis[x][y] = true;
+
+        if(x==target || y==target || (x+y==target)) return true;
+
+        if(y==0) {
+            return dfs(x, my, target);
+        }
+
+        if(x==mx) {
+            return dfs(0,y,target);
+        } else if(x+y >= mx) {
+            return dfs(mx, (x+y-mx), target);
+        } else {
+            return dfs(x+y, 0, target);
+        }
+    }
+
+}
+
