@@ -1,0 +1,216 @@
+https://leetcode.com/problems/array-nesting/description/
+
+
+565. Array Nesting
+Medium
+Topics
+Companies
+You are given an integer array nums of length n where nums is a permutation of the numbers in the range [0, n - 1].
+
+You should build a set s[k] = {nums[k], nums[nums[k]], nums[nums[nums[k]]], ... } subjected to the following rule:
+
+The first element in s[k] starts with the selection of the element nums[k] of index = k.
+The next element in s[k] should be nums[nums[k]], and then nums[nums[nums[k]]], and so on.
+We stop adding right before a duplicate element occurs in s[k].
+Return the longest length of a set s[k].
+
+ 
+
+Example 1:
+
+Input: nums = [5,4,0,3,1,6,2]
+Output: 4
+Explanation: 
+nums[0] = 5, nums[1] = 4, nums[2] = 0, nums[3] = 3, nums[4] = 1, nums[5] = 6, nums[6] = 2.
+One of the longest sets s[k]:
+s[0] = {nums[0], nums[5], nums[6], nums[2]} = {5, 6, 2, 0}
+Example 2:
+
+Input: nums = [0,1,2]
+Output: 1
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+0 <= nums[i] < nums.length
+All the values of nums are unique.
+
+
+# java
+
+
+class Solution {
+    public int arrayNesting(int[] nums) {
+        int ans = 0, n = nums.length;
+        for (int i = 0; i < n; ++i) {
+            int cnt = 0;
+            int j = i;
+            while (nums[j] < n) {
+                int k = nums[j];
+                nums[j] = n;
+                j = k;
+                ++cnt;
+            }
+            ans = Math.max(ans, cnt);
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+  public int arrayNesting(int[] nums) {
+    int ans = 0;
+
+    for (final int num : nums) {
+      if (num == -1)
+        continue;
+      int index = num;
+      int count = 0;
+      while (nums[index] != -1) {
+        final int cache = index;
+        index = nums[index];
+        nums[cache] = -1;
+        ++count;
+      }
+      ans = Math.max(ans, count);
+    }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+
+public class Solution {
+    public int arrayNesting(int[] nums) {
+        int res = 0;
+        for (int i = 0; i < nums.length; i++) {
+            int start = nums[i], count = 0;
+            do {
+                start = nums[start];
+                count++;
+            }
+            while (start != nums[i]);
+            res = Math.max(res, count);
+
+        }
+        return res;
+    }
+}
+
+
+or
+
+
+public class Solution {
+    public int arrayNesting(int[] nums) {
+        boolean[] visited = new boolean[nums.length];
+        int res = 0;
+        for (int i = 0; i < nums.length; i++) {
+            if (!visited[i]) {
+                int start = nums[i], count = 0;
+                do {
+                    start = nums[start];
+                    count++;
+                    visited[start] = true;
+                }
+                while (start != nums[i]);
+                res = Math.max(res, count);
+            }
+        }
+        return res;
+    }
+}
+
+
+
+
+or
+
+
+
+
+public class Solution {
+    public int arrayNesting(int[] nums) {
+        int res = 0;
+        for (int i = 0; i < nums.length; i++) {
+            if (nums[i] != Integer.MAX_VALUE) {
+                int start = nums[i], count = 0;
+                while (nums[start] != Integer.MAX_VALUE) {
+                    int temp = start;
+                    start = nums[start];
+                    count++;
+                    nums[temp] = Integer.MAX_VALUE;
+                }
+                res = Math.max(res, count);
+            }
+        }
+        return res;
+    }
+}
+
+
+
+or
+
+
+// best
+
+class Solution {
+    public int arrayNesting(int[] nums) {
+        int res=0;
+        boolean[] visited = new boolean[nums.length];
+        for(int i=0;i<nums.length;i++){
+            if(!visited[i]){
+                int len = dfs(nums,i,visited);
+                res = Math.max(res,len);
+            }
+        }
+        return res;
+    }
+    public int dfs(int[] nums,int i,boolean[] visited){
+        if(visited[i]) return 0;
+        visited[i] = true;
+        return 1+dfs(nums,nums[i],visited);
+    }
+}
+
+
+or
+
+
+// tle
+
+
+class Solution {
+    public int arrayNesting(int[] nums) {
+        int n = nums.length;
+        int ans = Integer.MIN_VALUE;
+        for(int i = 0 ; i < n ; i++){
+            HashSet<Integer> hs = new HashSet<>();
+            hs.add(nums[i]);
+            int x = nums[i];
+            while(!hs.contains(nums[x])){
+                hs.add(nums[x]);
+                x = nums[x];
+            }
+            ans = Math.max(ans , hs.size());
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
