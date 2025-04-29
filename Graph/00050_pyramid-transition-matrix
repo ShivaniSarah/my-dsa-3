@@ -1,0 +1,312 @@
+https://leetcode.com/problems/pyramid-transition-matrix/description/
+
+
+756. Pyramid Transition Matrix
+Medium
+Topics
+Companies
+You are stacking blocks to form a pyramid. Each block has a color, which is represented by a single letter. Each row of blocks contains one less block than the row beneath it and is centered on top.
+
+To make the pyramid aesthetically pleasing, there are only specific triangular patterns that are allowed. A triangular pattern consists of a single block stacked on top of two blocks. The patterns are given as a list of three-letter strings allowed, where the first two characters of a pattern represent the left and right bottom blocks respectively, and the third character is the top block.
+
+For example, "ABC" represents a triangular pattern with a 'C' block stacked on top of an 'A' (left) and 'B' (right) block. Note that this is different from "BAC" where 'B' is on the left bottom and 'A' is on the right bottom.
+You start with a bottom row of blocks bottom, given as a single string, that you must use as the base of the pyramid.
+
+Given bottom and allowed, return true if you can build the pyramid all the way to the top such that every triangular pattern in the pyramid is in allowed, or false otherwise.
+
+ 
+
+Example 1:
+
+
+Input: bottom = "BCD", allowed = ["BCC","CDE","CEA","FFF"]
+Output: true
+Explanation: The allowed triangular patterns are shown on the right.
+Starting from the bottom (level 3), we can build "CE" on level 2 and then build "A" on level 1.
+There are three triangular patterns in the pyramid, which are "BCC", "CDE", and "CEA". All are allowed.
+Example 2:
+
+
+Input: bottom = "AAAA", allowed = ["AAB","AAC","BCD","BBE","DEF"]
+Output: false
+Explanation: The allowed triangular patterns are shown on the right.
+Starting from the bottom (level 4), there are multiple ways to build level 3, but trying all the possibilites, you will get always stuck before building level 1.
+ 
+
+Constraints:
+
+2 <= bottom.length <= 6
+0 <= allowed.length <= 216
+allowed[i].length == 3
+The letters in all input strings are from the set {'A', 'B', 'C', 'D', 'E', 'F'}.
+All the values of allowed are unique.
+
+
+
+# java
+
+
+class Solution {
+    private int[][] f = new int[7][7];
+    private Map<String, Boolean> dp = new HashMap<>();
+
+    public boolean pyramidTransition(String bottom, List<String> allowed) {
+        for (String s : allowed) {
+            int a = s.charAt(0) - 'A', b = s.charAt(1) - 'A';
+            f[a][b] |= 1 << (s.charAt(2) - 'A');
+        }
+        return dfs(bottom, new StringBuilder());
+    }
+
+    boolean dfs(String s, StringBuilder t) {
+        if (s.length() == 1) {
+            return true;
+        }
+        if (t.length() + 1 == s.length()) {
+            return dfs(t.toString(), new StringBuilder());
+        }
+        String k = s + "." + t.toString();
+        if (dp.containsKey(k)) {
+            return dp.get(k);
+        }
+        int a = s.charAt(t.length()) - 'A', b = s.charAt(t.length() + 1) - 'A';
+        int cs = f[a][b];
+        for (int i = 0; i < 7; ++i) {
+            if (((cs >> i) & 1) == 1) {
+                t.append((char) ('A' + i));
+                if (dfs(s, t)) {
+                    dp.put(k, true);
+                    return true;
+                }
+                t.deleteCharAt(t.length() - 1);
+            }
+        }
+        dp.put(k, false);
+        return false;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public boolean pyramidTransition(String bottom, List<String> allowed) {
+        int[][] T = new int[1 << 7][1 << 7];
+        for (String triple: allowed) {
+            int u = 1 << (triple.charAt(0) - 'A');
+            int v = 1 << (triple.charAt(1) - 'A');
+            int w = 1 << (triple.charAt(2) - 'A');
+            for (int b1 = 0; b1 < (1 << 7); ++b1) if ((u & b1) > 0)
+                for (int b2 = 0; b2 < (1 << 7); ++b2) if ((v & b2) > 0)
+                    T[b1][b2] |= w;
+        }
+
+        int[] state = new int[bottom.length()];
+        int t = 0;
+        for (char c: bottom.toCharArray())
+            state[t++] = 1 << (c - 'A');
+        while (t-- > 1)
+            for (int i = 0; i < t; ++i)
+                state[i] = T[state[i]][state[i+1]];
+        return state[0] > 0;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    int[][] T;
+    Set<Long> seen;
+
+    public boolean pyramidTransition(String bottom, List<String> allowed) {
+        T = new int[7][7];
+        for (String a: allowed)
+            T[a.charAt(0) - 'A'][a.charAt(1) - 'A'] |= 1 << (a.charAt(2) - 'A');
+
+        seen = new HashSet();
+        int N = bottom.length();
+        int[][] A = new int[N][N];
+        int t = 0;
+        for (char c: bottom.toCharArray())
+            A[N-1][t++] = c - 'A';
+        return solve(A, 0, N-1, 0);
+    }
+
+    //A[i] - the ith row of the pyramid
+    //R - integer representing the current row of the pyramid
+    //N - length of current row we are calculating
+    //i - index of how far in the current row we are calculating
+    //Returns true iff pyramid can be built
+    public boolean solve(int[][] A, long R, int N, int i) {
+        if (N == 1 && i == 1) { // If successfully placed entire pyramid
+            return true;
+        } else if (i == N) {
+            if (seen.contains(R)) return false; // If we've already tried this row, give up
+            seen.add(R); // Add row to cache
+            return solve(A, 0, N-1, 0); // Calculate next row
+        } else {
+            // w's jth bit is true iff block #j could be
+            // a parent of A[N][i] and A[N][i+1]
+            int w = T[A[N][i]][A[N][i+1]];
+            // for each set bit in w...
+            for (int b = 0; b < 7; ++b) if (((w >> b) & 1) != 0) {
+                A[N-1][i] = b; //set parent to be equal to block #b
+                //If rest of pyramid can be built, return true
+                //R represents current row, now with ith bit set to b+1
+                // in base 8.
+                if (solve(A, R * 8 + (b+1), N, i+1)) return true;
+            }
+            return false;
+        }
+    }
+}
+
+
+or
+
+
+class Solution {
+        public boolean pyramidTransition(String bottom, List<String> allowed) {
+        final int[][] pyramid = new int[8][8];
+        // if BCD, the depth is 2, so depth = bottom.length() - 1
+        final int depth = bottom.length() - 1;
+        // convert char to int, then fill the bottom of pyramid
+        for (int i = 0; i < bottom.length(); i++) {
+            pyramid[depth][i] = bottom.charAt(i) - 'A';
+        }
+        // 3 dimensional array to store allowed
+        final boolean[][][] candidates = new boolean[7][7][7];
+        // A -> 0, B -> 1, c -> 2 ...
+        for (String a : allowed) {
+            candidates[a.charAt(0) - 'A'][a.charAt(1) - 'A'][a.charAt(2) - 'A'] = true;
+        }
+        // dfs to solve pyramid
+        return dfs(pyramid, depth, 0, candidates);
+    }
+
+    private boolean dfs(int[][] pyramid, int depth, int index, boolean[][][] candidates) {
+        // end condition, if we can reach the top of pyramid, return true
+        if (depth == 0 && index == 0) {
+            return true;
+        }
+        // depth == index means that we finish this level, now go to level - 1
+        if (depth == index) {
+            return dfs(pyramid, depth - 1, 0, candidates);
+        }
+        // foreach index, we retrieve the itself and the int after it.
+        final int first = pyramid[depth][index];
+        final int second = pyramid[depth][index + 1];
+        // check whether we could find the third char(represent by int) in candidates
+        for (int i = 0; i < 7; i++) {
+            if (candidates[first][second][i]) {
+                // if found, set it to the position [level - 1][index]
+                pyramid[depth - 1][index] = i;
+                // then dfs, if return true, it means we could reach the top, else try other possibility
+                if (dfs(pyramid, depth, index + 1, candidates)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+}
+
+
+or
+
+
+// bfs + trie
+
+
+class Node{
+    Node[] letters=new Node[6];
+}
+class Solution {
+    Node root=new Node();
+    public boolean pyramidTransition(String bottom, List<String> allowed) {
+        for(String s: allowed){
+            addToTrie(root, s.toCharArray(), 0);
+        }
+        ArrayDeque<char[]> q=new ArrayDeque<>();
+        q.addFirst(bottom.toCharArray());
+        boolean flag=true;
+        while(!q.isEmpty()){
+            char[] arr=q.pollLast();
+            if(arr.length==1){
+                return true;
+            }
+            List<char[]> temp=new ArrayList<>();
+            for(int i=0;i<arr.length-1;i++){
+                List<char[]> newTemp=new ArrayList<>();
+                List<Character> list=lookFor(arr[i], arr[i+1]);
+                for(char c: list){
+                    if(temp.isEmpty()){
+                        if(i==0){
+                            char[] x=new char[arr.length-1];
+                            x[i]=c;
+                            newTemp.add(x);
+                        }else{
+                            return false;
+                        }
+                    }else{
+                        for(char[] m:temp){
+                            char[] x=m.clone();
+                            x[i]=c;
+                            newTemp.add(x);
+                            // System.out.println(Arrays.toString(m)+" "+Arrays.toString(x));
+                        }
+                    }
+                    // System.out.println(i);
+                    // for(char[] arr1: newTemp){
+                    //     System.out.print(Arrays.toString(arr1));
+                    // }
+                    // System.out.println("");
+                }
+                temp=newTemp;
+                // System.out.println("temp");
+                //     for(char[] arr1: temp){
+                //         System.out.print(Arrays.toString(arr1));
+                //     }
+                // System.out.println("");
+                // if(newTemp.isEmpty()){
+                //     return false;
+                // }
+            }
+            q.addAll(temp);
+        
+            // System.out.println("");
+            // for(char[] arr1: q){
+            //     System.out.print(Arrays.toString(arr1));
+            // }
+        }
+        return false;
+    }
+    public List<Character> lookFor(char a, char b){
+        ArrayList<Character> ans=new ArrayList<>();
+        if(root.letters[a-'A']!=null){
+            if(root.letters[a-'A'].letters[b-'A']!=null){
+                for(int i=0;i<6;i++){
+                    if(root.letters[a-'A'].letters[b-'A'].letters[i]!=null){
+                        ans.add((char)(i+'A'));
+                    }
+                }
+            }
+        }
+        // System.out.println(a+" "+b+" "+ans);
+        return ans;
+    }
+    public void addToTrie(Node node, char[] s, int index){
+        if(index==s.length){
+            return;
+        }
+        char c=s[index];
+        if(node.letters[c-'A']==null){
+            node.letters[c-'A']=new Node();
+        }
+        addToTrie(node.letters[c-'A'], s, index+1);
+    }
+}
