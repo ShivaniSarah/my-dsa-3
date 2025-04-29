@@ -53,4 +53,108 @@ The input is generated such that if team a is stronger than team b and team b is
 
 # java
 
+class Solution {
+  public int findChampion(int n, int[][] edges) {
+    int ans = -1;
+    int count = 0;
+    int[] inDegrees = new int[n];
 
+    for (int[] edge : edges) {
+      final int v = edge[1];
+      ++inDegrees[v];
+    }
+
+    for (int i = 0; i < n; ++i)
+      if (inDegrees[i] == 0) {
+        ++count;
+        ans = i;
+      }
+
+    return count > 1 ? -1 : ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int findChampion(int n, int[][] edges) {
+        int[] indeg = new int[n];
+        for (var e : edges) {
+            ++indeg[e[1]];
+        }
+        int ans = -1, cnt = 0;
+        for (int i = 0; i < n; ++i) {
+            if (indeg[i] == 0) {
+                ++cnt;
+                ans = i;
+            }
+        }
+        return cnt == 1 ? ans : -1;
+    }
+}
+
+
+
+or
+
+
+
+public class Solution {
+
+    public int findChampion(int n, int[][] edges) {
+        // Initialize the indegree array to track the number of incoming edges for each team
+        int[] indegree = new int[n];
+
+        // Store the indegree of each team
+        for (int[] edge : edges) {
+            indegree[edge[1]]++;
+        }
+
+        int champ = -1;
+        int champCount = 0;
+
+        // Iterate through all teams to find those with an indegree of 0
+        for (int i = 0; i < n; i++) {
+            // If the team can be a champion, store the team number and increment the count
+            if (indegree[i] == 0) {
+                champCount++;
+                champ = i;
+            }
+        }
+
+        // If more than one team can be a champion, return -1, otherwise return the champion team number
+        return champCount > 1 ? -1 : champ;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int findChampion(int n, int[][] edges) {
+        boolean[] isUndefeated = new boolean[n];
+        Arrays.fill(isUndefeated, true);
+        
+        for (int[] edge : edges) {
+            int winner = edge[0];
+            int loser = edge[1];
+            isUndefeated[loser] = false;
+        }
+        
+        int champion = -1;
+        int championCount = 0;
+        
+        for (int team = 0; team < n; team++) {
+            if (isUndefeated[team]) {
+                champion = team;
+                championCount++;
+            }
+        }
+        
+        return championCount == 1 ? champion : -1;
+    }
+}
