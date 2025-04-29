@@ -1,0 +1,676 @@
+https://leetcode.com/problems/maximize-amount-after-two-days-of-conversions/description/
+
+
+3387. Maximize Amount After Two Days of Conversions
+Medium
+Topics
+Companies
+Hint
+You are given a string initialCurrency, and you start with 1.0 of initialCurrency.
+
+You are also given four arrays with currency pairs (strings) and rates (real numbers):
+
+pairs1[i] = [startCurrencyi, targetCurrencyi] denotes that you can convert from startCurrencyi to targetCurrencyi at a rate of rates1[i] on day 1.
+pairs2[i] = [startCurrencyi, targetCurrencyi] denotes that you can convert from startCurrencyi to targetCurrencyi at a rate of rates2[i] on day 2.
+Also, each targetCurrency can be converted back to its corresponding startCurrency at a rate of 1 / rate.
+You can perform any number of conversions, including zero, using rates1 on day 1, followed by any number of additional conversions, including zero, using rates2 on day 2.
+
+Return the maximum amount of initialCurrency you can have after performing any number of conversions on both days in order.
+
+Note: Conversion rates are valid, and there will be no contradictions in the rates for either day. The rates for the days are independent of each other.
+
+ 
+
+Example 1:
+
+Input: initialCurrency = "EUR", pairs1 = [["EUR","USD"],["USD","JPY"]], rates1 = [2.0,3.0], pairs2 = [["JPY","USD"],["USD","CHF"],["CHF","EUR"]], rates2 = [4.0,5.0,6.0]
+
+Output: 720.00000
+
+Explanation:
+
+To get the maximum amount of EUR, starting with 1.0 EUR:
+
+On Day 1:
+Convert EUR to USD to get 2.0 USD.
+Convert USD to JPY to get 6.0 JPY.
+On Day 2:
+Convert JPY to USD to get 24.0 USD.
+Convert USD to CHF to get 120.0 CHF.
+Finally, convert CHF to EUR to get 720.0 EUR.
+Example 2:
+
+Input: initialCurrency = "NGN", pairs1 = [["NGN","EUR"]], rates1 = [9.0], pairs2 = [["NGN","EUR"]], rates2 = [6.0]
+
+Output: 1.50000
+
+Explanation:
+
+Converting NGN to EUR on day 1 and EUR to NGN using the inverse rate on day 2 gives the maximum amount.
+
+Example 3:
+
+Input: initialCurrency = "USD", pairs1 = [["USD","EUR"]], rates1 = [1.0], pairs2 = [["EUR","JPY"]], rates2 = [10.0]
+
+Output: 1.00000
+
+Explanation:
+
+In this example, there is no need to make any conversions on either day.
+
+ 
+
+Constraints:
+
+1 <= initialCurrency.length <= 3
+initialCurrency consists only of uppercase English letters.
+1 <= n == pairs1.length <= 10
+1 <= m == pairs2.length <= 10
+pairs1[i] == [startCurrencyi, targetCurrencyi]
+pairs2[i] == [startCurrencyi, targetCurrencyi]
+1 <= startCurrencyi.length, targetCurrencyi.length <= 3
+startCurrencyi and targetCurrencyi consist only of uppercase English letters.
+rates1.length == n
+rates2.length == m
+1.0 <= rates1[i], rates2[i] <= 10.0
+The input is generated such that there are no contradictions or cycles in the conversion graphs for either day.
+The input is generated such that the output is at most 5 * 1010.
+
+
+
+# java
+
+
+class Solution {
+  public double maxAmount(String initialCurrency, List<List<String>> pairs1, double[] rates1,
+                          List<List<String>> pairs2, double[] rates2) {
+    // dp[currency] := the maximum amount of money to convert to `currency`
+    Map<String, Double> dp = new HashMap<>();
+    dp.put(initialCurrency, 1.0);
+    bellman(dp, pairs1, rates1);
+    bellman(dp, pairs2, rates2);
+    return dp.get(initialCurrency);
+  }
+
+  private void bellman(Map<String, Double> dp, List<List<String>> pairs, double[] rates) {
+    for (int relax = 0; relax < pairs.size(); ++relax)
+      for (int i = 0; i < pairs.size(); ++i) {
+        final String start = pairs.get(i).get(0);
+        final String target = pairs.get(i).get(1);
+        dp.merge(target, dp.getOrDefault(start, 0.0) * rates[i], Double::max);
+        dp.merge(start, dp.getOrDefault(target, 0.0) / rates[i], Double::max);
+      }
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public double maxAmount(String initialCurrency, List<List<String>> pairs1, double[] rates1,
+        List<List<String>> pairs2, double[] rates2) {
+        Map<String, Double> d1 = build(pairs1, rates1, initialCurrency);
+        Map<String, Double> d2 = build(pairs2, rates2, initialCurrency);
+        double ans = 0;
+        for (Map.Entry<String, Double> entry : d2.entrySet()) {
+            String currency = entry.getKey();
+            double rate = entry.getValue();
+            if (d1.containsKey(currency)) {
+                ans = Math.max(ans, d1.get(currency) / rate);
+            }
+        }
+        return ans;
+    }
+
+    private Map<String, Double> build(List<List<String>> pairs, double[] rates, String init) {
+        Map<String, List<Pair<String, Double>>> g = new HashMap<>();
+        Map<String, Double> d = new HashMap<>();
+        for (int i = 0; i < pairs.size(); ++i) {
+            String a = pairs.get(i).get(0);
+            String b = pairs.get(i).get(1);
+            double r = rates[i];
+            g.computeIfAbsent(a, k -> new ArrayList<>()).add(new Pair<>(b, r));
+            g.computeIfAbsent(b, k -> new ArrayList<>()).add(new Pair<>(a, 1 / r));
+        }
+        dfs(g, d, init, 1.0);
+        return d;
+    }
+
+    private void dfs(
+        Map<String, List<Pair<String, Double>>> g, Map<String, Double> d, String a, double v) {
+        if (d.containsKey(a)) {
+            return;
+        }
+
+        d.put(a, v);
+        for (Pair<String, Double> pair : g.getOrDefault(a, List.of())) {
+            String b = pair.getKey();
+            double r = pair.getValue();
+            if (!d.containsKey(b)) {
+                dfs(g, d, b, v * r);
+            }
+        }
+    }
+}
+
+
+
+
+or
+
+
+
+class Solution 
+{
+    public double maxAmount(String initialCurrency, List<List<String>> pairs1, double[] rates1, List<List<String>> pairs2, double[] rates2) 
+    {
+        // Graph for Day 1
+        Map<String, Map<String, Double>> graph1 = buildGraph(pairs1, rates1);
+        // Graph for Day 2
+        Map<String, Map<String, Double>> graph2 = buildGraph(pairs2, rates2);
+        
+        // BFS/DFS to calculate maximum values
+        Map<String, Double> day1Amounts = getMaxAmounts(initialCurrency, graph1);
+        Map<String, Double> day2Amounts = getMaxAmounts(initialCurrency, graph2, day1Amounts);
+        
+        // Return the maximum value for the initial currency after Day 2
+        return day2Amounts.getOrDefault(initialCurrency, 0.0);
+    }
+    
+    private Map<String, Map<String, Double>> buildGraph(List<List<String>> pairs, double[] rates) 
+    {
+        Map<String, Map<String, Double>> graph = new HashMap<>();
+        for (int i = 0; i < pairs.size(); i++) 
+        {
+            String start = pairs.get(i).get(0);
+            String target = pairs.get(i).get(1);
+            double rate = rates[i];
+            
+            graph.putIfAbsent(start, new HashMap<>());
+            graph.putIfAbsent(target, new HashMap<>());
+            graph.get(start).put(target, rate);
+            graph.get(target).put(start, 1 / rate);
+        }
+        return graph;
+    }
+    
+    private Map<String, Double> getMaxAmounts(String startCurrency, Map<String, Map<String, Double>> graph) 
+    {
+        Map<String, Double> maxAmounts = new HashMap<>();
+        maxAmounts.put(startCurrency, 1.0);
+        
+        Queue<String> queue = new LinkedList<>();
+        queue.offer(startCurrency);
+        
+        while (!queue.isEmpty()) 
+        {
+            String current = queue.poll();
+            double currentAmount = maxAmounts.get(current);
+            
+            for (Map.Entry<String, Double> entry : graph.getOrDefault(current, new HashMap<>()).entrySet()) 
+            {
+                String neighbor = entry.getKey();
+                double rate = entry.getValue();
+                double newAmount = currentAmount * rate;
+                
+                if (newAmount > maxAmounts.getOrDefault(neighbor, 0.0)) 
+                {
+                    maxAmounts.put(neighbor, newAmount);
+                    queue.offer(neighbor);
+                }
+            }
+        }
+        
+        return maxAmounts;
+    }
+    
+    private Map<String, Double> getMaxAmounts(String startCurrency, Map<String, Map<String, Double>> graph, Map<String, Double> initialAmounts) 
+    {
+        Map<String, Double> maxAmounts = new HashMap<>(initialAmounts);
+        Queue<String> queue = new LinkedList<>(initialAmounts.keySet());
+        
+        while (!queue.isEmpty()) 
+        {
+            String current = queue.poll();
+            double currentAmount = maxAmounts.get(current);
+            
+            for (Map.Entry<String, Double> entry : graph.getOrDefault(current, new HashMap<>()).entrySet()) 
+            {
+                String neighbor = entry.getKey();
+                double rate = entry.getValue();
+                double newAmount = currentAmount * rate;
+                
+                if (newAmount > maxAmounts.getOrDefault(neighbor, 0.0)) 
+                {
+                    maxAmounts.put(neighbor, newAmount);
+                    queue.offer(neighbor);
+                }
+            }
+        }
+        
+        return maxAmounts;
+    }
+}
+
+
+
+or
+
+
+
+class Solution 
+{
+       public double maxAmount(String init, List<List<String>> pairs1, double[] rates1, List<List<String>> pairs2, double[] rates2) {
+        Map<String, Double> dp = new HashMap<>();
+        dp.put(init, 1.0);
+        for (int i = 0; i < 10; ++i) {
+            for (int j = 0; j < pairs1.size(); ++j) {
+                String a = pairs1.get(j).get(0), b = pairs1.get(j).get(1);
+                dp.put(b, Math.max(dp.getOrDefault(b, 0.0), dp.getOrDefault(a, 0.0) * rates1[j]));
+                dp.put(a, Math.max(dp.getOrDefault(a, 0.0), dp.getOrDefault(b, 0.0) / rates1[j]));
+            }
+        }
+        for (int i = 0; i < 10; ++i) {
+            for (int j = 0; j < pairs2.size(); ++j) {
+                String a = pairs2.get(j).get(0), b = pairs2.get(j).get(1);
+                dp.put(b, Math.max(dp.getOrDefault(b, 0.0), dp.getOrDefault(a, 0.0) * rates2[j]));
+                dp.put(a, Math.max(dp.getOrDefault(a, 0.0), dp.getOrDefault(b, 0.0) / rates2[j]));
+            }
+        }
+        return dp.get(init);
+    }
+}
+
+
+or
+
+
+import java.util.*;
+
+class Solution {
+    // Create the graph
+    private Map<String, List<Pair>> makeGraph(List<List<String>> pairs, List<Double> rates) {
+        Map<String, List<Pair>> graph = new HashMap<>();
+
+        for (int i = 0; i < pairs.size(); i++) {
+            String s1 = pairs.get(i).get(0);
+            String s2 = pairs.get(i).get(1);
+            double cost = rates.get(i);
+
+            graph.putIfAbsent(s1, new ArrayList<>());
+            graph.putIfAbsent(s2, new ArrayList<>());
+
+            graph.get(s1).add(new Pair(s2, cost));
+            graph.get(s2).add(new Pair(s1, 1.0 / cost));
+        }
+
+        return graph;
+    }
+
+    // BFS to find traversal maximum cost
+    private Map<String, Double> dfs(String initial, Map<String, List<Pair>> graph, double initialCost) {
+        Map<String, Double> costMap = new HashMap<>();
+        Queue<Pair> queue = new LinkedList<>();
+
+        queue.add(new Pair(initial, initialCost));
+        costMap.put(initial, initialCost);
+
+        while (!queue.isEmpty()) {
+            Pair current = queue.poll();
+            String node = current.node;
+            double cost = current.cost;
+
+            for (Pair neighbor : graph.get(node)) {
+                double amount = cost * neighbor.cost;
+                if (amount > costMap.getOrDefault(neighbor.node, 0.0)) {
+                    queue.add(new Pair(neighbor.node, amount));
+                    costMap.put(neighbor.node, amount);
+                }
+            }
+        }
+
+        return costMap;
+    }
+
+    public double maxAmount(String initialCurrency, List<List<String>> pairs1, List<Double> rates1, List<List<String>> pairs2, List<Double> rates2) {
+        Map<String, List<Pair>> graph1 = makeGraph(pairs1, rates1);
+        Map<String, List<Pair>> graph2 = makeGraph(pairs2, rates2);
+
+        Map<String, Double> firstAmount = dfs(initialCurrency, graph1, 1.0);
+
+        double maxAmount = 0.0;
+
+        for (Map.Entry<String, Double> entry : firstAmount.entrySet()) {
+            String node = entry.getKey();
+            double cost = entry.getValue();
+
+            Map<String, Double> secondAmount = dfs(node, graph2, cost);
+            maxAmount = Math.max(maxAmount, secondAmount.getOrDefault(initialCurrency, 0.0));
+        }
+
+        return maxAmount;
+    }
+}
+
+class Pair {
+    String node;
+    double cost;
+
+    Pair(String node, double cost) {
+        this.node = node;
+        this.cost = cost;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public double maxAmount(String initialCurrency, List<List<String>> pairs1, double[] rates1, List<List<String>> pairs2, double[] rates2) {
+        Map<String, Map<String,Double>> day1Path = buildGraph(pairs1,rates1);
+        Map<String, Map<String,Double>> day2Path = buildGraph(pairs2,rates2);
+
+        Map<String,Double> maxAmountOnDay1 = getMaxAmountUsingBFS(initialCurrency,day1Path);
+        Map<String,Double> maxAmountOnDay2 = getMaxAmountUsingBFS(initialCurrency,day2Path,maxAmountOnDay1);
+
+        return maxAmountOnDay2.getOrDefault(initialCurrency,0.0);
+    }
+
+    private Map<String,Double> getMaxAmountUsingBFS(String initialCurrency, Map<String, Map<String,Double>> day2Path, Map<String,Double> maxAmountOnDay1){
+        Map<String,Double> maxAmountOnDay2 = new HashMap<>(maxAmountOnDay1);
+        Queue<String> queue = new LinkedList<>(maxAmountOnDay1.keySet());
+
+        while(!queue.isEmpty()){
+            String currentCurrency = queue.poll();
+            double currentRates = maxAmountOnDay2.get(currentCurrency);
+
+                for(Map.Entry<String,Double> neighbour : day2Path.getOrDefault(currentCurrency, new HashMap<>()).entrySet()){
+                    String destination = neighbour.getKey();
+                    double destinationRates = neighbour.getValue();
+
+                    double nextRates = currentRates * destinationRates;
+
+                    if(nextRates > maxAmountOnDay2.getOrDefault(destination, 0.0)){
+                        maxAmountOnDay2.put(destination, nextRates);
+                        queue.offer(destination);
+                    }
+                }
+            
+        }
+        return maxAmountOnDay2;
+
+    }
+
+    private Map<String,Double> getMaxAmountUsingBFS(String initialCurrency, Map<String, Map<String,Double>> day1Path){
+        
+        Map<String,Double> maxAmountOnDay1 = new HashMap<>();
+        maxAmountOnDay1.put(initialCurrency, 1.0);
+
+        Queue<String> queue = new LinkedList<>();
+        queue.offer(initialCurrency);
+
+        while(!queue.isEmpty()){
+            String currentCurrency = queue.poll();
+            double currentRates = maxAmountOnDay1.get(currentCurrency);
+
+            for(Map.Entry<String,Double> neighbour : day1Path.getOrDefault(currentCurrency, new HashMap<>()).entrySet()){
+                    String destination = neighbour.getKey();
+                    double destinationRates = neighbour.getValue();
+
+                    double nextRates = currentRates * destinationRates;
+
+                    if(nextRates > maxAmountOnDay1.getOrDefault(destination, 0.0)){
+                        maxAmountOnDay1.put(destination, nextRates);
+                        queue.offer(destination);
+                    }
+            }
+        }
+        return maxAmountOnDay1;
+    }
+
+    private Map<String, Map<String,Double>> buildGraph(List<List<String>> pairs, double[] rates){
+        Map<String, Map<String,Double>> adjList = new HashMap<>();
+        int ratesIndex = 0;
+
+        for(List<String> pair : pairs){
+
+            String source = pair.get(0);
+            String destination = pair.get(1);
+            double rate = rates[ratesIndex++];
+
+            adjList.putIfAbsent(source,new HashMap<>());
+            adjList.putIfAbsent(destination,new HashMap<>());
+            adjList.get(source).put(destination,rate);
+            adjList.get(destination).put(source,1/rate);
+        }
+
+        return adjList;
+    }
+}
+
+
+or
+
+
+class Solution {
+    
+    List<List<String>> pairs1;
+    double[] rates1;
+    List<List<String>> pairs2;
+    double[] rates2;
+    String initialCurrency;
+    double maxFinal = 1.0;
+    
+    public double maxAmount(String initialCurrency, List<List<String>> pairs1, double[] rates1, List<List<String>> pairs2, double[] rates2) {
+          
+        this.initialCurrency = initialCurrency;
+        this.pairs1 = pairs1;
+        this.rates1 = rates1;
+        this.pairs2 = pairs2;
+        this.rates2 = rates2;
+        boolean[] used = new boolean[pairs1.size()];
+        day1(initialCurrency, 1.0, used);
+        return maxFinal;
+    }
+    
+    private void day1(String currency, double value, boolean[] used) {
+	
+        boolean used2[] = new boolean[pairs2.size()];
+        
+        List<String> pair;
+        String pCur1;
+        String pCur2;
+        
+        // order doesn't really matter since they're mutiplied
+        for (int x = 0; x < pairs1.size(); x++) {
+            if (!used[x]) {
+                used[x] = true;
+                pair = pairs1.get(x);
+                pCur1 = pair.get(0);
+                pCur2 = pair.get(1);
+                if (currency.equals(pCur1)) {
+                    // try another day1 conversion
+                    day1(pCur2, value * rates1[x], used);
+                    // try converting after 1 conversion
+                    day2(pCur2, value * rates1[x], used2);
+                } else if (currency.equals(pCur2)) {
+                    day1(pCur1, value * 1.0 / rates1[x], used); 
+                    // try converting after 1 conversion
+                    day2(pCur1, value * 1.0 / rates1[x], used2);
+                }
+                used[x] = false;
+            }
+        }
+    }
+    
+    private void day2(String currency, double value, boolean used[]) {
+        if (currency.equals(initialCurrency)) {
+            if (value > maxFinal) {
+                maxFinal = value;
+            }
+            return;
+        }
+        
+        List<String> pair; 
+        String pCur1;
+        String pCur2;
+        
+        for (int x = 0; x < pairs2.size(); x++) {
+            if (!used[x]) {
+                used[x] = true;
+                pair = pairs2.get(x);
+                pCur1 = pair.get(0);
+                pCur2 = pair.get(1);
+                if (currency.equals(pCur1)) {
+                    // try another conversion
+                    day2(pCur2, value * rates2[x], used);
+                } else if (currency.equals(pCur2)) {
+                    // try another conversion
+                    day2(pCur1, value * 1.0 / rates2[x], used);
+                }
+                used[x] = false;
+            }
+        }
+    }
+}
+
+or
+
+
+import java.util.*;
+
+class Solution {
+    private Map<String, List<Pair>> makeGraph(List<List<String>> pairs, List<Double> rates) {
+        Map<String, List<Pair>> graph = new HashMap<>();
+
+        for (int i = 0; i < pairs.size(); i++) {
+            String s1 = pairs.get(i).get(0);
+            String s2 = pairs.get(i).get(1);
+            double cost = rates.get(i);
+
+            graph.putIfAbsent(s1, new ArrayList<>());
+            graph.putIfAbsent(s2, new ArrayList<>());
+
+            graph.get(s1).add(new Pair(s2, cost));
+            graph.get(s2).add(new Pair(s1, 1.0 / cost));
+        }
+
+        return graph;
+    }
+
+    private Map<String, Double> dfs(String initial, Map<String, List<Pair>> graph, double initialCost) {
+        Map<String, Double> costMap = new HashMap<>();
+        Queue<Pair> queue = new LinkedList<>();
+
+        queue.add(new Pair(initial, initialCost));
+        costMap.put(initial, initialCost);
+
+        while (!queue.isEmpty()) {
+            Pair current = queue.poll();
+            String node = current.node;
+            double cost = current.cost;
+
+            for (Pair neighbor : graph.getOrDefault(node, Collections.emptyList())) {
+                double amount = cost * neighbor.cost;
+                if (amount > costMap.getOrDefault(neighbor.node, 0.0)) {
+                    queue.add(new Pair(neighbor.node, amount));
+                    costMap.put(neighbor.node, amount);
+                }
+            }
+        }
+
+        return costMap;
+    }
+
+    public double maxAmount(String initialCurrency, List<List<String>> pairs1, double[] rates1, List<List<String>> pairs2, double[] rates2) {
+        List<Double> listRates1 = new ArrayList<>();
+        for (double rate : rates1) listRates1.add(rate);
+
+        List<Double> listRates2 = new ArrayList<>();
+        for (double rate : rates2) listRates2.add(rate);
+
+        Map<String, List<Pair>> graph1 = makeGraph(pairs1, listRates1);
+        Map<String, List<Pair>> graph2 = makeGraph(pairs2, listRates2);
+
+        Map<String, Double> firstAmount = dfs(initialCurrency, graph1, 1.0);
+        double maxAmount = 0.0;
+
+        for (Map.Entry<String, Double> entry : firstAmount.entrySet()) {
+            String node = entry.getKey();
+            double cost = entry.getValue();
+
+            Map<String, Double> secondAmount = dfs(node, graph2, cost);
+            maxAmount = Math.max(maxAmount, secondAmount.getOrDefault(initialCurrency, 0.0));
+        }
+
+        return maxAmount;
+    }
+}
+
+class Pair {
+    String node;
+    double cost;
+
+    Pair(String node, double cost) {
+        this.node = node;
+        this.cost = cost;
+    }
+}
+
+
+
+
+or
+
+
+import java.util.*;
+
+class Solution {
+    public void bellmanFord(HashMap<String, Double> mp, List<List<String>> pairs, List<Double> rates) {
+        int n = pairs.size();
+        for (int i = 0; i < n; i++) { // Run n times for relaxation
+            for (int j = 0; j < n; j++) {
+                String u = pairs.get(j).get(0);
+                String v = pairs.get(j).get(1);
+                double rate = rates.get(j);
+
+                double uVal = mp.getOrDefault(u, 0.0);
+                double vVal = mp.getOrDefault(v, 0.0);
+
+                if (uVal * rate > vVal) {
+                    mp.put(v, uVal * rate);
+                }
+                if (vVal * (1.0 / rate) > uVal) {
+                    mp.put(u, vVal * (1.0 / rate));
+                }
+            }
+        }
+    }
+
+    public double maxAmount(String initialCurrency, List<List<String>> pairs1, List<Double> rates1, List<List<String>> pairs2, List<Double> rates2) {
+        HashMap<String, Double> mp = new HashMap<>();
+        mp.put(initialCurrency, 1.0);
+
+        bellmanFord(mp, pairs1, rates1);
+        bellmanFord(mp, pairs2, rates2);
+
+        return mp.getOrDefault(initialCurrency, 0.0);
+    }
+
+    public double maxAmount(String initialCurrency, List<List<String>> pairs1, double[] rates1, List<List<String>> pairs2, double[] rates2) {
+        List<Double> rateList1 = new ArrayList<>();
+        for (double r : rates1) rateList1.add(r);
+
+        List<Double> rateList2 = new ArrayList<>();
+        for (double r : rates2) rateList2.add(r);
+
+        return maxAmount(initialCurrency, pairs1, rateList1, pairs2, rateList2);
+    }
+}
+
+
+
