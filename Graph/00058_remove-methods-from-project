@@ -1,0 +1,348 @@
+https://leetcode.com/problems/remove-methods-from-project/description/
+
+
+3310. Remove Methods From Project
+Medium
+Topics
+Companies
+Hint
+You are maintaining a project that has n methods numbered from 0 to n - 1.
+
+You are given two integers n and k, and a 2D integer array invocations, where invocations[i] = [ai, bi] indicates that method ai invokes method bi.
+
+There is a known bug in method k. Method k, along with any method invoked by it, either directly or indirectly, are considered suspicious and we aim to remove them.
+
+A group of methods can only be removed if no method outside the group invokes any methods within it.
+
+Return an array containing all the remaining methods after removing all the suspicious methods. You may return the answer in any order. If it is not possible to remove all the suspicious methods, none should be removed.
+
+ 
+
+Example 1:
+
+Input: n = 4, k = 1, invocations = [[1,2],[0,1],[3,2]]
+
+Output: [0,1,2,3]
+
+Explanation:
+
+
+
+Method 2 and method 1 are suspicious, but they are directly invoked by methods 3 and 0, which are not suspicious. We return all elements without removing anything.
+
+Example 2:
+
+Input: n = 5, k = 0, invocations = [[1,2],[0,2],[0,1],[3,4]]
+
+Output: [3,4]
+
+Explanation:
+
+
+
+Methods 0, 1, and 2 are suspicious and they are not directly invoked by any other method. We can remove them.
+
+Example 3:
+
+Input: n = 3, k = 2, invocations = [[1,2],[0,1],[2,0]]
+
+Output: []
+
+Explanation:
+
+
+
+All methods are suspicious. We can remove them.
+
+ 
+
+Constraints:
+
+1 <= n <= 105
+0 <= k <= n - 1
+0 <= invocations.length <= 2 * 105
+invocations[i] == [ai, bi]
+0 <= ai, bi <= n - 1
+ai != bi
+invocations[i] != invocations[j]
+
+
+
+# java
+
+
+class Solution {
+  public List<Integer> remainingMethods(int n, int k, int[][] invocations) {
+    List<Integer> ans = new ArrayList<>();
+    List<Integer>[] graph = new List[n];
+
+    for (int i = 0; i < n; ++i)
+      graph[i] = new ArrayList<>();
+
+    for (int[] invocation : invocations) {
+      final int u = invocation[0];
+      final int v = invocation[1];
+      graph[u].add(v);
+    }
+
+    Queue<Integer> q = new ArrayDeque<>(List.of(k));
+    boolean[] seen = new boolean[n];
+    seen[k] = true;
+
+    while (!q.isEmpty())
+      for (int sz = q.size(); sz > 0; --sz)
+        for (final int v : graph[q.poll()])
+          if (!seen[v]) {
+            q.offer(v);
+            seen[v] = true;
+          }
+
+    for (int u = 0; u < n; ++u) {
+      if (seen[u])
+        continue;
+      for (final int v : graph[u])
+        if (seen[v]) {
+          ans = new ArrayList<>(n);
+          for (int i = 0; i < n; ++i)
+            ans.add(i);
+          return ans;
+        }
+      ans.add(u);
+    }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+    private boolean[] suspicious;
+    private boolean[] vis;
+    private List<Integer>[] f;
+    private List<Integer>[] g;
+
+    public List<Integer> remainingMethods(int n, int k, int[][] invocations) {
+        suspicious = new boolean[n];
+        vis = new boolean[n];
+        f = new List[n];
+        g = new List[n];
+        Arrays.setAll(f, i -> new ArrayList<>());
+        Arrays.setAll(g, i -> new ArrayList<>());
+        for (var e : invocations) {
+            int a = e[0], b = e[1];
+            f[a].add(b);
+            f[b].add(a);
+            g[a].add(b);
+        }
+        dfs(k);
+        for (int i = 0; i < n; ++i) {
+            if (!suspicious[i] && !vis[i]) {
+                dfs2(i);
+            }
+        }
+        List<Integer> ans = new ArrayList<>();
+        for (int i = 0; i < n; ++i) {
+            if (!suspicious[i]) {
+                ans.add(i);
+            }
+        }
+        return ans;
+    }
+
+    private void dfs(int i) {
+        suspicious[i] = true;
+        for (int j : g[i]) {
+            if (!suspicious[j]) {
+                dfs(j);
+            }
+        }
+    }
+
+    private void dfs2(int i) {
+        vis[i] = true;
+        for (int j : f[i]) {
+            if (!vis[j]) {
+                suspicious[j] = false;
+                dfs2(j);
+            }
+        }
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    
+    private void solveGraph(List<List<Integer>> adj, boolean[] vis, int k){
+        vis[k]=true;
+        
+        Stack<Integer> stck = new Stack<>();
+        stck.push(k);
+        while(!stck.isEmpty()){
+            int top = stck.pop();
+            
+            for(int ad:adj.get(top)){
+                if(!vis[ad]){
+                    vis[ad]=true;
+                    stck.push(ad);
+                }
+            }
+        }
+    }
+    
+    public List<Integer> remainingMethods(int n, int k, int[][] invocations) {
+        List<List<Integer>> adj = new ArrayList<>(n);
+        for(int i=0; i<n; i++){
+            adj.add(new ArrayList<>());
+        }
+        for(int[] invocation:invocations){
+            adj.get(invocation[0]).add(invocation[1]);
+        }
+        
+        boolean[] vis = new boolean[n];
+        solveGraph(adj, vis, k);
+        for(int i=0; i<n; i++){
+            if(!vis[i]){
+                for(int ad:adj.get(i)){
+                    if(vis[ad]){
+                        List<Integer> list = new ArrayList<>();
+                        for(int i1=0; i1<n; i1++){
+                            list.add(i1);
+                        }
+                        return list;
+                    }
+                }
+            }
+        }
+        
+        List<Integer> list = new ArrayList<>();
+        for(int i=0; i<n; i++){
+            if(!vis[i]){
+                list.add(i);
+            }
+        }
+        return list;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public void dfs(ArrayList<ArrayList<Integer>> adj,HashSet<Integer> hs,int i){
+        if(hs.contains(i))return ;
+        hs.add(i);
+        for(int node : adj.get(i)){
+            dfs(adj,hs,node);
+        }
+    }
+    public List<Integer> remainingMethods(int n, int k, int[][] invocations) {
+        List<Integer> ls= new ArrayList<>();
+        // Build a graph - directed
+        ArrayList<ArrayList<Integer>> adj = new ArrayList<>();
+        for(int i=0;i<n;i++){
+            adj.add(new ArrayList<>());
+        }
+        for(int [] edge : invocations){
+            int a = edge[0];
+            int b= edge[1];
+            adj.get(a).add(b);
+        }
+        HashSet<Integer> hs = new HashSet<>();
+        dfs(adj,hs,k);
+        boolean remove=true;
+        for(int []edges : invocations){
+            if(!hs.contains(edges[0]) && hs.contains(edges[1])){
+                remove=false;
+                break;
+            }
+        }
+        for(int i=0;i<n;i++){
+            if(!hs.contains(i)||!remove){
+                ls.add(i);
+            }
+        }
+        return ls;        
+    }
+}
+
+
+or
+
+
+
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+
+class Solution {
+    public List<Integer> remainingMethods(int n, int k, int[][] invocations) {
+        // Initialize an adjacency list to represent the graph of method invocations
+        List<List<Integer>> adjacencyList = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            adjacencyList.add(new ArrayList<>());
+        }
+
+        // Fill the adjacency list with the provided method invocations
+        for (int[] invocation : invocations) {
+            adjacencyList.get(invocation[0]).add(invocation[1]);
+        }
+
+        // 'suspicious' will track whether a method has been invoked either directly or indirectly
+        boolean[] suspicious = new boolean[n];
+
+        // Stack to perform DFS starting from the given k
+        Deque<Integer> stack = new LinkedList<>();
+        stack.push(k);
+        suspicious[k] = true;
+
+        // DFS to mark all reachable methods invoked either directly or indirectly starting from 'k'
+        while (!stack.isEmpty()) {
+            int currentMethod = stack.pop();
+
+            for (int connectedMethod : adjacencyList.get(currentMethod)) {
+                if (!suspicious[connectedMethod]) {
+                    suspicious[connectedMethod] = true;
+                    stack.push(connectedMethod);
+                }
+            }
+        }
+
+        // Check if there are any nodes (methods) that could connect a suspicious node but are not suspicious themselves
+        for (int method = 0; method < n; method++) {
+            if (!suspicious[method]) {
+                for (int connectedMethod : adjacencyList.get(method)) {
+                    if (suspicious[connectedMethod]) {
+                        // If we find any node connected to a suspicious node, return all nodes/methods
+                        List<Integer> allMethods = new ArrayList<>();
+                        for (int i = 0; i < n; i++) {
+                            allMethods.add(i);
+                        }
+                        return allMethods;
+                    }
+                }
+            }
+        }
+
+        // If we don't find any non-suspicious method connecting a suspicious method, return the remaining non-suspicious methods
+        List<Integer> remainingMethods = new ArrayList<>();
+        for (int method = 0; method < n; method++) {
+            if (!suspicious[method]) {
+                remainingMethods.add(method);
+            }
+        }
+
+        return remainingMethods;
+    }
+}
+
