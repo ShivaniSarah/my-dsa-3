@@ -1,0 +1,160 @@
+https://leetcode.com/problems/minimum-genetic-mutation/description/
+
+433. Minimum Genetic Mutation
+Medium
+Topics
+Companies
+A gene string can be represented by an 8-character long string, with choices from 'A', 'C', 'G', and 'T'.
+
+Suppose we need to investigate a mutation from a gene string startGene to a gene string endGene where one mutation is defined as one single character changed in the gene string.
+
+For example, "AACCGGTT" --> "AACCGGTA" is one mutation.
+There is also a gene bank bank that records all the valid gene mutations. A gene must be in bank to make it a valid gene string.
+
+Given the two gene strings startGene and endGene and the gene bank bank, return the minimum number of mutations needed to mutate from startGene to endGene. If there is no such a mutation, return -1.
+
+Note that the starting point is assumed to be valid, so it might not be included in the bank.
+
+ 
+
+Example 1:
+
+Input: startGene = "AACCGGTT", endGene = "AACCGGTA", bank = ["AACCGGTA"]
+Output: 1
+Example 2:
+
+Input: startGene = "AACCGGTT", endGene = "AAACGGTA", bank = ["AACCGGTA","AACCGCTA","AAACGGTA"]
+Output: 2
+ 
+
+Constraints:
+
+0 <= bank.length <= 10
+startGene.length == endGene.length == bank[i].length == 8
+startGene, endGene, and bank[i] consist of only the characters ['A', 'C', 'G', 'T'].
+
+
+# java
+
+
+class Solution {
+  public int minMutation(String startGene, String endGene, String[] bank) {
+    Set<String> bankSet = new HashSet<>(Arrays.asList(bank));
+    if (!bankSet.contains(endGene))
+      return -1;
+
+    final char[] GENES = new char[] {'A', 'C', 'G', 'T'};
+    Queue<String> q = new ArrayDeque<>(List.of(startGene));
+
+    for (int step = 1; !q.isEmpty(); ++step)
+      for (int sz = q.size(); sz > 0; --sz) {
+        StringBuilder sb = new StringBuilder(q.poll());
+        for (int j = 0; j < sb.length(); ++j) {
+          final char cache = sb.charAt(j);
+          for (final char c : GENES) {
+            sb.setCharAt(j, c);
+            final String word = sb.toString();
+            if (word.equals(endGene))
+              return step;
+            if (bankSet.contains(word)) {
+              bankSet.remove(word);
+              q.offer(word);
+            }
+          }
+          sb.setCharAt(j, cache);
+        }
+      }
+
+    return -1;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int minMutation(String start, String end, String[] bank) {
+        Set<String> s = new HashSet<>();
+        for (String b : bank) {
+            s.add(b);
+        }
+        Map<Character, String> mp = new HashMap<>(4);
+        mp.put('A', "TCG");
+        mp.put('T', "ACG");
+        mp.put('C', "ATG");
+        mp.put('G', "ATC");
+        Deque<Pair<String, Integer>> q = new LinkedList<>();
+        q.offer(new Pair<>(start, 0));
+        while (!q.isEmpty()) {
+            Pair<String, Integer> p = q.poll();
+            String t = p.getKey();
+            int step = p.getValue();
+            if (end.equals(t)) {
+                return step;
+            }
+            for (int i = 0; i < t.length(); ++i) {
+                for (char c : mp.get(t.charAt(i)).toCharArray()) {
+                    String next = t.substring(0, i) + c + t.substring(i + 1);
+                    if (s.contains(next)) {
+                        q.offer(new Pair<>(next, step + 1));
+                        s.remove(next);
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+}
+
+
+or
+
+
+	class Solution {
+    
+    public int minMutation(String start, String end, String[] bank) {
+        int level = 0,  len = bank.length;
+        char[] chr = {'A','C','G','T'}; // THIS ARRAY WILL BE USED TO GENERATE POSSIBLE MUTATIONS
+        
+        Set<String> hset = new HashSet<String>(); // TO STORE ALL VALID MUTATIONS
+        
+        for(String s : bank) hset.add(s);
+        
+        Queue<String> queue = new LinkedList<>(); // FOR IMPLEMENTING BFS
+        queue.add(start);
+        
+        while(true){
+            ++level;
+            int n = queue.size();
+
+            if(n == 0 ) return -1; // NO GENE STRING LEFT TO GENERATE ANY OTHER MUTATION 
+            
+            for(int i=0;i<n;i++){
+                char[] ch = queue.poll().toCharArray();
+            
+                
+                for(int j=0;j<8;j++){                  // HERE WE WILL CHECK EVERY LETTER OF GENE STRING
+                    char org_char = ch[j];
+                    for(int c =0 ; c<4;c++){           // TRYING ALL POSSIBLE MUTATION WITH THE GIVEN GENE STRING
+                        ch[j] = chr[c];
+                        String str = String.valueOf(ch);
+                        if(str.equals(end) && hset.contains(str)) // RETURN IF END GENE IS FOUND AND IS VALID 
+                            return (level);
+                        if(hset.contains(str) == false) 
+                            continue;
+                        hset.remove(str);
+                        queue.add(str);
+                    }
+                    ch[j]= org_char;
+                }
+            }
+        }
+    }
+}
+
+
+
+or
+
+
