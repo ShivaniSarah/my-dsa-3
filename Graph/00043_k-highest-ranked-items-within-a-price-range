@@ -1,0 +1,240 @@
+https://leetcode.com/problems/k-highest-ranked-items-within-a-price-range/description/
+
+2146. K Highest Ranked Items Within a Price Range
+Medium
+Topics
+Companies
+Hint
+You are given a 0-indexed 2D integer array grid of size m x n that represents a map of the items in a shop. The integers in the grid represent the following:
+
+0 represents a wall that you cannot pass through.
+1 represents an empty cell that you can freely move to and from.
+All other positive integers represent the price of an item in that cell. You may also freely move to and from these item cells.
+It takes 1 step to travel between adjacent grid cells.
+
+You are also given integer arrays pricing and start where pricing = [low, high] and start = [row, col] indicates that you start at the position (row, col) and are interested only in items with a price in the range of [low, high] (inclusive). You are further given an integer k.
+
+You are interested in the positions of the k highest-ranked items whose prices are within the given price range. The rank is determined by the first of these criteria that is different:
+
+Distance, defined as the length of the shortest path from the start (shorter distance has a higher rank).
+Price (lower price has a higher rank, but it must be in the price range).
+The row number (smaller row number has a higher rank).
+The column number (smaller column number has a higher rank).
+Return the k highest-ranked items within the price range sorted by their rank (highest to lowest). If there are fewer than k reachable items within the price range, return all of them.
+
+ 
+
+Example 1:
+
+
+Input: grid = [[1,2,0,1],[1,3,0,1],[0,2,5,1]], pricing = [2,5], start = [0,0], k = 3
+Output: [[0,1],[1,1],[2,1]]
+Explanation: You start at (0,0).
+With a price range of [2,5], we can take items from (0,1), (1,1), (2,1) and (2,2).
+The ranks of these items are:
+- (0,1) with distance 1
+- (1,1) with distance 2
+- (2,1) with distance 3
+- (2,2) with distance 4
+Thus, the 3 highest ranked items in the price range are (0,1), (1,1), and (2,1).
+Example 2:
+
+
+Input: grid = [[1,2,0,1],[1,3,3,1],[0,2,5,1]], pricing = [2,3], start = [2,3], k = 2
+Output: [[2,1],[1,2]]
+Explanation: You start at (2,3).
+With a price range of [2,3], we can take items from (0,1), (1,1), (1,2) and (2,1).
+The ranks of these items are:
+- (2,1) with distance 2, price 2
+- (1,2) with distance 2, price 3
+- (1,1) with distance 3
+- (0,1) with distance 4
+Thus, the 2 highest ranked items in the price range are (2,1) and (1,2).
+Example 3:
+
+
+Input: grid = [[1,1,1],[0,0,1],[2,3,4]], pricing = [2,3], start = [0,0], k = 3
+Output: [[2,1],[2,0]]
+Explanation: You start at (0,0).
+With a price range of [2,3], we can take items from (2,0) and (2,1). 
+The ranks of these items are: 
+- (2,1) with distance 5
+- (2,0) with distance 6
+Thus, the 2 highest ranked items in the price range are (2,1) and (2,0). 
+Note that k = 3 but there are only 2 reachable items within the price range.
+ 
+
+Constraints:
+
+m == grid.length
+n == grid[i].length
+1 <= m, n <= 105
+1 <= m * n <= 105
+0 <= grid[i][j] <= 105
+pricing.length == 2
+2 <= low <= high <= 105
+start.length == 2
+0 <= row <= m - 1
+0 <= col <= n - 1
+grid[row][col] > 0
+1 <= k <= m * n
+
+
+
+# java
+
+
+class Solution {
+  public List<List<Integer>> highestRankedKItems(int[][] grid, int[] pricing, int[] start, int k) {
+    final int[][] DIRS = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+    final int m = grid.length;
+    final int n = grid[0].length;
+    final int low = pricing[0];
+    final int high = pricing[1];
+    final int row = start[0];
+    final int col = start[1];
+    List<List<Integer>> ans = new ArrayList<>();
+
+    if (low <= grid[row][col] && grid[row][col] <= high) {
+      ans.add(Arrays.asList(row, col));
+      if (k == 1)
+        return ans;
+    }
+
+    Queue<Pair<Integer, Integer>> q = new ArrayDeque<>(List.of(new Pair<>(row, col)));
+    boolean[][] seen = new boolean[m][n];
+    seen[row][col] = true; // Mark as visited.
+
+    while (!q.isEmpty()) {
+      List<List<Integer>> neighbors = new ArrayList<>();
+      for (int sz = q.size(); sz > 0; --sz) {
+        final int i = q.peek().getKey();
+        final int j = q.poll().getValue();
+        for (int[] dir : DIRS) {
+          final int x = i + dir[0];
+          final int y = j + dir[1];
+          if (x < 0 || x == m || y < 0 || y == n)
+            continue;
+          if (grid[x][y] == 0 || seen[x][y])
+            continue;
+          if (low <= grid[x][y] && grid[x][y] <= high)
+            neighbors.add(Arrays.asList(x, y));
+          q.offer(new Pair<>(x, y));
+          seen[x][y] = true;
+        }
+      }
+      Collections.sort(neighbors, new Comparator<List<Integer>>() {
+        @Override
+        public int compare(List<Integer> a, List<Integer> b) {
+          final int x1 = a.get(0);
+          final int y1 = a.get(1);
+          final int x2 = b.get(0);
+          final int y2 = b.get(1);
+          if (grid[x1][y1] != grid[x2][y2])
+            return grid[x1][y1] - grid[x2][y2];
+          return x1 == x2 ? y1 - y2 : x1 - x2;
+        }
+      });
+      for (List<Integer> neighbor : neighbors) {
+        if (ans.size() < k)
+          ans.add(neighbor);
+        if (ans.size() == k)
+          return ans;
+      }
+    }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public List<List<Integer>> highestRankedKItems(
+        int[][] grid, int[] pricing, int[] start, int k) {
+        int m = grid.length, n = grid[0].length;
+        int row = start[0], col = start[1];
+        int low = pricing[0], high = pricing[1];
+        List<int[]> items = new ArrayList<>();
+        if (low <= grid[row][col] && grid[row][col] <= high) {
+            items.add(new int[] {0, grid[row][col], row, col});
+        }
+        grid[row][col] = 0;
+        Deque<int[]> q = new ArrayDeque<>();
+        q.offer(new int[] {row, col, 0});
+        int[] dirs = {-1, 0, 1, 0, -1};
+        while (!q.isEmpty()) {
+            int[] p = q.poll();
+            int i = p[0], j = p[1], d = p[2];
+            for (int l = 0; l < 4; ++l) {
+                int x = i + dirs[l], y = j + dirs[l + 1];
+                if (x >= 0 && x < m && y >= 0 && y < n && grid[x][y] > 0) {
+                    if (low <= grid[x][y] && grid[x][y] <= high) {
+                        items.add(new int[] {d + 1, grid[x][y], x, y});
+                    }
+                    grid[x][y] = 0;
+                    q.offer(new int[] {x, y, d + 1});
+                }
+            }
+        }
+        items.sort((a, b) -> {
+            if (a[0] != b[0]) {
+                return a[0] - b[0];
+            }
+            if (a[1] != b[1]) {
+                return a[1] - b[1];
+            }
+            if (a[2] != b[2]) {
+                return a[2] - b[2];
+            }
+            return a[3] - b[3];
+        });
+        List<List<Integer>> ans = new ArrayList<>();
+        for (int i = 0; i < items.size() && i < k; ++i) {
+            int[] p = items.get(i);
+            ans.add(Arrays.asList(p[2], p[3]));
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+        private static final int[] d = {0, 1, 0, -1, 0};
+    public List<List<Integer>> highestRankedKItems(int[][] grid, int[] pricing, int[] start, int k) {
+        int R = grid.length, C = grid[0].length;
+        int x = start[0], y = start[1], low = pricing[0], high = pricing[1];
+        Set<String> seen = new HashSet<>(); // Set used to prune duplicates.
+        seen.add(x + "," + y);
+        List<List<Integer>> ans = new ArrayList<>();
+        // PriorityQueue sorted by (distance, price, row, col).
+        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] == b[0] ? a[1] == b[1] ? a[2] == b[2] ? a[3] - b[3] : a[2] - b[2] : a[1] - b[1] : a[0] - b[0]);
+        pq.offer(new int[]{0, grid[x][y], x, y}); // BFS starting point.
+        while (!pq.isEmpty() && ans.size() < k) {
+            int[] cur = pq.poll();
+            int distance = cur[0], price = cur[1], r = cur[2], c = cur[3]; // distance, price, row & column.
+            if (low <= price && price <= high) { // price in range?
+                ans.add(Arrays.asList(r, c));
+            }
+            for (int m = 0; m < 4; ++m) { // traverse 4 neighbors.
+                int i = r + d[m], j = c + d[m + 1];
+                // in boundary, not wall, and not visited yet?
+                if (0 <= i && i < R && 0 <= j && j < C && grid[i][j] > 0 && seen.add(i + "," + j)) {
+                    pq.offer(new int[]{distance + 1, grid[i][j], i, j});
+                }
+            }
+        }
+        return ans;
+    }
+}
+
+
+
