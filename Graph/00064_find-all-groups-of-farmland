@@ -1,0 +1,364 @@
+https://leetcode.com/problems/find-all-groups-of-farmland/description/
+
+
+1992. Find All Groups of Farmland
+Medium
+Topics
+Companies
+Hint
+You are given a 0-indexed m x n binary matrix land where a 0 represents a hectare of forested land and a 1 represents a hectare of farmland.
+
+To keep the land organized, there are designated rectangular areas of hectares that consist entirely of farmland. These rectangular areas are called groups. No two groups are adjacent, meaning farmland in one group is not four-directionally adjacent to another farmland in a different group.
+
+land can be represented by a coordinate system where the top left corner of land is (0, 0) and the bottom right corner of land is (m-1, n-1). Find the coordinates of the top left and bottom right corner of each group of farmland. A group of farmland with a top left corner at (r1, c1) and a bottom right corner at (r2, c2) is represented by the 4-length array [r1, c1, r2, c2].
+
+Return a 2D array containing the 4-length arrays described above for each group of farmland in land. If there are no groups of farmland, return an empty array. You may return the answer in any order.
+
+ 
+
+Example 1:
+
+
+Input: land = [[1,0,0],[0,1,1],[0,1,1]]
+Output: [[0,0,0,0],[1,1,2,2]]
+Explanation:
+The first group has a top left corner at land[0][0] and a bottom right corner at land[0][0].
+The second group has a top left corner at land[1][1] and a bottom right corner at land[2][2].
+Example 2:
+
+
+Input: land = [[1,1],[1,1]]
+Output: [[0,0,1,1]]
+Explanation:
+The first group has a top left corner at land[0][0] and a bottom right corner at land[1][1].
+Example 3:
+
+
+Input: land = [[0]]
+Output: []
+Explanation:
+There are no groups of farmland.
+ 
+
+Constraints:
+
+m == land.length
+n == land[i].length
+1 <= m, n <= 300
+land consists of only 0's and 1's.
+Groups of farmland are rectangular in shape.
+
+
+
+# java
+
+
+class Solution {
+  public int[][] findFarmland(int[][] land) {
+    List<int[]> ans = new ArrayList<>();
+
+    for (int i = 0; i < land.length; ++i)
+      for (int j = 0; j < land[0].length; ++j)
+        if (land[i][j] == 1) {
+          int[] cell = new int[] {i, j};
+          dfs(land, i, j, cell);
+          ans.add(new int[] {i, j, cell[0], cell[1]});
+        }
+
+    return ans.stream().toArray(int[][] ::new);
+  }
+
+  private void dfs(int[][] land, int i, int j, int[] cell) {
+    if (i < 0 || i == land.length || j < 0 || j == land[0].length)
+      return;
+    if (land[i][j] != 1)
+      return;
+    land[i][j] = 2; // Mark as visited.
+    cell[0] = Math.max(cell[0], i);
+    cell[1] = Math.max(cell[1], j);
+    dfs(land, i + 1, j, cell);
+    dfs(land, i, j + 1, cell);
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int[][] findFarmland(int[][] land) {
+        List<int[]> ans = new ArrayList<>();
+        int m = land.length;
+        int n = land[0].length;
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (land[i][j] == 0 || (j > 0 && land[i][j - 1] == 1)
+                    || (i > 0 && land[i - 1][j] == 1)) {
+                    continue;
+                }
+                int x = i;
+                int y = j;
+                for (; x + 1 < m && land[x + 1][j] == 1; ++x)
+                    ;
+                for (; y + 1 < n && land[x][y + 1] == 1; ++y)
+                    ;
+                ans.add(new int[] {i, j, x, y});
+            }
+        }
+        return ans.toArray(new int[ans.size()][4]);
+    }
+}
+
+
+or
+
+
+class Solution {
+    // The four directions in which traversal will be done.
+    int[][] dirs = {{-1, 0}, {0, -1}, {0, 1}, {1, 0}};
+    // Global variables with 0 value initially.
+    int row2, col2;
+    
+    // Returns true if the coordinate is within the boundary of the matrix.
+    private boolean isWithinFarm(int x, int y, int N, int M) {
+        return x >= 0 && x < N && y >= 0 && y < M;
+    }
+    
+    private void DFS(int[][] land, boolean[][] visited, int x, int y) {
+        visited[x][y] = true;
+        // Maximum x and y for the bottom right cell.
+        row2 = Math.max(row2, x); col2 = Math.max(col2, y);
+        
+        for (int[] dir : dirs) {
+            // Neighbor cell coordinates.
+            int newX = x + dir[0], newY = y + dir[1];
+
+            // If the neighbor is within the matrix and is a farmland cell and is not visited yet.
+            if (isWithinFarm(newX, newY, land.length, land[0].length) && !visited[newX][newY]
+                    && land[newX][newY] == 1) {
+                DFS(land, visited, newX, newY);
+            }
+        }
+    }
+    
+    public int[][] findFarmland(int[][] land) {
+        boolean[][] visited = new boolean[land.length][land[0].length];
+        List<int[]> ans = new ArrayList<>();
+
+        for (int row1 = 0; row1 < land.length; row1++) {
+            for (int col1 = 0; col1 < land[0].length; col1++) {
+                if (land[row1][col1] == 1 && !visited[row1][col1]) {
+                     row2 = 0; col2 = 0;
+
+                    DFS(land, visited, row1, col1);
+                    
+                    int[] arr = new int[] {row1, col1, row2, col2};
+                    ans.add(arr);
+                }
+            }
+        }
+        
+        return ans.stream().toArray(int[][] :: new);
+    }
+}
+
+
+or
+
+
+class Solution {
+    // The four directions in which traversal will be done.
+    int[][] dirs = {{-1, 0}, {0, -1}, {0, 1}, {1, 0}};
+
+    // Returns true if the coordinate is within the boundary of the matrix.
+    private boolean isWithinFarm(int x, int y, int N, int M) {
+        return x >= 0 && x < N && y >= 0 && y < M;
+    }
+
+    private Pair<Integer, Integer> BFS(Queue<Pair<Integer, Integer>> q, int[][] land,
+        boolean[][] visited) {
+        Pair<Integer, Integer> curr = new Pair<Integer, Integer>(0, 0);
+
+        while (!q.isEmpty()) {
+            curr = q.remove();
+
+            int x = curr.getKey();
+            int y = curr.getValue();
+
+            for (int[] dir : dirs) {
+                // Neighbor cell coordinates.
+                int newX = x + dir[0], newY = y + dir[1];
+
+                // If the neighbor is within the matrix and is a farmland cell and not visited yet.
+                if (isWithinFarm(newX, newY, land.length, land[0].length) && !visited[newX][newY]
+                        && land[newX][newY] == 1) {
+                    visited[newX][newY] = true;
+                    q.add(new Pair(newX, newY));
+                }
+            }
+        }
+
+        return curr;
+    }
+
+    public int[][] findFarmland(int[][] land) {
+        boolean[][] visited = new boolean[land.length][land[0].length];
+        List<int[]> ans = new ArrayList<>();
+
+
+        for (int row1 = 0; row1 < land.length; row1++) {
+            for (int col1 = 0; col1 < land[0].length; col1++) {
+                if (land[row1][col1] == 1 && !visited[row1][col1]) {
+                    Queue<Pair<Integer, Integer>> q = new LinkedList<>();
+
+                    q.add(new Pair(row1, col1));
+                    visited[row1][col1] = true;
+
+                    Pair<Integer, Integer> last = BFS(q, land, visited);
+
+                    int[] arr = new int[] {row1, col1, last.getKey(), last.getValue()};
+                    ans.add(arr);
+                }
+            }
+        }
+
+        return ans.stream().toArray(int[][] :: new);
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int[][] findFarmland(int[][] land) {
+        int N = land.length, M = land[0].length;
+        List<int[]> ans = new ArrayList<>();
+
+        for (int row1 = 0; row1 < N; row1++) {
+            for (int col1 = 0; col1 < M; col1++) {
+                if (land[row1][col1] == 1) {
+                    int x = row1, y = col1;
+
+                    for (x = row1; x < N && land[x][col1] == 1; x++) {
+                        for (y = col1; y < M && land[x][y] == 1; y++) {
+                            land[x][y] = 0;
+                        }
+                    }
+
+                    int[] arr = new int[] {row1, col1, x - 1, y - 1};
+                    ans.add(arr);
+                }
+            }
+        }
+        return ans.stream().toArray(int[][] :: new);
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int[][] findFarmland(int[][] land) {
+        int rows = land.length;
+        int cols = land[0].length;
+        Set<String> visited = new HashSet<>();
+        List<int[]> result = new ArrayList<>();
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (land[i][j] == 1 && !visited.contains(i + "," + j)) {
+                    int[] bounds = dfs(land, visited, i, j);
+                    result.add(bounds);
+                }
+            }
+        }
+
+        return result.toArray(new int[result.size()][]);
+    }
+
+    private int[] dfs(int[][] land, Set<String> visited, int x, int y) {
+        Stack<int[]> stack = new Stack<>();
+        stack.push(new int[]{x, y});
+        visited.add(x + "," + y);
+
+        int minRow = x, minCol = y;
+        int maxRow = x, maxCol = y;
+
+        while (!stack.isEmpty()) {
+            int[] current = stack.pop();
+            int curX = current[0], curY = current[1];
+
+            int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+            for (int[] dir : directions) {
+                int nx = curX + dir[0];
+                int ny = curY + dir[1];
+
+                if (nx >= 0 && nx < land.length && ny >= 0 && ny < land[0].length &&
+                    land[nx][ny] == 1 && !visited.contains(nx + "," + ny)) {
+                    visited.add(nx + "," + ny);
+                    stack.push(new int[]{nx, ny});
+                    minRow = Math.min(minRow, nx);
+                    minCol = Math.min(minCol, ny);
+                    maxRow = Math.max(maxRow, nx);
+                    maxCol = Math.max(maxCol, ny);
+                }
+            }
+        }
+
+        return new int[]{minRow, minCol, maxRow, maxCol};
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int[][] findFarmland(int[][] land) {
+        int rows = land.length;
+        int cols = land[0].length;
+        List<int[]> result = new ArrayList<>();
+        boolean[][] visited = new boolean[rows][cols];
+        int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+        
+        Queue<int[]> queue = new LinkedList<>();
+        
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (land[i][j] == 1 && !visited[i][j]) {
+                    int[] farmland = {i, j, i, j}; // [min_row, min_col, max_row, max_col]
+                    queue.offer(new int[]{i, j});
+                    visited[i][j] = true;
+                    
+                    while (!queue.isEmpty()) {
+                        int[] curr = queue.poll();
+                        int curRow = curr[0];
+                        int curCol = curr[1];
+                        
+                        for (int[] dir : directions) {
+                            int newRow = curRow + dir[0];
+                            int newCol = curCol + dir[1];
+                            
+                            if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols &&
+                                land[newRow][newCol] == 1 && !visited[newRow][newCol]) {
+                                queue.offer(new int[]{newRow, newCol});
+                                visited[newRow][newCol] = true;
+                                farmland[2] = Math.max(farmland[2], newRow); // update max_row
+                                farmland[3] = Math.max(farmland[3], newCol); // update max_col
+                            }
+                        }
+                    }
+                    
+                    result.add(farmland);
+                }
+            }
+        }
+        
+        return result.toArray(new int[result.size()][]);
+    }
+}
+
