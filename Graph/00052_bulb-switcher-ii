@@ -1,0 +1,281 @@
+https://leetcode.com/problems/bulb-switcher-ii/description/
+
+
+672. Bulb Switcher II
+Medium
+Topics
+Companies
+There is a room with n bulbs labeled from 1 to n that all are turned on initially, and four buttons on the wall. Each of the four buttons has a different functionality where:
+
+Button 1: Flips the status of all the bulbs.
+Button 2: Flips the status of all the bulbs with even labels (i.e., 2, 4, ...).
+Button 3: Flips the status of all the bulbs with odd labels (i.e., 1, 3, ...).
+Button 4: Flips the status of all the bulbs with a label j = 3k + 1 where k = 0, 1, 2, ... (i.e., 1, 4, 7, 10, ...).
+You must make exactly presses button presses in total. For each press, you may pick any of the four buttons to press.
+
+Given the two integers n and presses, return the number of different possible statuses after performing all presses button presses.
+
+ 
+
+Example 1:
+
+Input: n = 1, presses = 1
+Output: 2
+Explanation: Status can be:
+- [off] by pressing button 1
+- [on] by pressing button 2
+Example 2:
+
+Input: n = 2, presses = 1
+Output: 3
+Explanation: Status can be:
+- [off, off] by pressing button 1
+- [on, off] by pressing button 2
+- [off, on] by pressing button 3
+Example 3:
+
+Input: n = 3, presses = 1
+Output: 4
+Explanation: Status can be:
+- [off, off, off] by pressing button 1
+- [off, on, off] by pressing button 2
+- [on, off, on] by pressing button 3
+- [off, on, on] by pressing button 4
+ 
+
+Constraints:
+
+1 <= n <= 1000
+
+
+
+# java
+
+class Solution {
+    public int flipLights(int n, int presses) {
+        int[] ops = new int[] {0b111111, 0b010101, 0b101010, 0b100100};
+        Set<Integer> vis = new HashSet<>();
+        n = Math.min(n, 6);
+        for (int mask = 0; mask < 1 << 4; ++mask) {
+            int cnt = Integer.bitCount(mask);
+            if (cnt <= presses && cnt % 2 == presses % 2) {
+                int t = 0;
+                for (int i = 0; i < 4; ++i) {
+                    if (((mask >> i) & 1) == 1) {
+                        t ^= ops[i];
+                    }
+                }
+                t &= ((1 << 6) - 1);
+                t >>= (6 - n);
+                vis.add(t);
+            }
+        }
+        return vis.size();
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int flipLights(int n, int m) {
+        Set<Integer> seen = new HashSet();
+        n = Math.min(n, 6);
+        int shift = Math.max(0, 6-n);
+        for (int cand = 0; cand < 16; ++cand) {
+            int bcount = Integer.bitCount(cand);
+            if (bcount % 2 == m % 2 && bcount <= m) {
+                int lights = 0;
+                if (((cand >> 0) & 1) > 0) lights ^= 0b111111 >> shift;
+                if (((cand >> 1) & 1) > 0) lights ^= 0b010101 >> shift;
+                if (((cand >> 2) & 1) > 0) lights ^= 0b101010 >> shift;
+                if (((cand >> 3) & 1) > 0) lights ^= 0b100100 >> shift;
+                seen.add(lights);
+            }
+        }
+        return seen.size();
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int flipLights(int n, int m) {
+        n = Math.min(n, 3);
+        if (m == 0) return 1;
+        if (m == 1) return n == 1 ? 2 : n == 2 ? 3 : 4;
+        if (m == 2) return n == 1 ? 2 : n == 2 ? 4 : 7;
+        return n == 1 ? 2 : n == 2 ? 4 : 8;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int flipLights(int n, int presses) {
+        n = Math.min(n, 3);
+        if(presses == 0){
+            return 1;
+        }if(presses == 1){
+            return new int[]{2, 3, 4}[n - 1];
+        }if(presses == 2){
+            return new int[]{2, 4, 7}[n - 1];
+        }
+        return (int)Math.pow(2, n);
+    }
+}
+
+
+or
+
+
+
+class Solution {
+
+
+
+    public int flipLights(int n, int presses) {
+
+        // 4 operations are four next states from current state
+        // each press is one bfs search 
+        // we return the size of the results in the neighbors 
+        // one concern is that if press is big, it soon becomes exponential algorithm and very slow
+        // will the result become stable?
+        // let's assume it will be stable, how do we terminate the search once it's stable?
+        if(presses == 0) return 1;
+
+        String init =  buildOnes(n);
+    
+        Queue<String> states = new LinkedList<>();
+        states.offer(init);
+
+        int pressCnt = 0;
+
+        HashSet<String> memo = new HashSet<>();
+
+     
+   
+        while(!states.isEmpty() && pressCnt < presses)
+        {
+            int size = states.size();
+            memo.clear();
+            for(int i=0; i<size; i++)
+            {
+                String cur = states.poll();
+                for(int j=1; j<=4; j++)
+                {
+                    String child = operations(cur, j);
+                    if(!memo.contains(child))
+                        {
+                            memo.add(child);
+                            states.offer(child);
+                            //System.out.print(child+" ");
+                        }
+                }
+                
+            }
+            //System.out.println();
+            if(states.size() == size) return size; // it becomes stable we can return    
+
+            pressCnt++;
+        }
+
+        return states.size();
+
+    }
+
+    private String buildOnes(int n)
+    {
+        StringBuilder sb = new StringBuilder();
+        for(int i=0; i<n; i++)
+            sb.append("1");
+        return sb.toString();
+    }
+
+    private String operations(String cur, int buttonNum)
+    {
+        switch(buttonNum)
+        {
+            case 1: return one(cur);
+            case 2: return two(cur);
+            case 3: return three(cur);
+            case 4: return four(cur);
+            default: break;
+        }
+        return cur;
+    }
+
+    private String one(String cur)
+    {
+        StringBuilder sb = new StringBuilder();
+        for(char c:cur.toCharArray())
+        {
+            if(c=='0') sb.append("1");
+            else sb.append("0");
+        }
+        return sb.toString();
+    }
+
+    private String two(String cur)
+    {
+         StringBuilder sb = new StringBuilder();
+         char[] arr = cur.toCharArray();
+         for(int i=0; i<arr.length;i++)
+         {
+             if( (i+1) %2 != 0 )
+                sb.append(arr[i]);
+            else
+            {
+                if(arr[i] =='0') sb.append("1");
+                else sb.append("0");
+            }
+         }
+         return sb.toString();
+    }
+    private String three(String cur)
+    {
+        StringBuilder sb = new StringBuilder();
+         char[] arr = cur.toCharArray();
+         for(int i=0; i<arr.length;i++)
+         {
+             if( (i+1) %2 == 0 )
+                sb.append(arr[i]);
+            else
+            {
+                if(arr[i] =='0') sb.append("1");
+                else sb.append("0");
+            }
+         }
+         return sb.toString();
+    }
+    private String four(String cur)
+    {
+        StringBuilder sb = new StringBuilder();
+         char[] arr = cur.toCharArray();
+         for(int i=0; i<arr.length;i++)
+         {
+             if( ((i+1)-1) % 3 != 0 )
+                sb.append(arr[i]);
+            else
+            {
+                if(arr[i] =='0') sb.append("1");
+                else sb.append("0");
+            }
+         }
+         return sb.toString();
+    }
+
+
+}
+
+
+or
+
+
