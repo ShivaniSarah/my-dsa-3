@@ -1,0 +1,229 @@
+https://leetcode.com/problems/sum-of-square-numbers/description/
+
+
+633. Sum of Square Numbers
+Medium
+Topics
+Companies
+Given a non-negative integer c, decide whether there're two integers a and b such that a2 + b2 = c.
+
+ 
+
+Example 1:
+
+Input: c = 5
+Output: true
+Explanation: 1 * 1 + 2 * 2 = 5
+Example 2:
+
+Input: c = 3
+Output: false
+ 
+
+Constraints:
+
+0 <= c <= 231 - 1
+
+
+# java
+
+
+
+class Solution {
+  public boolean judgeSquareSum(int c) {
+    int l = 0;
+    int r = (int) Math.sqrt(c);
+
+    while (l <= r) {
+      final int sum = l * l + r * r;
+      if (sum == c)
+        return true;
+      if (sum < c)
+        ++l;
+      else
+        --r;
+    }
+
+    return false;
+  }
+}
+
+
+
+or
+
+
+
+
+class Solution {
+    public boolean judgeSquareSum(int c) {
+        long a = 0, b = (long) Math.sqrt(c);
+        while (a <= b) {
+            long s = a * a + b * b;
+            if (s == c) {
+                return true;
+            }
+            if (s < c) {
+                ++a;
+            } else {
+                --b;
+            }
+        }
+        return false;
+    }
+}
+
+
+
+or
+
+
+public class Solution {
+
+    public boolean judgeSquareSum(int c) {
+        for (long a = 0; a * a <= c; a++) {
+            for (long b = 0; b * b <= c; b++) {
+                if (a * a + b * b == c) return true;
+            }
+        }
+        return false;
+    }
+}
+
+
+
+or
+
+
+
+public class Solution {
+
+    public boolean judgeSquareSum(int c) {
+        for (long a = 0; a * a <= c; a++) {
+            int b = c - (int) (a * a);
+            int i = 1, sum = 0;
+            while (sum < b) {
+                sum += i;
+                i += 2;
+            }
+            if (sum == b) return true;
+        }
+        return false;
+    }
+}
+
+
+
+or
+
+
+
+public class Solution {
+
+    public boolean judgeSquareSum(int c) {
+        for (long a = 0; a * a <= c; a++) {
+            double b = Math.sqrt(c - a * a);
+            if (b == (int) b) return true;
+        }
+        return false;
+    }
+}
+
+
+
+or
+
+
+
+// bs
+
+
+public class Solution {
+
+    public boolean judgeSquareSum(int c) {
+        for (long a = 0; a * a <= c; a++) {
+            int b = c - (int) (a * a);
+            if (binary_search(0, b, b)) return true;
+        }
+        return false;
+    }
+
+    public boolean binary_search(long s, long e, int n) {
+        if (s > e) return false;
+        long mid = s + (e - s) / 2;
+        if (mid * mid == n) return true;
+        if (mid * mid > n) return binary_search(s, mid - 1, n);
+        return binary_search(mid + 1, e, n);
+    }
+}
+
+
+
+or
+
+
+
+// feramt theorem
+
+
+public class Solution {
+
+    public boolean judgeSquareSum(int c) {
+        for (int i = 2; i * i <= c; i++) {
+            int count = 0;
+            if (c % i == 0) {
+                while (c % i == 0) {
+                    count++;
+                    c /= i;
+                }
+                if (i % 4 == 3 && count % 2 != 0) return false;
+            }
+        }
+        return c % 4 != 3;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public boolean judgeSquareSum(int c) {
+        for (int divisor = 2; divisor * divisor <= c; divisor++) {
+            if (c % divisor == 0) {
+                int exponentCount = 0;
+                while (c % divisor == 0) {
+                    exponentCount++;
+                    c /= divisor;
+                }
+                if (divisor % 4 == 3 && exponentCount % 2 != 0) {
+                    return false;
+                }
+            }
+        }
+        return c % 4 != 3;
+    }
+}
+
+
+
+or
+
+// two pointers
+class Solution {
+    public boolean judgeSquareSum(int c) {
+        long left = 0, right = (long) Math.sqrt(c);
+        while (left <= right) {
+            if (left * left + right * right == c) return true;
+            else if (left * left + right * right > c) right--;
+            else left++;
+        }
+        return false;
+    }
+}
+
+
+
+
