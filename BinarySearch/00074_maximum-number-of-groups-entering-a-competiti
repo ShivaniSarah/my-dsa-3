@@ -1,0 +1,130 @@
+https://leetcode.com/problems/maximum-number-of-groups-entering-a-competition/description/
+
+
+2358. Maximum Number of Groups Entering a Competition
+Medium
+Topics
+Companies
+Hint
+You are given a positive integer array grades which represents the grades of students in a university. You would like to enter all these students into a competition in ordered non-empty groups, such that the ordering meets the following conditions:
+
+The sum of the grades of students in the ith group is less than the sum of the grades of students in the (i + 1)th group, for all groups (except the last).
+The total number of students in the ith group is less than the total number of students in the (i + 1)th group, for all groups (except the last).
+Return the maximum number of groups that can be formed.
+
+ 
+
+Example 1:
+
+Input: grades = [10,6,12,7,3,5]
+Output: 3
+Explanation: The following is a possible way to form 3 groups of students:
+- 1st group has the students with grades = [12]. Sum of grades: 12. Student count: 1
+- 2nd group has the students with grades = [6,7]. Sum of grades: 6 + 7 = 13. Student count: 2
+- 3rd group has the students with grades = [10,3,5]. Sum of grades: 10 + 3 + 5 = 18. Student count: 3
+It can be shown that it is not possible to form more than 3 groups.
+Example 2:
+
+Input: grades = [8,8]
+Output: 1
+Explanation: We can only form 1 group, since forming 2 groups would lead to an equal number of students in both groups.
+ 
+
+Constraints:
+
+1 <= grades.length <= 105
+1 <= grades[i] <= 105
+
+
+
+# java
+
+
+class Solution {
+  public int maximumGroups(int[] grades) {
+    // Sort grades, then we can seperate the students into groups of sizes 1, 2,
+    // 3, ..., k, s.t. the i-th group < the (i + 1)-th group for both sum and
+    // size. So, we can rephrase the problem into:
+    //   Find the maximum k s.t. 1 + 2 + 3 + ... + k <= n
+
+    //  1 + 2 + 3 + ... + k <= n
+    //         k(k + 1) / 2 <= n
+    //              k^2 + k <= 2n
+    //   (k + 0.5)^2 - 0.25 <= 2n
+    //          (k + 0.5)^2 <= 2n + 0.25
+    //                    k <= sqrt(2n + 0.25) - 0.5
+    return (int) (Math.sqrt(grades.length * 2 + 0.25) - 0.5);
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int maximumGroups(int[] grades) {
+        int n = grades.length;
+        int l = 0, r = n;
+        while (l < r) {
+            int mid = (l + r + 1) >> 1;
+            if (1L * mid * mid + mid > n * 2L) {
+                r = mid - 1;
+            } else {
+                l = mid;
+            }
+        }
+        return l;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+public:
+    int maximumGroups(vector<int>& grades) 
+    {
+		int n = grades.size();
+			
+        int ans = ((floor(sqrt(8*n + 1)))-1)/2;
+        return ans;
+    }
+};
+
+
+
+or
+
+
+class Solution {
+    public int maximumGroups(int[] grades) {
+        int result=0;
+        int total=0;
+        while(total<=grades.length){
+            result++;
+            total=result*(result+1)/2;
+        }
+        return result-1;
+    }
+}
+
+or
+
+
+class Solution {
+    public int maximumGroups(int[] grades) {
+       Arrays.sort(grades);
+       int count = 0;
+       int gainSize = 0;
+       while(gainSize + count + 1 <= grades.length){
+               gainSize += ++count;
+       }
+       return count;
+  }
+}
+
+
