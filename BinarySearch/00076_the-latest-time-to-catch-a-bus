@@ -1,0 +1,200 @@
+https://leetcode.com/problems/the-latest-time-to-catch-a-bus/description/
+
+2332. The Latest Time to Catch a Bus
+Medium
+Topics
+Companies
+Hint
+You are given a 0-indexed integer array buses of length n, where buses[i] represents the departure time of the ith bus. You are also given a 0-indexed integer array passengers of length m, where passengers[j] represents the arrival time of the jth passenger. All bus departure times are unique. All passenger arrival times are unique.
+
+You are given an integer capacity, which represents the maximum number of passengers that can get on each bus.
+
+When a passenger arrives, they will wait in line for the next available bus. You can get on a bus that departs at x minutes if you arrive at y minutes where y <= x, and the bus is not full. Passengers with the earliest arrival times get on the bus first.
+
+More formally when a bus arrives, either:
+
+If capacity or fewer passengers are waiting for a bus, they will all get on the bus, or
+The capacity passengers with the earliest arrival times will get on the bus.
+Return the latest time you may arrive at the bus station to catch a bus. You cannot arrive at the same time as another passenger.
+
+Note: The arrays buses and passengers are not necessarily sorted.
+
+ 
+
+Example 1:
+
+Input: buses = [10,20], passengers = [2,17,18,19], capacity = 2
+Output: 16
+Explanation: Suppose you arrive at time 16.
+At time 10, the first bus departs with the 0th passenger. 
+At time 20, the second bus departs with you and the 1st passenger.
+Note that you may not arrive at the same time as another passenger, which is why you must arrive before the 1st passenger to catch the bus.
+Example 2:
+
+Input: buses = [20,30,10], passengers = [19,13,26,4,25,11,21], capacity = 2
+Output: 20
+Explanation: Suppose you arrive at time 20.
+At time 10, the first bus departs with the 3rd passenger. 
+At time 20, the second bus departs with the 5th and 1st passengers.
+At time 30, the third bus departs with the 0th passenger and you.
+Notice if you had arrived any later, then the 6th passenger would have taken your seat on the third bus.
+ 
+
+Constraints:
+
+n == buses.length
+m == passengers.length
+1 <= n, m, capacity <= 105
+2 <= buses[i], passengers[i] <= 109
+Each element in buses is unique.
+Each element in passengers is unique.
+
+
+
+# java
+
+class Solution {
+  public int latestTimeCatchTheBus(int[] buses, int[] passengers, int capacity) {
+    Arrays.sort(buses);
+    Arrays.sort(passengers);
+
+    if (passengers[0] > buses[buses.length - 1])
+      return buses[buses.length - 1];
+
+    int ans = passengers[0] - 1;
+    int i = 0; // buses' index
+    int j = 0; // passengers' index
+
+    while (i < buses.length) {
+      // Greedily make passengers catch `buses[i]`.
+      int arrived = 0;
+      while (arrived < capacity && j < passengers.length && passengers[j] <= buses[i]) {
+        if (j > 0 && passengers[j] != passengers[j - 1] + 1)
+          ans = passengers[j] - 1;
+        ++j;
+        ++arrived;
+      }
+      // There's room for `buses[i]` to carry a passenger arriving at the
+      // `buses[i]`.
+      if (arrived < capacity && j > 0 && passengers[j - 1] != buses[i])
+        ans = buses[i];
+      ++i;
+    }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public int latestTimeCatchTheBus(int[] buses, int[] passengers, int capacity) {
+        Arrays.sort(buses);
+        Arrays.sort(passengers);
+        int j = 0, c = 0;
+        for (int t : buses) {
+            c = capacity;
+            while (c > 0 && j < passengers.length && passengers[j] <= t) {
+                --c;
+                ++j;
+            }
+        }
+        --j;
+        int ans = c > 0 ? buses[buses.length - 1] : passengers[j];
+        while (j >= 0 && ans == passengers[j]) {
+            --ans;
+            --j;
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+
+class Solution {
+    public int latestTimeCatchTheBus(int[] buses, int[] passengers, int capacity) {
+    Arrays.sort(passengers);
+    Arrays.sort(buses);
+    if(passengers[0] > buses[buses.length - 1]) return buses[buses.length - 1];
+    int result = passengers[0] - 1;
+    int i = 0, j = 0;
+    while(i < buses.length){
+        int occupiedSeats = 0;
+        while(occupiedSeats < capacity && j < passengers.length && passengers[j] <= buses[i]){
+            if(j > 0 && passengers[j] - passengers[j-1] != 1){
+                result = passengers[j] - 1;
+            }
+            j++;
+            occupiedSeats++;
+        }
+        if(j > 0 && occupiedSeats < capacity && buses[i] != passengers[j-1]){
+            result = buses[i];
+        }
+        i++;
+    }
+    return result;
+}
+}
+
+
+
+or
+
+
+class Solution {
+    public int latestTimeCatchTheBus(int[] buses, int[] passengers, int capacity) {
+        Arrays.sort(buses);
+        Arrays.sort(passengers);
+
+        int k = 0;
+        int n = buses.length;
+        int m = passengers.length;
+        int j = 0;
+        int ret = 0;
+        int last_bus_time = buses[n - 1];
+
+        for (int i = 0; i < n; i++) {
+            k = capacity;
+            while (j < m && passengers[j] <= buses[i] && k > 0) {
+                k--;
+                j++;
+            }
+        }
+
+        if (k > 0) {
+
+            if (k == capacity) {
+                ret = last_bus_time;
+            } else {
+
+                if (passengers[j - 1] == last_bus_time) {
+                    j--;
+                    while (j > 0 && passengers[j] - 1 == passengers[j - 1]) {
+                        j--;
+                    }
+                    ret = passengers[j] - 1;
+                } else {
+                    ret = last_bus_time;
+                }
+            }
+        } else {
+
+            j--;
+            while (j > 0 && passengers[j] - 1 == passengers[j - 1]) {
+                j--;
+            }
+            ret = passengers[j] - 1;
+        }
+        return ret;
+    }
+}
+
+
