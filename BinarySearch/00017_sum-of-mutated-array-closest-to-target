@@ -1,0 +1,214 @@
+https://leetcode.com/problems/sum-of-mutated-array-closest-to-target/description/
+
+
+1300. Sum of Mutated Array Closest to Target
+Medium
+Topics
+Companies
+Hint
+Given an integer array arr and a target value target, return the integer value such that when we change all the integers larger than value in the given array to be equal to value, the sum of the array gets as close as possible (in absolute difference) to target.
+
+In case of a tie, return the minimum such integer.
+
+Notice that the answer is not neccesarilly a number from arr.
+
+ 
+
+Example 1:
+
+Input: arr = [4,9,3], target = 10
+Output: 3
+Explanation: When using 3 arr converts to [3, 3, 3] which sums 9 and that's the optimal answer.
+Example 2:
+
+Input: arr = [2,3,5], target = 10
+Output: 5
+Example 3:
+
+Input: arr = [60864,25176,27249,21296,20204], target = 56803
+Output: 11361
+ 
+
+Constraints:
+
+1 <= arr.length <= 104
+1 <= arr[i], target <= 105
+
+
+# java
+
+
+class Solution {
+  public int findBestValue(int[] arr, int target) {
+    final int n = arr.length;
+    final double err = 1e-9;
+
+    int prefix = 0;
+
+    Arrays.sort(arr);
+
+    for (int i = 0; i < n; ++i) {
+      int ans = (int) Math.round(((float) target - prefix - err) / (n - i));
+      if (ans <= arr[i])
+        return ans;
+      prefix += arr[i];
+    }
+
+    return arr[n - 1];
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int findBestValue(int[] arr, int target) {
+        Arrays.sort(arr);
+        int n = arr.length;
+        int[] s = new int[n + 1];
+        int mx = 0;
+        for (int i = 0; i < n; ++i) {
+            s[i + 1] = s[i] + arr[i];
+            mx = Math.max(mx, arr[i]);
+        }
+        int ans = 0, diff = 1 << 30;
+        for (int value = 0; value <= mx; ++value) {
+            int i = search(arr, value);
+            int d = Math.abs(s[i] + (n - i) * value - target);
+            if (diff > d) {
+                diff = d;
+                ans = value;
+            }
+        }
+        return ans;
+    }
+
+    private int search(int[] arr, int x) {
+        int left = 0, right = arr.length;
+        while (left < right) {
+            int mid = (left + right) >> 1;
+            if (arr[mid] > x) {
+                right = mid;
+            } else {
+                left = mid + 1;
+            }
+        }
+        return left;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int findBestValue(int[] arr, int target) {
+        
+        int max = 0;
+        int sum = 0;
+        
+        // Find the max value and the upper bound of the seach range.
+        for(int num : arr) {
+            max = Math.max(max, num);
+            sum += num;
+        }
+        
+        // If the sum is smaller than the target the greatest number is the answer.
+        if(sum <= target) {
+            return max;
+        }
+        
+        // Prepare the binary search
+        int left = 0;
+        int right = sum;
+        int leftSum = getSum(arr, left);
+        int rightSum = getSum(arr, right);
+        
+        
+        // Eventually it will narrow down to 2 Consecutive numbers.
+        // The smaller one's sum is smaller than the target while the greater one's is greater than the target.
+        // Unless we locate a middle value's sum is equal to target.
+        while(Math.abs(left - right) != 1) {
+            
+            int middle = left + (right - left) / 2;
+            int midSum = getSum(arr, middle);
+            
+            if(midSum < target) {
+                left = middle;
+                leftSum = midSum;
+            } else if(midSum > target) {
+                right = middle;
+                rightSum = midSum;
+            } else {
+                return middle;
+            }
+        }
+        
+        // Determine which one is closer to the target.
+        if(Math.abs(leftSum - target) <= Math.abs(rightSum - target)) {
+            return left;
+        } else {
+            return right;
+        }
+        
+    }
+    
+    // Get the sum of the chosen number
+    private int getSum(int[] arr, int number) {
+        int sum = 0;
+        
+        for(int num : arr) {
+            sum += Math.min(num, number);
+        }
+        
+        return sum;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int findBestValue(int[] arr, int target) {
+        Arrays.sort(arr);
+        int left = 0, right = arr[arr.length - 1];
+        int minDifference = Integer.MAX_VALUE, result = 0;
+
+        while (left <= right) {
+            int middle = (left + right) / 2;
+            int sum = sumAfterChanges(arr, middle);
+            if (sum > target)
+                right = middle - 1;
+            else
+                left = middle + 1;
+
+            if ((Math.abs(sum - target) < minDifference) || (Math.abs(sum - target) == minDifference && middle < result)) {
+                minDifference = Math.abs(sum - target);
+                result = middle;
+            }
+        }
+        return result;
+    }
+
+    private int sumAfterChanges(int[] array, int value) {
+        int sum = 0;
+        for (int number : array) {
+            sum += Math.min(number, value);
+        }
+        return sum;
+    }
+}
+
+
+
+or
+
+
+
