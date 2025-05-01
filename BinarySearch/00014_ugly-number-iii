@@ -1,0 +1,131 @@
+https://leetcode.com/problems/ugly-number-iii/description/
+
+
+1201. Ugly Number III
+Medium
+Topics
+Companies
+Hint
+An ugly number is a positive integer that is divisible by a, b, or c.
+
+Given four integers n, a, b, and c, return the nth ugly number.
+
+ 
+
+Example 1:
+
+Input: n = 3, a = 2, b = 3, c = 5
+Output: 4
+Explanation: The ugly numbers are 2, 3, 4, 5, 6, 8, 9, 10... The 3rd is 4.
+Example 2:
+
+Input: n = 4, a = 2, b = 3, c = 4
+Output: 6
+Explanation: The ugly numbers are 2, 3, 4, 6, 8, 9, 10, 12... The 4th is 6.
+Example 3:
+
+Input: n = 5, a = 2, b = 11, c = 13
+Output: 10
+Explanation: The ugly numbers are 2, 4, 6, 8, 10, 11, 12, 13... The 5th is 10.
+ 
+
+Constraints:
+
+1 <= n, a, b, c <= 109
+1 <= a * b * c <= 1018
+It is guaranteed that the result will be in range [1, 2 * 109].
+
+
+
+# java
+
+
+class Solution {
+  public int nthUglyNumber(int n, long a, long b, long c) {
+    final long ab = a * b / gcd(a, b);
+    final long ac = a * c / gcd(a, c);
+    final long bc = b * c / gcd(b, c);
+    final long abc = a * bc / gcd(a, bc);
+    int l = 1;
+    int r = 2_000_000_000;
+
+    while (l < r) {
+      final int m = (l + r) / 2;
+      if (m / a + m / b + m / c - m / ab - m / ac - m / bc + m / abc >= n)
+        r = m;
+      else
+        l = m + 1;
+    }
+
+    return l;
+  }
+
+  private long gcd(long a, long b) {
+    return b == 0 ? a : gcd(b, a % b);
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int nthUglyNumber(int n, int a, int b, int c) {
+        long ab = lcm(a, b);
+        long bc = lcm(b, c);
+        long ac = lcm(a, c);
+        long abc = lcm(ab, c);
+        long l = 1, r = 2000000000;
+        while (l < r) {
+            long mid = (l + r) >> 1;
+            if (mid / a + mid / b + mid / c - mid / ab - mid / bc - mid / ac + mid / abc >= n) {
+                r = mid;
+            } else {
+                l = mid + 1;
+            }
+        }
+        return (int) l;
+    }
+
+    private long gcd(long a, long b) {
+        return b == 0 ? a : gcd(b, a % b);
+    }
+
+    private long lcm(long a, long b) {
+        return a * b / gcd(a, b);
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int nthUglyNumber(int n, int a, int b, int c) {
+        int left = 1;
+        int right = Integer.MAX_VALUE;
+        int count = 0;
+        while (left < right) {
+            int middle = left + (right - left) / 2;
+            if (isUgly(middle, a, b, c, n)) {
+                right = middle;
+            }
+            else
+                left = middle + 1;
+        }
+        return left;
+    }
+    public boolean isUgly(long middle, long a, long b, long c, long n) {
+        return (int) (middle/a + middle/b + middle/c - middle/lcm(a, b) - middle/lcm(b, c) - middle/lcm(c, a) + middle/lcm(a, lcm(b, c))) >= n;
+    }
+    public long gcd(long a, long b) {
+        if (a == 0)
+            return b;
+        else return gcd(b%a, a);
+    }
+    public long lcm(long a, long b) {
+        return a * b / (gcd(a, b)); 
+    }
+}
+
+
