@@ -1,0 +1,421 @@
+https://leetcode.com/problems/plates-between-candles/description/
+
+2055. Plates Between Candles
+Medium
+Topics
+Companies
+Hint
+There is a long table with a line of plates and candles arranged on top of it. You are given a 0-indexed string s consisting of characters '*' and '|' only, where a '*' represents a plate and a '|' represents a candle.
+
+You are also given a 0-indexed 2D integer array queries where queries[i] = [lefti, righti] denotes the substring s[lefti...righti] (inclusive). For each query, you need to find the number of plates between candles that are in the substring. A plate is considered between candles if there is at least one candle to its left and at least one candle to its right in the substring.
+
+For example, s = "||**||**|*", and a query [3, 8] denotes the substring "*||**|". The number of plates between candles in this substring is 2, as each of the two plates has at least one candle in the substring to its left and right.
+Return an integer array answer where answer[i] is the answer to the ith query.
+
+ 
+
+Example 1:
+
+ex-1
+Input: s = "**|**|***|", queries = [[2,5],[5,9]]
+Output: [2,3]
+Explanation:
+- queries[0] has two plates between candles.
+- queries[1] has three plates between candles.
+Example 2:
+
+ex-2
+Input: s = "***|**|*****|**||**|*", queries = [[1,17],[4,5],[14,17],[5,11],[15,16]]
+Output: [9,0,0,0,0]
+Explanation:
+- queries[0] has nine plates between candles.
+- The other queries have zero plates between candles.
+ 
+
+Constraints:
+
+3 <= s.length <= 105
+s consists of '*' and '|' characters.
+1 <= queries.length <= 105
+queries[i].length == 2
+0 <= lefti <= righti < s.length
+
+
+# java
+
+
+
+class Solution {
+  public int[] platesBetweenCandles(String s, int[][] queries) {
+    int[] ans = new int[queries.length];
+    List<Integer> indices = new ArrayList<>(); // indices of '|'
+
+    for (int i = 0; i < s.length(); ++i)
+      if (s.charAt(i) == '|')
+        indices.add(i);
+
+    for (int i = 0; i < queries.length; ++i) {
+      final int left = queries[i][0];
+      final int right = queries[i][1];
+      final int l = firstGreaterEqual(indices, left);
+      final int r = firstGreaterEqual(indices, right + 1) - 1;
+      if (l < r) {
+        final int lengthBetweenCandles = indices.get(r) - indices.get(l) + 1;
+        final int numCandles = r - l + 1;
+        ans[i] = lengthBetweenCandles - numCandles;
+      }
+    }
+
+    return ans;
+  }
+
+  private int firstGreaterEqual(List<Integer> indices, int target) {
+    final int i = Collections.binarySearch(indices, target);
+    return i < 0 ? -i - 1 : i;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+  public int[] platesBetweenCandles(String s, int[][] queries) {
+    final int n = s.length();
+    int[] ans = new int[queries.length];
+    int[] closestLeftCandle = new int[n];
+    int[] closestRightCandle = new int[n];
+    int[] candleCount = new int[n]; // candleCount[i] := the number of candles in s[0..i]
+    int candle = -1;
+    int count = 0;
+
+    for (int i = 0; i < n; ++i) {
+      if (s.charAt(i) == '|') {
+        candle = i;
+        ++count;
+      }
+      closestLeftCandle[i] = candle;
+      candleCount[i] = count;
+    }
+
+    candle = -1;
+    for (int i = n - 1; i >= 0; --i) {
+      if (s.charAt(i) == '|')
+        candle = i;
+      closestRightCandle[i] = candle;
+    }
+
+    for (int i = 0; i < queries.length; ++i) {
+      final int left = queries[i][0];
+      final int right = queries[i][1];
+      final int l = closestRightCandle[left];
+      final int r = closestLeftCandle[right];
+      if (i == -1 || r == -1 || l > r)
+        continue;
+      final int lengthBetweenCandles = r - l + 1;
+      final int numCandles = candleCount[r] - candleCount[l] + 1;
+      ans[i] = lengthBetweenCandles - numCandles;
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int[] platesBetweenCandles(String s, int[][] queries) {
+        int n = s.length();
+        int[] presum = new int[n + 1];
+        for (int i = 0; i < n; ++i) {
+            presum[i + 1] = presum[i] + (s.charAt(i) == '*' ? 1 : 0);
+        }
+        int[] left = new int[n];
+        int[] right = new int[n];
+        for (int i = 0, l = -1; i < n; ++i) {
+            if (s.charAt(i) == '|') {
+                l = i;
+            }
+            left[i] = l;
+        }
+        for (int i = n - 1, r = -1; i >= 0; --i) {
+            if (s.charAt(i) == '|') {
+                r = i;
+            }
+            right[i] = r;
+        }
+        int[] ans = new int[queries.length];
+        for (int k = 0; k < queries.length; ++k) {
+            int i = right[queries[k][0]];
+            int j = left[queries[k][1]];
+            if (i >= 0 && j >= 0 && i < j) {
+                ans[k] = presum[j] - presum[i + 1];
+            }
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+   public int[] platesBetweenCandles(String s, int[][] queries) {
+    int psum[] = new int[s.length() + 1];
+    int next[] = new int[s.length() + 1], prev[] = new int[s.length() + 1];
+    Arrays.fill(next, Integer.MAX_VALUE);
+    int res[] = new int[queries.length];
+    for (int i = 0; i < s.length(); ++i) {
+        psum[i + 1] = psum[i] + (s.charAt(i) == '|' ? 1 : 0);
+        prev[i + 1] = s.charAt(i) == '|' ? i : prev[i];
+    }
+    for (int i = s.length() - 1; i >= 0; --i)
+        next[i] = s.charAt(i) == '|' ? i : next[i + 1];
+    for (int j = 0; j < queries.length; ++j) {
+        int l = next[queries[j][0]], r = prev[queries[j][1] + 1];
+        res[j] = l < r ? r - l - (psum[r] - psum[l]) : 0;
+    }        
+    return res;
+}
+}
+
+
+or
+
+
+
+class Solution {
+   public int[] platesBetweenCandles(String s, int[][] queries) {
+	int n = s.length();
+	List<Integer> presum = new ArrayList<>();
+	List<Integer> index = new ArrayList<>();
+	int sum = 0;
+
+	for (int i = 0; i < n; i++) {
+		if (s.charAt(i) == '*') sum++;
+		else {
+			presum.add(sum);
+			index.add(i);
+		}
+	}
+
+	int[] res = new int[queries.length];
+	for (int i = 0; i < queries.length; i++) {
+		int start = queries[i][0], end = queries[i][1];
+		int left = ceiling(index, start);
+		int right = floor(index, end);
+		if (left < right) res[i] = presum.get(right) - presum.get(left);
+	}
+	return res;
+}
+
+int ceiling(List<Integer> list, int target) {
+	int left = 0, right = list.size();
+	while (left < right) {
+		int mid = left + (right - left) / 2;
+		if (list.get(mid) < target) left = mid + 1;
+		else right = mid;
+	}
+	return left;
+}
+
+int floor(List<Integer> list, int target) {
+	int left = -1, right = list.size() - 1;
+	while (left < right) {
+		int mid = left + (right - left) / 2 + 1;
+		if (list.get(mid) > target) right = mid - 1;
+		else left = mid;
+	}
+	return left;
+}
+}
+
+
+or
+
+
+
+class Solution {
+  public int[] platesBetweenCandles(String s, int[][] queries) {
+	int n = s.length();
+	TreeMap<Integer, Integer> map = new TreeMap<>(); // <index, presum>
+
+	int sum = 0;
+	for (int i = 0; i < n; i++) {
+		if (s.charAt(i) == '*') sum++;
+		else map.put(i, sum);
+	}
+
+	int m = queries.length;
+	int[] res = new int[m];
+	for (int i = 0; i < m; i++) {
+		int start = queries[i][0], end = queries[i][1];
+		Integer left = map.ceilingKey(start);
+		Integer right = map.floorKey(end);
+		if (left != null && right != null && left < right) {
+			res[i] = map.get(right) - map.get(left);
+		}
+	}
+	return res;
+}
+}
+
+
+or
+
+
+
+class Solution {
+    public int[] platesBetweenCandles(String s, int[][] queries) {
+        int n = s.length();
+        char[] chars = s.toCharArray();
+        int[] starPrefix = new int[n]; //storing plates before index i
+        int[] pipeLeftDistance = new int[n]; //storing the distance of next pipe
+        int[] pipeRightDistance = new int [n]; //storing the distance of previous pipe
+        int starCount = 0, lastLeft = -1, lastRight = -1;
+        for(int i = 0, j = n - 1; i < n; i++, j--) {
+            if(chars[i] == '*'){
+                starPrefix[i] = i > 0 ? starPrefix[i - 1] + 1 : 1; //boundary check and saving the incremented number of plates
+                if(lastLeft >= 0) lastLeft++; //increment the distance by one since we're moving further away from the last pipe to the left
+            } else {
+                starPrefix[i] = i > 0 ? starPrefix[i - 1] : 0; //boundary check, and saving the number of plates without incrementing
+                lastLeft = 0; //pipe found at the index, so resetting distance to 0
+                pipeLeftDistance[i] = 0;//saving distance of the last Left pipe
+            }
+            pipeLeftDistance[i] = lastLeft; //saving distance of the last left pipe, after incrememting, in case * was found
+
+            //doing the same thing for the right, from the other end of the array
+            if(chars[j] == '*'){
+                if(lastRight >= 0) lastRight++;
+            } else {
+                lastRight = 0;
+                pipeRightDistance[j] = 0;
+            }
+            pipeRightDistance[j] = lastRight;
+        }
+        
+        int[] ans = new int[queries.length];
+        for(int i = 0; i < queries.length; i++){ //for each query
+            int x = queries[i][0], y = queries[i][1]; //start x, end y
+            if(pipeRightDistance[x] == -1 || pipeLeftDistance[y] == -1) { //if no pipe pipe pair found 
+                ans[i] = 0;
+                continue;
+            }
+            int pipeAfterX = x + pipeRightDistance[x]; //index of first pipe to the right of x
+            int pipeBeforeY = y - pipeLeftDistance[y]; //index of first pipe to the left of y
+            if(pipeAfterX <= y && pipeBeforeY >= x) { //boundary check
+                ans[i] = starPrefix[pipeBeforeY] - starPrefix[pipeAfterX]; //number of plates in between
+            } else ans[i] = 0;
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    private int BinarySearch1(List<Integer> plates,int ele){
+        int n = plates.size();
+        int lo = 0;
+        int hi = n-1;
+
+        int mid ;
+        int idx = -1;
+        while(lo<=hi){
+            mid = lo+(hi-lo)/2;
+            if(plates.get(mid) < ele){
+                lo = mid+1;
+            }
+            else{
+                hi = mid-1;
+                idx = mid;
+            }
+        }
+        if(idx == -1){
+            return -1;
+        }
+
+        return plates.get(idx);
+    }
+
+
+    private int BinarySearch2(List<Integer> plates, int ele){
+        int n = plates.size();
+        int lo = 0;
+        int hi = n-1;
+        int idx = -1;
+        int mid ;
+        while(lo<=hi){
+            mid = lo+(hi-lo)/2;
+            
+            if(plates.get(mid) <= ele){
+                idx = mid;
+                lo = mid+1;
+            }
+            else{
+                hi = mid-1;
+            }
+        }
+        if(idx == -1){
+            return -1;
+        }
+        return plates.get(idx);
+    }
+    public int[] platesBetweenCandles(String s, int[][] queries) {
+        int n = s.length();
+        int[] pre = new int[n];
+        List<Integer> plates = new ArrayList<>();
+        if(s.charAt(0) == '*'){
+            pre[0] = 1;
+        }
+        else{
+            plates.add(0);
+        }
+        for(int i=1;i<n;i++){
+            if(s.charAt(i) == '*'){
+                pre[i] = pre[i-1]+1;
+            }
+            else{
+                pre[i] = pre[i-1];
+                plates.add(i);
+            }
+        }
+        int[] ans = new int[queries.length];
+        int j = 0;
+        for(int[] q : queries){
+            int l = BinarySearch1(plates,q[0]);
+            int r = BinarySearch2(plates, q[1]);
+            if(l < r && (l != -1 && r != -1)){
+                System.out.println(l +" " + r);
+                ans[j] = l == 0 ? pre[r] : (pre[r]-pre[l-1]);
+            }
+            else{
+                System.out.println("Not Possible");
+            }
+            
+            j++;
+        }
+
+        return ans;
+
+    }
+}
+
+
+
+or
+
+
+
