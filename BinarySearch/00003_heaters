@@ -1,0 +1,196 @@
+https://leetcode.com/problems/heaters/description/
+
+
+475. Heaters
+Solved
+Medium
+Topics
+Companies
+Winter is coming! During the contest, your first job is to design a standard heater with a fixed warm radius to warm all the houses.
+
+Every house can be warmed, as long as the house is within the heater's warm radius range. 
+
+Given the positions of houses and heaters on a horizontal line, return the minimum radius standard of heaters so that those heaters could cover all houses.
+
+Notice that all the heaters follow your radius standard, and the warm radius will the same.
+
+ 
+
+Example 1:
+
+Input: houses = [1,2,3], heaters = [2]
+Output: 1
+Explanation: The only heater was placed in the position 2, and if we use the radius 1 standard, then all the houses can be warmed.
+Example 2:
+
+Input: houses = [1,2,3,4], heaters = [1,4]
+Output: 1
+Explanation: The two heaters were placed at positions 1 and 4. We need to use a radius 1 standard, then all the houses can be warmed.
+Example 3:
+
+Input: houses = [1,5], heaters = [2]
+Output: 3
+ 
+
+Constraints:
+
+1 <= houses.length, heaters.length <= 3 * 104
+1 <= houses[i], heaters[i] <= 109
+
+
+
+
+#java
+
+
+
+class Solution {
+  public int findRadius(int[] houses, int[] heaters) {
+    Arrays.sort(houses);
+    Arrays.sort(heaters);
+
+    int ans = 0;
+    int i = 0; // heaters' index (currently used)
+
+    for (final int house : houses) {
+      while (i + 1 < heaters.length && house - heaters[i] > heaters[i + 1] - house)
+        ++i; // The next heater is better.
+      ans = Math.max(ans, Math.abs(heaters[i] - house));
+    }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int findRadius(int[] houses, int[] heaters) {
+        Arrays.sort(heaters);
+        int res = 0;
+        for (int x : houses) {
+            int i = Arrays.binarySearch(heaters, x);
+            if (i < 0) {
+                i = ~i;
+            }
+            int dis1 = i > 0 ? x - heaters[i - 1] : Integer.MAX_VALUE;
+            int dis2 = i < heaters.length ? heaters[i] - x : Integer.MAX_VALUE;
+            res = Math.max(res, Math.min(dis1, dis2));
+        }
+        return res;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int findRadius(int[] houses, int[] heaters) {
+        Arrays.sort(houses); Arrays.sort(heaters);      // Sorting both Arrays...
+        return RadiusBinaryOptimisation(houses, heaters);       // Function Call...
+    }
+    public int RadiusBinaryOptimisation(int houses[], int heaters[])
+    {   // Defining boudaries for k Optimisation...
+        int min = 0, max = Math.max(houses[houses.length-1], heaters[heaters.length-1]);
+        int minRadius = 0;
+        while(min < max) {
+            int middle = min + (max-min)/2;     // Evaluating radius...
+            if(CanSurviveWinters(houses, heaters, middle)) {    // If the radius is sufficient...
+                minRadius = middle; max = middle;   // Shift from right to left...
+            }
+            else min = middle+1;    // Shift from left to right...
+        }
+        return minRadius;
+    }
+    public boolean CanSurviveWinters(int houses[], int heaters[], int radius)
+    {
+        int house = 0;  // Index for each house...
+        for(int heater : heaters) {     // Defining the range for the heater...
+            int leftRange = heater-radius; int rightRange = heater+radius;
+            while(house < houses.length && leftRange <= houses[house] && houses[house] <= rightRange)
+                house++;    // Updating the index, if house is covered...
+        }
+        return house >= houses.length;      // If all houses are heated up...
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int findRadius(int[] houses, int[] heaters) {
+        Arrays.sort(heaters);
+        int ans = 0;
+        for(int ele : houses){
+            int lo = 0, hi = heaters.length - 1;
+            int justSmaller = -1, justLarger = -1;
+            while(lo <= hi){
+                int mid = (lo + hi) / 2;
+                if(heaters[mid] == ele){
+                    justSmaller = heaters[mid];
+                    justLarger = heaters[mid];
+                    break;
+                }
+                else if(heaters[mid] < ele){
+                    justSmaller = heaters[mid];
+                    lo = mid + 1;
+                }
+                else{
+                    justLarger = heaters[mid];
+                    hi = mid - 1;
+                }
+            }
+            justSmaller = justSmaller == -1 ? Integer.MAX_VALUE : ele - justSmaller;
+            justLarger = justLarger == -1 ? Integer.MAX_VALUE : justLarger - ele;
+            ans = Math.max(ans, Math.min(justSmaller, justLarger));
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int findRadius(int[] houses, int[] heaters) {
+        int low = 0;
+        int high = (int)1e9;
+        int ans = 0;
+        Arrays.sort(houses);
+        Arrays.sort(heaters);
+        while(low<=high)
+        {
+            int mid = low+ (high-low)/2;
+            System.out.println(mid);
+            if(isPossible(houses,heaters,mid))
+            {
+                ans = mid;
+                high = mid-1;
+            }
+            else low = mid+1;
+        }
+        return ans;
+    }
+    boolean isPossible(int houses[], int heaters[], int radius)
+    {
+        int n = houses.length;
+        int j=0;
+        for(int i=0;i<n;i++)
+        {
+            while(j<heaters.length && (houses[i]<heaters[j]-radius ||
+                houses[i]>heaters[j]+radius)
+            )
+                j++;
+            if(j==heaters.length)
+                return false;
+        }
+        return true;
+    }
+}
