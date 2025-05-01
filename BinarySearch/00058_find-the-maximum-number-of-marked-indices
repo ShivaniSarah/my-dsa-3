@@ -1,0 +1,224 @@
+https://leetcode.com/problems/find-the-maximum-number-of-marked-indices/description/
+
+
+2576. Find the Maximum Number of Marked Indices
+Medium
+Topics
+Companies
+Hint
+You are given a 0-indexed integer array nums.
+
+Initially, all of the indices are unmarked. You are allowed to make this operation any number of times:
+
+Pick two different unmarked indices i and j such that 2 * nums[i] <= nums[j], then mark i and j.
+Return the maximum possible number of marked indices in nums using the above operation any number of times.
+
+ 
+
+Example 1:
+
+Input: nums = [3,5,2,4]
+Output: 2
+Explanation: In the first operation: pick i = 2 and j = 1, the operation is allowed because 2 * nums[2] <= nums[1]. Then mark index 2 and 1.
+It can be shown that there's no other valid operation so the answer is 2.
+Example 2:
+
+Input: nums = [9,2,5,4]
+Output: 4
+Explanation: In the first operation: pick i = 3 and j = 0, the operation is allowed because 2 * nums[3] <= nums[0]. Then mark index 3 and 0.
+In the second operation: pick i = 1 and j = 2, the operation is allowed because 2 * nums[1] <= nums[2]. Then mark index 1 and 2.
+Since there is no other operation, the answer is 4.
+Example 3:
+
+Input: nums = [7,6,8]
+Output: 0
+Explanation: There is no valid operation to do, so the answer is 0.
+
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+1 <= nums[i] <= 109
+
+
+# java
+
+
+
+class Solution {
+  public int maxNumOfMarkedIndices(int[] nums) {
+    Arrays.sort(nums);
+
+    int l = 0;
+    int r = nums.length / 2 + 1;
+
+    while (l < r) {
+      final int m = (l + r) / 2;
+      if (isPossible(nums, m))
+        l = m + 1;
+      else
+        r = m;
+    }
+
+    return (l - 1) * 2;
+  }
+
+  private boolean isPossible(int[] nums, int m) {
+    for (int i = 0; i < m; ++i)
+      if (2 * nums[i] > nums[nums.length - m + i])
+        return false;
+    return true;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+  public int maxNumOfMarkedIndices(int[] nums) {
+    Arrays.sort(nums);
+
+    int i = 0;
+    for (int j = nums.length / 2; j < nums.length; ++j)
+      if (2 * nums[i] <= nums[j] && ++i == nums.length / 2)
+        break;
+
+    return i * 2;
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    public int maxNumOfMarkedIndices(int[] nums) {
+        Arrays.sort(nums);
+        int n = nums.length;
+        int ans = 0;
+        for (int i = 0, j = (n + 1) / 2; j < n; ++i, ++j) {
+            while (j < n && nums[i] * 2 > nums[j]) {
+                ++j;
+            }
+            if (j < n) {
+                ans += 2;
+            }
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int maxNumOfMarkedIndices(int[] nums) {
+        
+        int res = 0;
+        Arrays.sort(nums);
+
+        // visited array to mark the indices we visited , so not to take the 
+        // same indices again
+        boolean[] visited = new boolean[nums.length];
+        for(int i = 0;i<nums.length/2;i++)
+        {
+            int target = 2 * nums[i];
+            if(binarySearch(nums, target , i/2 , nums.length-1, visited))
+                res+=2;
+        }
+
+        return res;
+    }
+  
+    boolean binarySearch(int [] nums , int target , int start , int end, boolean [] visited)
+    {
+
+        boolean found = false;
+        int index = -1;
+        while (start <= end) {
+            int mid = start + (end - start) / 2;
+
+            if (target <= nums[mid] && !visited[mid]) {
+                found = true;
+                index = mid;
+                end = mid - 1;
+
+            } else {
+                start = mid + 1;
+            }
+
+        }
+
+
+        if (found)
+            visited[index] = true;
+
+        return found;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int maxNumOfMarkedIndices(int[] nums) {
+        Arrays.sort(nums);
+        int n=nums.length;
+        int smallest=0;
+        int mid = (n+1)/2;
+        while(mid<n){
+            if(2 * nums[smallest] <= nums[mid]){
+                smallest++;
+            }
+            mid++;
+        }
+        return smallest*2;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int maxNumOfMarkedIndices(int[] nums) {
+    int i = 0, n = nums.length;
+    Arrays.sort(nums);
+    for (int j = n - n / 2; j < n; ++j)
+        i += 2 * nums[i] <= nums[j] ? 1 : 0;
+    return i * 2;
+}
+}
+
+
+or
+
+
+class Solution {
+    public int maxNumOfMarkedIndices(int[] nums) {
+        Arrays.sort(nums);
+        int l=0,r=nums.length/2;
+        while (r<nums.length && l<nums.length/2)
+        {
+            if(2*nums[l]<=nums[r])
+            {
+                l+=1;
+            }
+            r+=1;
+        }
+        return l*2;
+    }
+}
+
+
+
+or
+
+
+
