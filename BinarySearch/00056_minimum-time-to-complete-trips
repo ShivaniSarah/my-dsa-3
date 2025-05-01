@@ -1,0 +1,161 @@
+https://leetcode.com/problems/minimum-time-to-complete-trips/description/
+
+
+2187. Minimum Time to Complete Trips
+Medium
+Topics
+Companies
+Hint
+You are given an array time where time[i] denotes the time taken by the ith bus to complete one trip.
+
+Each bus can make multiple trips successively; that is, the next trip can start immediately after completing the current trip. Also, each bus operates independently; that is, the trips of one bus do not influence the trips of any other bus.
+
+You are also given an integer totalTrips, which denotes the number of trips all buses should make in total. Return the minimum time required for all buses to complete at least totalTrips trips.
+
+ 
+
+Example 1:
+
+Input: time = [1,2,3], totalTrips = 5
+Output: 3
+Explanation:
+- At time t = 1, the number of trips completed by each bus are [1,0,0]. 
+  The total number of trips completed is 1 + 0 + 0 = 1.
+- At time t = 2, the number of trips completed by each bus are [2,1,0]. 
+  The total number of trips completed is 2 + 1 + 0 = 3.
+- At time t = 3, the number of trips completed by each bus are [3,1,1]. 
+  The total number of trips completed is 3 + 1 + 1 = 5.
+So the minimum time needed for all buses to complete at least 5 trips is 3.
+Example 2:
+
+Input: time = [2], totalTrips = 1
+Output: 2
+Explanation:
+There is only one bus, and it will complete its first trip at t = 2.
+So the minimum time needed to complete 1 trip is 2.
+ 
+
+Constraints:
+
+1 <= time.length <= 105
+1 <= time[i], totalTrips <= 107
+
+
+
+# java
+
+
+
+class Solution {
+  public long minimumTime(int[] time, int totalTrips) {
+    long l = 1;
+    long r = (long) Arrays.stream(time).min().getAsInt() * totalTrips;
+
+    while (l < r) {
+      final long m = (l + r) / 2;
+      if (numTrips(time, m) >= totalTrips)
+        r = m;
+      else
+        l = m + 1;
+    }
+
+    return l;
+  }
+
+  private long numTrips(int[] time, long m) {
+    return Arrays.stream(time).asLongStream().reduce(0L, (subtotal, t) -> subtotal + m / t);
+  }
+}
+
+
+or
+
+
+class Solution {
+    public long minimumTime(int[] time, int totalTrips) {
+        int mi = time[0];
+        for (int v : time) {
+            mi = Math.min(mi, v);
+        }
+        long left = 1, right = (long) mi * totalTrips;
+        while (left < right) {
+            long cnt = 0;
+            long mid = (left + right) >> 1;
+            for (int v : time) {
+                cnt += mid / v;
+            }
+            if (cnt >= totalTrips) {
+                right = mid;
+            } else {
+                left = mid + 1;
+            }
+        }
+        return left;
+    }
+}
+
+
+or
+
+// bs
+
+class Solution {
+    public long minimumTime(int[] time, int totalTrips) {
+        long lo = 1, hi = 100000000000000L;
+        while (lo < hi) {
+            long mid = lo + (hi - lo) / 2;
+            if (!f(mid, totalTrips, time))
+                lo = mid + 1;
+            else
+                hi = mid;
+        }
+        return lo;
+    }
+
+    private boolean f(long x, int totalTrips, int[] time) {
+        long sum = 0;
+        for (int t : time)
+            sum += x / t;
+        return sum >= totalTrips;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public long minimumTime(int[] time, int totalTrips) {
+        long low=Long.MAX_VALUE;
+        long high=0;
+        long min=Long.MAX_VALUE;
+        for(int it:time){
+            low=Math.min(low,it);
+            min=Math.min(min,it);
+        }
+        high=totalTrips*min;
+        while(low<high){
+            long mid=low+(high-low)/2;
+            if(blackbox(mid,totalTrips,time)){
+                high=mid;
+            }
+            else
+                low=mid+1;
+        }
+        return low;
+    }
+    public boolean blackbox(long isvalidtime,int totalTrips,int[] time){
+        long trips=0;
+        for(int it:time){
+            trips+=isvalidtime/it;
+        }
+        if(trips>=totalTrips)
+            return true;
+        return false;
+    }
+}
+
+
+
