@@ -1,0 +1,266 @@
+https://leetcode.com/problems/find-all-anagrams-in-a-string/
+
+
+438. Find All Anagrams in a String
+Medium
+Topics
+Companies
+Given two strings s and p, return an array of all the start indices of p's anagrams in s. You may return the answer in any order.
+
+ 
+
+Example 1:
+
+Input: s = "cbaebabacd", p = "abc"
+Output: [0,6]
+Explanation:
+The substring with start index = 0 is "cba", which is an anagram of "abc".
+The substring with start index = 6 is "bac", which is an anagram of "abc".
+Example 2:
+
+Input: s = "abab", p = "ab"
+Output: [0,1,2]
+Explanation:
+The substring with start index = 0 is "ab", which is an anagram of "ab".
+The substring with start index = 1 is "ba", which is an anagram of "ab".
+The substring with start index = 2 is "ab", which is an anagram of "ab".
+ 
+
+Constraints:
+
+1 <= s.length, p.length <= 3 * 104
+s and p consist of lowercase English letters.
+
+
+
+# java
+
+
+class Solution {
+    public List<Integer> findAnagrams(String s, String p) {
+        int m = s.length(), n = p.length();
+        List<Integer> ans = new ArrayList<>();
+        if (m < n) {
+            return ans;
+        }
+        int[] cnt1 = new int[26];
+        for (int i = 0; i < n; ++i) {
+            ++cnt1[p.charAt(i) - 'a'];
+        }
+        int[] cnt2 = new int[26];
+        for (int i = 0; i < n - 1; ++i) {
+            ++cnt2[s.charAt(i) - 'a'];
+        }
+        for (int i = n - 1; i < m; ++i) {
+            ++cnt2[s.charAt(i) - 'a'];
+            if (Arrays.equals(cnt1, cnt2)) {
+                ans.add(i - n + 1);
+            }
+            --cnt2[s.charAt(i - n + 1) - 'a'];
+        }
+        return ans;
+    }
+}
+
+
+
+
+or
+
+
+
+class Solution {
+  public List<Integer> findAnagrams(String s, String p) {
+    List<Integer> ans = new ArrayList<>();
+    int[] count = new int[128];
+    int required = p.length();
+
+    for (final char c : p.toCharArray())
+      ++count[c];
+
+    for (int l = 0, r = 0; r < s.length(); ++r) {
+      if (--count[s.charAt(r)] >= 0)
+        --required;
+      while (required == 0) {
+        if (r - l + 1 == p.length())
+          ans.add(l);
+        if (++count[s.charAt(l++)] > 0)
+          ++required;
+      }
+    }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public List<Integer> findAnagrams(String s, String p) {
+        // Create a list to find all anagrams in the string...
+        List<Integer> output = new ArrayList<>();
+        // Base case...
+        if (s.length() < p.length()) return output;
+        // Use map to record the count and beg and end pointers to track the windows...
+        int[] hashmap = new int[128];
+        // Record each character in p to hash
+        for (char ch : p.toCharArray()) {
+            hashmap[ch]++;
+        }
+        // Two pointers to track the window & initialize counter to p's length...
+        int beg = 0, end = 0, counter = p.length();
+        
+        while (end < s.length()) {
+            // Move end everytime, if the character exists in p's hash, decrease the counter...
+            if (hashmap[s.charAt(end++)]-- > 0)     //current hash value > 0 means the character is existing in p string...
+                counter--;
+            // When the counter is down to 0 (means the end anagram is found), add beg to result list...
+            if (counter == 0)
+                output.add(beg);
+            // If we find the window's size equals to p, then we have to move beg to find the new match window...
+            // ++ to reset the hash because we kicked out the beg...
+            // Increase the counter if the character is in p string...
+            if (end - beg == p.length() && hashmap[s.charAt(beg++)]++ >= 0)     // >= 0 means it was original in the hash, because it won't go below 0
+                counter++;
+        }
+        return output;      // Return the output result...
+    }
+}
+
+
+or
+
+
+class Solution {
+    public List<Integer> findAnagrams(String s, String p) {
+        List<Integer> list = new ArrayList<>();
+        if(s.length() < p.length()) {
+            return list;
+        }
+
+        int[] freqS = new int[26];
+        int[] freqP = new int[26];
+
+
+        for(int i=0; i<p.length(); i++) {
+            freqS[s.charAt(i)-'a']++;
+            freqP[p.charAt(i)-'a']++;
+        }
+
+        if(Arrays.equals(freqS, freqP)) {
+            list.add(0);
+        }
+
+        int start = 0;
+        int end = p.length();
+
+        while(end < s.length()) {
+
+            freqS[s.charAt(start)-'a']--;
+            freqS[s.charAt(end)-'a']++;
+
+            if(Arrays.equals(freqS, freqP)) {
+                list.add(start+1);
+            }
+            end++;
+            start++;
+        }
+        return list;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public List<Integer> findAnagrams(String s, String p) {
+        List<Integer> ans = new ArrayList<>();
+        if (p.length() > s.length()) {  // p annot be longer than s
+            return ans;
+        }
+        // create hashmaps to store the frequencies of characters
+        // we would check every window of size len(p)
+        Map<Character, Integer> sMap = new HashMap<>();
+        Map<Character, Integer> pMap = new HashMap<>();
+        // store the frequency for the starting window
+        for (int i = 0; i < p.length(); i++) {
+            pMap.put(p.charAt(i), pMap.getOrDefault(p.charAt(i), 0) + 1);
+            sMap.put(s.charAt(i), sMap.getOrDefault(s.charAt(i), 0) + 1);
+        }
+
+        // if frequencies are same means we got an anagram
+        if (sMap.equals(pMap)) {    
+            ans.add(0);     // add the first index
+        }
+        
+        // window size of len(p)
+        int l = 0, r = p.length();
+        // Now we will start sliding the window
+        while (r < s.length()) {
+            // Acquire the next char at right
+            char acquire = s.charAt(r++);   // r moves ahead
+            // put it on the map/update its frequency
+            sMap.put(acquire, sMap.getOrDefault(acquire, 0) + 1);
+
+            // get rid the first char from extreme left of window
+            char discard = s.charAt(l++);   // l moves ahead
+            sMap.put(discard, sMap.get(discard) - 1);
+            // if frequency has become 0, remove the mapping itself
+            if (sMap.get(discard) == 0) {   
+                sMap.remove(discard);
+            }
+
+            // our window has already moved forward when we did r++ and l++
+            // if frequencies are same we have found an anagram
+            if (sMap.equals(pMap)) {
+                ans.add(l);  // add the left bound of the window
+            }
+        }
+
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public List<Integer> findAnagrams(String s, String p) {
+        List<Integer> ans = new ArrayList<>();
+        if (p.length() > s.length()) {
+            return ans;
+        }
+
+        int[] pFreq = new int[26];
+        int[] sFreq = new int[26];
+        for (int i = 0; i < p.length(); i++) {
+            pFreq[p.charAt(i) - 'a']++;
+            sFreq[s.charAt(i) - 'a']++;
+        }
+
+        if (Arrays.equals(pFreq, sFreq)) {
+            ans.add(0);
+        }
+
+        int i = 0, j = p.length();
+        while (j < s.length()) {
+            sFreq[s.charAt(i++) - 'a']--;
+            sFreq[s.charAt(j++) - 'a']++;
+            if (Arrays.equals(sFreq, pFreq)) {
+                ans.add(i);
+            }
+        }
+
+        return ans;
+    }
+}
+
+
