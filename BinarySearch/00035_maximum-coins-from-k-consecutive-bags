@@ -1,0 +1,250 @@
+https://leetcode.com/problems/maximum-coins-from-k-consecutive-bags/
+
+3413. Maximum Coins From K Consecutive Bags
+Medium
+Topics
+Companies
+Hint
+There are an infinite amount of bags on a number line, one bag for each coordinate. Some of these bags contain coins.
+
+You are given a 2D array coins, where coins[i] = [li, ri, ci] denotes that every bag from li to ri contains ci coins.
+
+The segments that coins contain are non-overlapping.
+
+You are also given an integer k.
+
+Return the maximum amount of coins you can obtain by collecting k consecutive bags.
+
+ 
+
+Example 1:
+
+Input: coins = [[8,10,1],[1,3,2],[5,6,4]], k = 4
+
+Output: 10
+
+Explanation:
+
+Selecting bags at positions [3, 4, 5, 6] gives the maximum number of coins: 2 + 0 + 4 + 4 = 10.
+
+Example 2:
+
+Input: coins = [[1,10,3]], k = 2
+
+Output: 6
+
+Explanation:
+
+Selecting bags at positions [1, 2] gives the maximum number of coins: 3 + 3 = 6.
+
+ 
+
+Constraints:
+
+1 <= coins.length <= 105
+1 <= k <= 109
+coins[i] == [li, ri, ci]
+1 <= li <= ri <= 109
+1 <= ci <= 1000
+The given segments are non-overlapping.
+
+
+# java
+
+
+class Solution {
+  public long maximumCoins(int[][] coins, int k) {
+    int[][] negatedCoins = negateLeftRight(coins);
+    return Math.max(slide(coins, k), slide(negatedCoins, k));
+  }
+
+  private int[][] negateLeftRight(int[][] coins) {
+    int[][] res = new int[coins.length][3];
+    for (int i = 0; i < coins.length; ++i) {
+      final int l = coins[i][0];
+      final int r = coins[i][1];
+      final int c = coins[i][2];
+      res[i][0] = -r;
+      res[i][1] = -l;
+      res[i][2] = c;
+    }
+    return res;
+  }
+
+  private long slide(int[][] coins, int k) {
+    long res = 0;
+    long windowSum = 0;
+    int j = 0;
+
+    Arrays.sort(coins, Comparator.comparingInt((int[] coin) -> coin[0]));
+
+    for (int[] coin : coins) {
+      final int li = coin[0];
+      final int ri = coin[1];
+      final int ci = coin[2];
+      final int rightBoundary = li + k;
+
+      // [lj, rj] is fully in [li..li + k).
+      while (j + 1 < coins.length && coins[j + 1][0] < rightBoundary) {
+        final int lj = coins[j][0];
+        final int rj = coins[j][1];
+        final int cj = coins[j][2];
+        windowSum += (long) (rj - lj + 1) * cj;
+        ++j;
+      }
+
+      // [lj, rj] may be partially in [l..l + k).
+      long last = 0;
+      if (j < coins.length && coins[j][0] < rightBoundary) {
+        final int lj = coins[j][0];
+        final int rj = coins[j][1];
+        final int cj = coins[j][2];
+        last = (long) (Math.min(rightBoundary - 1, rj) - lj + 1) * cj;
+      }
+
+      res = Math.max(res, windowSum + last);
+      windowSum -= (long) (ri - li + 1) * ci;
+    }
+
+    return res;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+        public long maximumCoins(int[][] A, int k) {
+        Arrays.sort(A, (a, b) -> a[0] - b[0]);
+        int n = A.length;
+
+        // Start at A[i][0]
+        long res = 0, cur = 0;
+        for (int i = 0, j = 0; i < n; ++i) {
+            while (j < n && A[j][1] <= A[i][0] + k - 1) {
+                cur += 1L * (A[j][1] - A[j][0] + 1) * A[j][2];
+                j++;
+            }
+            if (j < n) {
+                long part = 1L * Math.max(0, A[i][0] + k - 1 - A[j][0] + 1) * A[j][2];
+                res = Math.max(res, cur + part);
+            }
+            cur -= 1L * (A[i][1] - A[i][0] + 1) * A[i][2];
+        }
+
+        // End at A[i][1]
+        cur = 0;
+        for (int i = 0, j = 0; i < n; ++i) {
+            cur += 1L * (A[i][1] - A[i][0] + 1) * A[i][2];
+            while (A[j][1] < A[i][1] - k + 1) {
+                cur -= 1L * (A[j][1] - A[j][0] + 1) * A[j][2];
+                j++;
+            }
+            long part = 1L * Math.max(0, A[i][1] - k - A[j][0] + 1) * A[j][2];
+            res = Math.max(res, cur - part);
+        }
+
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int bs1(int key, int[][] arr) {
+        int l = 0, r = arr.length - 1, ans = -1;
+        while (l <= r) {
+            int mid = l + (r - l) / 2;
+            if (arr[mid][0] <= key) {
+                l = mid + 1;
+                ans = mid;
+            } else {
+                r = mid - 1;
+            }
+        }
+        return ans;
+    }
+
+    public int bs2(int key, int[][] arr) {
+        int l = 0, r = arr.length - 1, ans = -1;
+        while (l <= r) {
+            int mid = l + (r - l) / 2;
+            if (arr[mid][1] >= key) {
+                r = mid - 1;
+                ans = mid;
+            } else {
+                l = mid + 1;
+            }
+        }
+        return ans;
+    }
+
+    public long maximumCoins(int[][] coins, int k) {
+        HashMap<Integer, Long> pref = new HashMap<>();
+        HashMap<Integer, Long> suff = new HashMap<>();
+        Arrays.sort(coins, (a, b) -> Integer.compare(a[0], b[0]));
+        int n = coins.length;
+        long sum = 0;
+
+        // Compute prefix sum correctly using long
+        for (int i = 0; i < n; i++) {
+            sum += (long) coins[i][2] * (coins[i][1] - coins[i][0] + 1);
+            pref.put(coins[i][1], sum);
+        }
+
+        sum = 0;
+        // Compute suffix sum correctly using long
+        for (int i = n - 1; i >= 0; i--) {
+            sum += (long) coins[i][2] * (coins[i][1] - coins[i][0] + 1);
+            suff.put(coins[i][0], sum);
+        }
+
+        long max = 0;
+        for (int i = 0; i < n; i++) {
+            int li = coins[i][0];
+
+            int idx = bs1(li + k - 1, coins);
+            long curr = 0;
+            if (idx >= 1) {
+                if (i == 0)
+                    curr = pref.getOrDefault(coins[idx - 1][1], 0L);
+                else
+                    curr = pref.getOrDefault(coins[idx - 1][1], 0L) - pref.getOrDefault(coins[i - 1][1], 0L);
+            }
+
+            if (idx >= 0) {
+                int rightLim = Math.min(li + k - 1, coins[idx][1]);
+                curr += (long) (rightLim - coins[idx][0] + 1) * coins[idx][2];
+            }
+            max = Math.max(max, curr);
+        }
+
+        for (int i = n - 1; i >= 0; i--) {
+            int ri = coins[i][1];
+
+            int idx = bs2(ri - k + 1, coins);
+            long curr = 0;
+            if (idx + 1 < n) {
+                if (i == n - 1)
+                    curr = suff.getOrDefault(coins[idx + 1][0], 0L);
+                else
+                    curr = suff.getOrDefault(coins[idx + 1][0], 0L) - suff.getOrDefault(coins[i + 1][0], 0L);
+            }
+
+            if (idx >= 0) {
+                int leftLim = Math.max(ri - k + 1, coins[idx][0]);
+                curr += (long) (coins[idx][1] - leftLim + 1) * coins[idx][2];
+            }
+            max = Math.max(max, curr);
+        }
+
+        return max;
+    }
+}
+
+
+
