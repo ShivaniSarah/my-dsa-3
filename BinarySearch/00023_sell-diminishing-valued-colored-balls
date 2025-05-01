@@ -1,0 +1,314 @@
+https://leetcode.com/problems/sell-diminishing-valued-colored-balls/description/
+
+
+1648. Sell Diminishing-Valued Colored Balls
+Medium
+Topics
+Companies
+Hint
+You have an inventory of different colored balls, and there is a customer that wants orders balls of any color.
+
+The customer weirdly values the colored balls. Each colored ball's value is the number of balls of that color you currently have in your inventory. For example, if you own 6 yellow balls, the customer would pay 6 for the first yellow ball. After the transaction, there are only 5 yellow balls left, so the next yellow ball is then valued at 5 (i.e., the value of the balls decreases as you sell more to the customer).
+
+You are given an integer array, inventory, where inventory[i] represents the number of balls of the ith color that you initially own. You are also given an integer orders, which represents the total number of balls that the customer wants. You can sell the balls in any order.
+
+Return the maximum total value that you can attain after selling orders colored balls. As the answer may be too large, return it modulo 109 + 7.
+
+ 
+
+Example 1:
+
+
+Input: inventory = [2,5], orders = 4
+Output: 14
+Explanation: Sell the 1st color 1 time (2) and the 2nd color 3 times (5 + 4 + 3).
+The maximum total value is 2 + 5 + 4 + 3 = 14.
+Example 2:
+
+Input: inventory = [3,5], orders = 6
+Output: 19
+Explanation: Sell the 1st color 2 times (3 + 2) and the 2nd color 4 times (5 + 4 + 3 + 2).
+The maximum total value is 3 + 2 + 5 + 4 + 3 + 2 = 19.
+ 
+
+Constraints:
+
+1 <= inventory.length <= 105
+1 <= inventory[i] <= 109
+1 <= orders <= min(sum(inventory[i]), 109)
+
+
+# java
+
+
+class Solution {
+  public int maxProfit(int[] inventory, int orders) {
+    final int MOD = 1_000_000_007;
+    long ans = 0;
+    long largestCount = 1;
+
+    Arrays.sort(inventory);
+
+    for (int i = inventory.length - 1; i >= 0; --i, ++largestCount)
+      if (i == 0 || inventory[i] > inventory[i - 1]) {
+        // If we are at the first inventory, or inventory[i] > inventory[i + 1].
+        // In either case, we will pick inventory[i..i + largestCount - 1].
+        final long pick = (i == 0) ? inventory[i] : inventory[i] - inventory[i - 1];
+        if (largestCount * pick >= orders) {
+          // We have run out of orders, so we need to recalculate the number of
+          // balls that we actually pick for inventory[i..i + largestCount - 1].
+          final long actualPick = orders / largestCount;
+          final long remaining = orders % largestCount;
+          return (int) ((ans +
+                         largestCount * trapezoid(inventory[i], inventory[i] - actualPick + 1) +
+                         remaining * (inventory[i] - actualPick)) %
+                        MOD);
+        }
+        ans += largestCount * trapezoid(inventory[i], inventory[i] - pick + 1);
+        ans %= MOD;
+        orders -= largestCount * pick;
+      }
+
+    throw new IllegalArgumentException();
+  }
+
+  private long trapezoid(long a, long b) {
+    return (a + b) * (a - b + 1) / 2;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    private static final int MOD = (int) 1e9 + 7;
+
+    public int maxProfit(int[] inventory, int orders) {
+        Arrays.sort(inventory);
+        int n = inventory.length;
+        for (int i = 0, j = n - 1; i < j; ++i, --j) {
+            int t = inventory[i];
+            inventory[i] = inventory[j];
+            inventory[j] = t;
+        }
+        long ans = 0;
+        int i = 0;
+        while (orders > 0) {
+            while (i < n && inventory[i] >= inventory[0]) {
+                ++i;
+            }
+            int nxt = i < n ? inventory[i] : 0;
+            int cnt = i;
+            long x = inventory[0] - nxt;
+            long tot = cnt * x;
+            if (tot > orders) {
+                int decr = orders / cnt;
+                long a1 = inventory[0] - decr + 1, an = inventory[0];
+                ans += (a1 + an) * decr / 2 * cnt;
+                ans += (a1 - 1) * (orders % cnt);
+            } else {
+                long a1 = nxt + 1, an = inventory[0];
+                ans += (a1 + an) * x / 2 * cnt;
+                inventory[0] = nxt;
+            }
+            orders -= tot;
+            ans %= MOD;
+        }
+        return (int) ans;
+    }
+}
+
+
+
+or
+
+
+
+
+class Solution {
+    public int maxProfit(int[] inventory, int orders) {
+        /*                       
+          1  3  5  5  9  9  9    original sorted inventory
+          1  3  5  5  5  5  5    profit gain after selling all 9-value balls: (9 + 8 + 7 + 6) * 3 -> (9 + 6) * (9 - 6 + 1) / 2 * 3
+          1  3  3  3  3  3  3    (5 + 4) * (5 - 4 + 1) / 2 * 5  -> (curValue + nextValue + 1) * (curValue - nextValue) / 2 * numSameColor
+          1  1  1  1  1  1  1
+          0  0  0  0  0  0  0
+          
+          need to handle the edge case that orders left is less than the number of items to buy
+        */
+        int mod = 1000000007;
+        Arrays.sort(inventory);
+        int curIndex = inventory.length - 1;
+        int curValue = inventory[curIndex];
+        long profit = 0;
+        while (orders > 0) {
+            while (curIndex >= 0 && inventory[curIndex] == curValue) {
+                curIndex--;
+            }
+            // if all colors of balls are the same value, nextValue is 0
+            int nextValue = curIndex < 0 ? 0 : inventory[curIndex];
+            // number of colors of balls with same value 
+            int numSameColor = inventory.length - 1 - curIndex;
+            // number of items to buy
+            int nums = (curValue - nextValue) * numSameColor;
+            if (orders >= nums) {
+                // buy all items
+                profit += (long)(curValue + nextValue + 1) * (curValue - nextValue) / 2 * numSameColor;
+            } else {
+			    // orders left is less than the number of items to buy
+                int numFullRow = orders / numSameColor;
+                int remainder = orders % numSameColor;
+                profit += (long)(curValue + curValue - numFullRow + 1) * numFullRow / 2 * numSameColor;
+                profit += (long)(curValue - numFullRow) * remainder;
+            }
+            orders -= nums;
+            profit = profit % mod;
+            curValue = nextValue;
+        }
+        return (int)profit;
+    }
+}
+
+
+or
+
+// best bs
+
+class Solution {
+   int mod = (int) 1e9 + 7;
+public int maxProfit(int[] inventory, int orders) {
+    long profit = 0;
+    int k = smallestK(inventory, orders);
+
+    for (int inv : inventory) {
+        if (inv > k) {
+            profit = (profit + 1L * (inv + k + 1) * (inv - k) / 2) % mod;
+            orders -= inv - k;
+        }
+    }
+    return (int) ((profit + 1L * orders * k) % mod);
+}
+
+int smallestK(int[] inventory, int target) {
+    int max = Integer.MIN_VALUE;
+    for (int inv : inventory) max = Math.max(max, inv);
+
+    int left = 0, right = max;
+    while (left < right) {
+        int mid = left + (right - left) / 2;
+        if (sum(inventory, mid) > target) left = mid + 1;
+        else right = mid;
+    }
+    return left;
+}
+
+long sum(int[] inventory, int k) {
+    long sum = 0;
+    for (int i : inventory) {
+        if (i > k) sum += i - k;
+    }
+    return sum;
+}
+}
+
+
+
+or
+
+
+
+class Solution {
+    int mod = (int) 1e9 + 7;
+
+    public int maxProfit(int[] inventory, int orders) {
+        int n = inventory.length, i = n - 1;
+        long profit = 0;
+
+        Arrays.sort(inventory);
+        int cur = inventory[n - 1];
+
+        while (orders > 0) {
+            while (i >= 0 && cur == inventory[i])
+                i--;
+            int count = n - i - 1;
+            int next = i < 0 ? 0 : inventory[i];
+            int total = (cur - next) * count;
+            if (orders > total) {
+                profit += area(cur, next + 1, count);
+            } else {
+                int h = orders / count, r = orders % count;
+                profit += area(cur, cur - h + 1, count) + 1L * r * (cur - h);
+            }
+            orders -= total;
+            profit %= mod;
+            cur = next;
+        }
+        return (int) profit;
+    }
+
+    long area(int max, int min, int count) {
+        return 1L * (max + min) * (max - min + 1) / 2 * count;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+   int mod = (int) 1e9 + 7;
+public int maxProfit(int[] inventory, int orders) {
+    int n = inventory.length;
+    PriorityQueue<Integer> maxHeap = new PriorityQueue<>((a, b) -> {
+        return inventory[b] - inventory[a];
+    });
+
+    for (int i = 0; i < n; i++) {
+        maxHeap.add(i);
+    }
+
+    long profit = 0;
+    while (orders-- > 0) {
+        int idx = maxHeap.remove();
+        profit = (profit + inventory[idx]) % mod;
+        inventory[idx]--;
+        maxHeap.add(idx);
+    }
+    return (int) profit;
+}
+}
+
+
+or
+
+class Solution {
+    public int maxProfit(int[] inventory, int orders) {
+        int lo = 1, hi = (int)1e9, m = hi + 7;
+        while(lo < hi){
+            int mid = (lo + hi) >> 1;
+            long need = 0;
+            for (int n : inventory){
+                need += Math.max(0, n - mid);
+            }
+            if (need < orders){
+                hi = mid;
+            }else{
+                lo = mid + 1;
+            }
+        }
+
+        long ans = 0;
+        for (int n : inventory){
+            ans = (ans + Math.max(0L, 1L*(lo + 1 + n)*(n - lo)/2)) % m;
+            orders -= Math.max(0, n - lo);
+        }
+
+        return (int)((ans + 1L*orders * lo) % m);
+    }
+}
+
+
