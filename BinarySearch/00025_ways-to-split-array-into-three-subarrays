@@ -1,0 +1,235 @@
+https://leetcode.com/problems/ways-to-split-array-into-three-subarrays/description/
+
+
+1712. Ways to Split Array Into Three Subarrays
+Medium
+Topics
+Companies
+Hint
+A split of an integer array is good if:
+
+The array is split into three non-empty contiguous subarrays - named left, mid, right respectively from left to right.
+The sum of the elements in left is less than or equal to the sum of the elements in mid, and the sum of the elements in mid is less than or equal to the sum of the elements in right.
+Given nums, an array of non-negative integers, return the number of good ways to split nums. As the number may be too large, return it modulo 109 + 7.
+
+ 
+
+Example 1:
+
+Input: nums = [1,1,1]
+Output: 1
+Explanation: The only good way to split nums is [1] [1] [1].
+Example 2:
+
+Input: nums = [1,2,2,2,5,0]
+Output: 3
+Explanation: There are three good ways of splitting nums:
+[1] [2] [2,2,5,0]
+[1] [2,2] [2,5,0]
+[1,2] [2,2] [5,0]
+Example 3:
+
+Input: nums = [3,2,1]
+Output: 0
+Explanation: There is no good way to split nums.
+ 
+
+Constraints:
+
+3 <= nums.length <= 105
+0 <= nums[i] <= 104
+
+
+
+# java
+
+
+
+class Solution {
+  public int waysToSplit(int[] nums) {
+    final int MOD = 1_000_000_007;
+    final int n = nums.length;
+    int ans = 0;
+    int[] prefix = nums.clone();
+
+    for (int i = 1; i < n; ++i)
+      prefix[i] += prefix[i - 1];
+
+    for (int i = 0; i < n - 2; ++i) {
+      final int j = firstGreaterEqual(prefix, i);
+      if (j == n - 1)
+        break;
+      final int mid = prefix[j] - prefix[i];
+      final int right = prefix[prefix.length - 1] - prefix[j];
+      if (mid > right)
+        continue;
+      final int k = firstGreater(prefix, i);
+      ans = (ans + k - j) % MOD;
+    }
+
+    return ans;
+  }
+
+  // Finds the first index j s.t.
+  // mid = prefix[j] - prefix[i] >= left = prefix[i].
+  private int firstGreaterEqual(int[] prefix, int i) {
+    int l = i + 1;
+    int r = prefix.length - 1;
+    while (l < r) {
+      final int m = (l + r) / 2;
+      if (prefix[m] - prefix[i] >= prefix[i])
+        r = m;
+      else
+        l = m + 1;
+    }
+    return l;
+  };
+
+  // Finds the first index k s.t.
+  // mid = prefix[k] - prefix[i] > right = prefix[-1] - prefix[k].
+  private int firstGreater(int[] prefix, int i) {
+    int l = i + 1;
+    int r = prefix.length - 1;
+    while (l < r) {
+      final int m = (l + r) / 2;
+      if (prefix[m] - prefix[i] > prefix[prefix.length - 1] - prefix[m])
+        r = m;
+      else
+        l = m + 1;
+    }
+    return l;
+  };
+}
+
+
+
+or
+
+
+class Solution {
+  public int waysToSplit(int[] nums) {
+    final int MOD = 1_000_000_007;
+    final int n = nums.length;
+    int ans = 0;
+    int[] prefix = nums.clone();
+
+    for (int i = 1; i < n; ++i)
+      prefix[i] += prefix[i - 1];
+
+    for (int i = 0, j = 0, k = 0; i < n - 2; ++i) {
+      // Find the first index j s.t.
+      // left = prefix[i] <= mid = prefix[j] - prefix[i]
+      j = Math.max(j, i + 1);
+      while (j < n - 1 && prefix[i] > prefix[j] - prefix[i])
+        ++j;
+      // Find the first index k s.t.
+      // mid = prefix[k] - prefix[i] > right = prefix[-1] - prefix[k]
+      k = Math.max(k, j);
+      while (k < n - 1 && prefix[k] - prefix[i] <= prefix[prefix.length - 1] - prefix[k])
+        ++k;
+      ans += k - j;
+      ans %= MOD;
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    private static final int MOD = (int) 1e9 + 7;
+
+    public int waysToSplit(int[] nums) {
+        int n = nums.length;
+        int[] s = new int[n];
+        s[0] = nums[0];
+        for (int i = 1; i < n; ++i) {
+            s[i] = s[i - 1] + nums[i];
+        }
+        int ans = 0;
+        for (int i = 0; i < n - 2; ++i) {
+            int j = search(s, s[i] << 1, i + 1, n - 1);
+            int k = search(s, ((s[n - 1] + s[i]) >> 1) + 1, j, n - 1);
+            ans = (ans + k - j) % MOD;
+        }
+        return ans;
+    }
+
+    private int search(int[] s, int x, int left, int right) {
+        while (left < right) {
+            int mid = (left + right) >> 1;
+            if (s[mid] >= x) {
+                right = mid;
+            } else {
+                left = mid + 1;
+            }
+        }
+        return left;
+    }
+}
+
+
+or
+
+
+// best
+class Solution {
+    public int waysToSplit(int[] nums) {
+        for (int i = 1; i < nums.length; i++) {
+            nums[i] += nums[i-1];
+        }
+        int ways = 0;
+        for (int i = 0, j = 0, k = 0; i < nums.length - 2 && 3 * nums[i] <= nums[nums.length - 1]; i++) {
+            j = Math.max(j, i + 1);
+            while (j < nums.length - 1 && nums[j] - nums[i] < nums[i]) 
+                j++;
+            k = Math.max(k, j);
+            while (k < nums.length - 1 && nums[k] - nums[i] <= nums[nums.length - 1] - nums[k]) 
+                k++;
+            ways = (ways + k - j) % 1000000007;
+        }
+        return ways;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int waysToSplit(int[] nums) {
+        int n = nums.length;
+        long res = 0;
+        // finding prefix sum
+        for(int i = 1; i < n; i++) nums[i] += nums[i - 1];
+        for(int i = 0; i < n - 2; i++){
+            // j to k will be the range for which we get good split
+            // 0 - i, first.... i - j/k, second..... j/k - n - 1, thrid
+            int j = i + 1;
+            int right = n - 2;
+            // this binary search will satisfy the condition for first and second splits
+            while(j <= right){
+                int mid = (j + right)/2;
+                if(nums[mid] - nums[i] < nums[i]) j = mid + 1;
+                else right = mid - 1; 
+            }
+            int k = j;
+            right = n - 2;
+            // this BS will satisfy the condition for second and thrid splits
+            while(k <= right){
+                int mid = (k + right)/2;
+                if(nums[mid] - nums[i] <= nums[n - 1] - nums[mid]) k = mid + 1;
+                else right = mid - 1; 
+            }
+            // now we can simply add the range k - j into our result
+            res = (res + k - j) % 1000000007;
+        }
+        return (int)res;
+    }
+}
