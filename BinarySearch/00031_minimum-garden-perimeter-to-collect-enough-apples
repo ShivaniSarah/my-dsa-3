@@ -1,0 +1,146 @@
+https://leetcode.com/problems/minimum-garden-perimeter-to-collect-enough-apples/
+
+
+1954. Minimum Garden Perimeter to Collect Enough Apples
+Medium
+Topics
+Companies
+Hint
+In a garden represented as an infinite 2D grid, there is an apple tree planted at every integer coordinate. The apple tree planted at an integer coordinate (i, j) has |i| + |j| apples growing on it.
+
+You will buy an axis-aligned square plot of land that is centered at (0, 0).
+
+Given an integer neededApples, return the minimum perimeter of a plot such that at least neededApples apples are inside or on the perimeter of that plot.
+
+The value of |x| is defined as:
+
+x if x >= 0
+-x if x < 0
+ 
+
+Example 1:
+
+
+Input: neededApples = 1
+Output: 8
+Explanation: A square plot of side length 1 does not contain any apples.
+However, a square plot of side length 2 has 12 apples inside (as depicted in the image above).
+The perimeter is 2 * 4 = 8.
+Example 2:
+
+Input: neededApples = 13
+Output: 16
+Example 3:
+
+Input: neededApples = 1000000000
+Output: 5040
+ 
+
+Constraints:
+
+1 <= neededApples <= 1015
+
+
+# java
+
+
+
+class Solution {
+  public long minimumPerimeter(long neededApples) {
+    long l = 1;
+    long r = 100_000; // \sqrt [3] {10^{15}}
+
+    while (l < r) {
+      final long m = (l + r) / 2;
+      if (numApples(m) >= neededApples)
+        r = m;
+      else
+        l = m + 1;
+    }
+
+    return l * 8;
+  }
+
+  // Returns the number of apples at the k-th level.
+  //    k := the level making perimeter = 8k
+  // p(k) := the number of apples at the k-th level on the perimeter
+  // n(k) := the number of apples at the k-th level not no the perimeter
+  //
+  // p(1) =             1 + 2
+  // p(2) =         3 + 2 + 3 + 4
+  // p(3) =     5 + 4 + 3 + 4 + 5 + 6
+  // p(4) = 7 + 6 + 5 + 4 + 5 + 6 + 7 + 8
+  // p(k) = k + 2(k+1) + 2(k+2) + ... + 2(k+k-1) + 2k
+  //      = k + 2k^2 + 2k(k-1)/2
+  //      = k + 2k^2 + k^2 - k = 3k^2
+  //
+  // n(k) = p(1) + p(2) + p(3) + ... + p(k)
+  //      = 31  + 34  + 39  + ... + 3k^2
+  //      = 3 * (1 + 4 + 9 + ... + k^2)
+  //      = 3 * k(k+1)(2k+1)/6 = k(k+1)(2k+1)/2
+  // So, the number of apples at the k-th level should be
+  //   k(k+1)(2k+1)/2 * 4 = 2k(k+1)(2k+1)
+  private long numApples(long k) {
+    return 2L * k * (k + 1) * (2 * k + 1);
+  }
+}
+
+
+or
+
+
+class Solution {
+    public long minimumPerimeter(long neededApples) {
+        long x = 1;
+        while (2 * x * (x + 1) * (2 * x + 1) < neededApples) {
+            ++x;
+        }
+        return 8 * x;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    /**
+     * @return total number of apples in garden of side length {@code n} (including perimeter)
+     */
+    public long calculateTotalApples(long n) {
+        // apples on 1 axis: n*(n+1)/2; (1,0), (2,0), (3, 0),...
+        // apples in 1st quadrant except on axes–
+        //      n lines parallel to x-axis: n * (n*(n+1)/2); [(1,y), (2,y),...] x n
+        //      n lines parallel to y-axis: n * (n*(n+1)/2); [(x,1), (x,2),...] x n
+        //                   total: 2 * n*(n*(n+1)/2)
+        long ans = (n*(n+1)/2) * (1 + 2*n);
+        return 4*ans;   // total number of quadrants = 4
+    }
+
+    /**
+     * <strong>Binary search</strong> the number of sides length of the plot
+     * @param neededApples number of apples required in the plot (including on perimeter)
+     * @return the minimum perimeter of a plot such that at least {@code neededApples} apples are inside or on the perimeter of that plot.
+     */
+    public long minimumPerimeter(long neededApples) {
+        long l = 1, r = (long) 1e5;
+        while(l < r) {
+            long mid = l + (r-l)/2;
+            // if total number of apples in plot of side length (2 * mid)
+            // is less than neededApples then size of plot must be higher than mid
+            if (calculateTotalApples(mid) < neededApples) {
+                l = mid+1;
+            }
+            else {
+                r = mid;
+            }
+        }
+        return 8*r;     // perimeter is 8 times of a half-part in 1st quadrant
+    }
+}
+
+
+or
+
+
