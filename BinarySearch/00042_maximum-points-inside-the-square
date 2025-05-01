@@ -1,0 +1,238 @@
+https://leetcode.com/problems/maximum-points-inside-the-square/description/
+
+
+3143. Maximum Points Inside the Square
+Medium
+Topics
+Companies
+Hint
+You are given a 2D array points and a string s where, points[i] represents the coordinates of point i, and s[i] represents the tag of point i.
+
+A valid square is a square centered at the origin (0, 0), has edges parallel to the axes, and does not contain two points with the same tag.
+
+Return the maximum number of points contained in a valid square.
+
+Note:
+
+A point is considered to be inside the square if it lies on or within the square's boundaries.
+The side length of the square can be zero.
+ 
+
+Example 1:
+
+
+
+Input: points = [[2,2],[-1,-2],[-4,4],[-3,1],[3,-3]], s = "abdca"
+
+Output: 2
+
+Explanation:
+
+The square of side length 4 covers two points points[0] and points[1].
+
+Example 2:
+
+
+
+Input: points = [[1,1],[-2,-2],[-2,2]], s = "abb"
+
+Output: 1
+
+Explanation:
+
+The square of side length 2 covers one point, which is points[0].
+
+Example 3:
+
+Input: points = [[1,1],[-1,-1],[2,-2]], s = "ccd"
+
+Output: 0
+
+Explanation:
+
+It's impossible to make any valid squares centered at the origin such that it covers only one point among points[0] and points[1].
+
+ 
+
+Constraints:
+
+1 <= s.length, points.length <= 105
+points[i].length == 2
+-109 <= points[i][0], points[i][1] <= 109
+s.length == points.length
+points consists of distinct coordinates.
+s consists only of lowercase English letters.
+
+
+# java
+
+
+
+class Solution {
+  public int maxPointsInsideSquare(int[][] points, String s) {
+    int secondMinSize = Integer.MAX_VALUE;
+    int[] minSizes = new int[26];
+    Arrays.fill(minSizes, Integer.MAX_VALUE);
+
+    for (int i = 0; i < points.length; ++i) {
+      final int x = points[i][0];
+      final int y = points[i][1];
+      final int sz = Math.max(Math.abs(x), Math.abs(y));
+      final int j = s.charAt(i) - 'a';
+      if (minSizes[j] == Integer.MAX_VALUE) {
+        minSizes[j] = sz;
+      } else if (sz < minSizes[j]) {
+        // This is because minSizes[j] is about to be replaced by a smaller
+        // value, so it becomes a candidate for the second minimum size.
+        secondMinSize = Math.min(secondMinSize, minSizes[j]);
+        minSizes[j] = sz;
+      } else {
+        // `sz` is not smaller than the current minimum size, but it could be
+        // smaller than the current second minimum size.
+        secondMinSize = Math.min(secondMinSize, sz);
+      }
+    }
+
+    final int finalSecondMinSize = secondMinSize;
+    return (int) Arrays.stream(minSizes).filter(sz -> sz < finalSecondMinSize).count();
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int maxPointsInsideSquare(int[][] points, String s) {
+        TreeMap<Integer, List<Integer>> g = new TreeMap<>();
+        for (int i = 0; i < points.length; ++i) {
+            int x = points[i][0], y = points[i][1];
+            int key = Math.max(Math.abs(x), Math.abs(y));
+            g.computeIfAbsent(key, k -> new ArrayList<>()).add(i);
+        }
+        boolean[] vis = new boolean[26];
+        int ans = 0;
+        for (var idx : g.values()) {
+            for (int i : idx) {
+                int j = s.charAt(i) - 'a';
+                if (vis[j]) {
+                    return ans;
+                }
+                vis[j] = true;
+            }
+            ans += idx.size();
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public boolean check(int[][] points, int i, int res) {
+        return points[i][0] <= res && points[i][1] <= res;
+    }
+
+    public int maxPointsInsideSquare(int[][] points, String s) {
+        int n = points.length;
+        for (int i = 0; i < n; ++i) {
+            points[i][0] = Math.abs(points[i][0]);
+            points[i][1] = Math.abs(points[i][1]);
+        }
+        
+        int left = 0, right = (int) 1e9, res = 0;
+        
+        while (left <=right) {
+            int mid = left + (right - left) / 2;
+            HashMap<Character, Integer> temp = new HashMap<>();
+            boolean flag = true;
+            
+            for (int i = 0; i < n; ++i) {
+                if (points[i][0] <= mid && points[i][1] <= mid) {
+                    temp.put(s.charAt(i), temp.getOrDefault(s.charAt(i), 0) + 1);
+                }
+            }
+            
+            for (int val : temp.values()) {
+                if (val > 1) {
+                    flag = false;
+                    break;
+                }
+            }
+
+            if (flag) {
+                res = mid;
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        
+        int ans = 0;
+        for (int i = 0; i < n; ++i) {
+            if (check(points, i, res)) {
+                ans++;
+            }
+        }
+
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+import java.util.HashMap;
+
+class Solution {
+    public int maxPointsInsideSquare(int[][] points, String s) {
+        int n = points.length;
+        for (int i = 0; i < n; i++) {
+            points[i][0] = Math.abs(points[i][0]);
+            points[i][1] = Math.abs(points[i][1]);
+        }
+        int left = 0, right = 1000000000, result = 0;
+
+        while (left <= right) {
+            int mid = (left + right) / 2;
+            HashMap<Character, Integer> charCount = new HashMap<>();
+            boolean isValid = true;
+            for (int i = 0; i < n; i++) {
+                if (points[i][0] <= mid && points[i][1] <= mid)
+                    charCount.put(s.charAt(i), charCount.getOrDefault(s.charAt(i), 0) + 1);
+            }
+
+            for (int count : charCount.values()) {
+                if (count > 1) {
+                    isValid = false;
+                    break;
+                }
+            }
+            if (isValid) {
+                result = mid;
+                left = mid + 1;
+            } else
+                right = mid - 1;
+        }
+        int count = 0;
+        for (int i = 0; i < n; i++) {
+            if (points[i][0] <= result && points[i][1] <= result) {
+                count++;
+            }
+        }
+        return count;
+    }
+}
+
+
+
+or
+
+
