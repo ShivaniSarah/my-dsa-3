@@ -1,0 +1,423 @@
+https://leetcode.com/problems/closest-equal-element-queries/description/
+
+3488. Closest Equal Element Queries
+Medium
+Topics
+Companies
+Hint
+You are given a circular array nums and an array queries.
+
+For each query i, you have to find the following:
+
+The minimum distance between the element at index queries[i] and any other index j in the circular array, where nums[j] == nums[queries[i]]. If no such index exists, the answer for that query should be -1.
+Return an array answer of the same size as queries, where answer[i] represents the result for query i.
+
+ 
+
+Example 1:
+
+Input: nums = [1,3,1,4,1,3,2], queries = [0,3,5]
+
+Output: [2,-1,3]
+
+Explanation:
+
+Query 0: The element at queries[0] = 0 is nums[0] = 1. The nearest index with the same value is 2, and the distance between them is 2.
+Query 1: The element at queries[1] = 3 is nums[3] = 4. No other index contains 4, so the result is -1.
+Query 2: The element at queries[2] = 5 is nums[5] = 3. The nearest index with the same value is 1, and the distance between them is 3 (following the circular path: 5 -> 6 -> 0 -> 1).
+Example 2:
+
+Input: nums = [1,2,3,4], queries = [0,1,2,3]
+
+Output: [-1,-1,-1,-1]
+
+Explanation:
+
+Each value in nums is unique, so no index shares the same value as the queried element. This results in -1 for all queries.
+
+ 
+
+Constraints:
+
+1 <= queries.length <= nums.length <= 105
+1 <= nums[i] <= 106
+0 <= queries[i] < nums.length
+
+
+# java
+
+
+class Solution {
+  public List<Integer> solveQueries(int[] nums, int[] queries) {
+    final int n = nums.length;
+    List<Integer> ans = new ArrayList<>();
+    // minDist[i] := the minimum distance between nums[i], and any other index j in the circular
+    // array, where nums[j] == nums[i]
+    int[] minDist = new int[n];
+    Arrays.fill(minDist, n);
+    Map<Integer, Integer> lastSeen = new HashMap<>();
+
+    for (int i = 0; i < n * 2; ++i) {
+      final int index = i % n;
+      final int num = nums[index];
+      if (lastSeen.containsKey(num)) {
+        final int prevIndex = lastSeen.get(num) % n;
+        final int d = i - prevIndex;
+        minDist[index] = Math.min(minDist[index], d);
+        minDist[prevIndex] = Math.min(minDist[prevIndex], d);
+      }
+      lastSeen.put(num, i);
+    }
+
+    for (final int query : queries)
+      ans.add(minDist[query] == n ? -1 : minDist[query]);
+
+    return ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public List<Integer> solveQueries(int[] nums, int[] queries) {
+        int n = nums.length;
+        int m = n * 2;
+        int[] d = new int[m];
+        Arrays.fill(d, m);
+
+        Map<Integer, Integer> left = new HashMap<>();
+        for (int i = 0; i < m; i++) {
+            int x = nums[i % n];
+            if (left.containsKey(x)) {
+                d[i] = Math.min(d[i], i - left.get(x));
+            }
+            left.put(x, i);
+        }
+
+        Map<Integer, Integer> right = new HashMap<>();
+        for (int i = m - 1; i >= 0; i--) {
+            int x = nums[i % n];
+            if (right.containsKey(x)) {
+                d[i] = Math.min(d[i], right.get(x) - i);
+            }
+            right.put(x, i);
+        }
+
+        for (int i = 0; i < n; i++) {
+            d[i] = Math.min(d[i], d[i + n]);
+        }
+
+        List<Integer> ans = new ArrayList<>();
+        for (int query : queries) {
+            ans.add(d[query] >= n ? -1 : d[query]);
+        }
+        return ans;
+    }
+}
+
+
+
+
+or
+
+
+
+
+class Solution {
+    public List<Integer> solveQueries(int[] nums, int[] queries) {
+        int n = nums.length;
+        HashMap<Integer, ArrayList<Integer>> mh = buildMap(nums, n);
+        ArrayList<Integer> res = new ArrayList<>();
+        for (int q : queries) {
+            res.add(solve(mh.get(nums[q]), q, n));
+        }
+        return res;
+    }
+
+    public HashMap<Integer, ArrayList<Integer>> buildMap(int[] nums, int n) {
+        HashMap<Integer, ArrayList<Integer>> mh = new HashMap<>();
+        for (int i = 0; i < n; i++) {
+            if (!mh.containsKey(nums[i])) {
+                mh.put(nums[i], new ArrayList<>());
+            }
+            mh.get(nums[i]).add(i);
+        }
+        return mh;
+    }
+
+    public int solve(ArrayList<Integer> l, int q, int n) {
+        if (l == null || l.size() < 2) return -1;
+        int pos = binarySearch(l, q);
+        int left = pos == 0 ? l.get(l.size() - 1) : l.get(pos - 1);
+        int right = pos == l.size() - 1 ? l.get(0) : l.get(pos + 1);
+        return Math.min(dist(q, left, n), dist(q, right, n));
+    }
+
+    public int binarySearch(ArrayList<Integer> l, int target) {
+        int left = 0, right = l.size() - 1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (l.get(mid) == target) return mid;
+            else if (l.get(mid) < target) left = mid + 1;
+            else right = mid - 1;
+        }
+        return left;
+    }
+
+    public int dist(int i, int j, int n) {
+        int d = Math.abs(i - j);
+        return Math.min(d, n - d);
+    }
+}
+
+
+or
+
+
+
+
+class Solution {
+    public List<Integer> solveQueries(int[] nums, int[] queries) {
+        HashMap<Integer, TreeSet<Integer>> h = new HashMap<>();
+        List<Integer> ans = new ArrayList<>();
+
+        // Store indices of each number in a TreeSet
+        for (int i = 0; i < nums.length; i++) {
+            h.computeIfAbsent(nums[i], k -> new TreeSet<>()).add(i);
+        }
+
+        // Process each query
+        for (int i = 0; i < queries.length; i++) {
+            int queryIndex = queries[i];
+            int val = nums[queryIndex];
+            TreeSet<Integer> indexSet = h.get(val);
+
+            if (indexSet.size() == 1) {
+                ans.add(-1);
+                continue;
+            }
+
+            int minAns = nums.length;
+
+            // Get next occurrence (higher)
+            Integer next = indexSet.higher(queryIndex);
+            if (next != null) {
+                int diff = next - queryIndex;
+                minAns = Math.min(minAns, Math.min(diff, nums.length - diff));
+            }
+
+            // Get previous occurrence (lower)
+            Integer prev = indexSet.lower(queryIndex);
+            if (prev != null) {
+                int diff = queryIndex - prev;
+                minAns = Math.min(minAns, Math.min(diff, nums.length - diff));
+            }
+
+            // Handle circular case
+            Integer first = indexSet.first();
+            Integer last = indexSet.last();
+            if (queryIndex == first) {
+                int diff = last - first;
+                minAns = Math.min(minAns, Math.min(diff, nums.length - diff));
+            }
+            if (queryIndex == last) {
+                int diff = last - first;
+                minAns = Math.min(minAns, Math.min(diff, nums.length - diff));
+            }
+
+            ans.add(minAns);
+        }
+
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+
+class Solution {
+    public List<Integer> solveQueries(int[] nums, int[] queries) {
+        HashMap<Integer, TreeSet<Integer>> h = new HashMap<>();
+        List<Integer> ans = new ArrayList<>();
+
+        // Store indices of each number in a TreeSet
+        for (int i = 0; i < nums.length; i++) {
+            h.computeIfAbsent(nums[i], k -> new TreeSet<>()).add(i);
+        }
+
+        // Process each query
+        for (int i = 0; i < queries.length; i++) {
+            int queryIndex = queries[i];
+            int val = nums[queryIndex];
+            TreeSet<Integer> indexSet = h.get(val);
+
+            if (indexSet.size() == 1) {
+                ans.add(-1);
+                continue;
+            }
+
+            int minAns = nums.length;
+
+            // Get next occurrence (higher)
+            Integer next = indexSet.higher(queryIndex);
+            if (next != null) {
+                int diff = next - queryIndex;
+                minAns = Math.min(minAns, Math.min(diff, nums.length - diff));
+            }
+
+            // Get previous occurrence (lower)
+            Integer prev = indexSet.lower(queryIndex);
+            if (prev != null) {
+                int diff = queryIndex - prev;
+                minAns = Math.min(minAns, Math.min(diff, nums.length - diff));
+            }
+
+            // Handle circular case
+            Integer first = indexSet.first();
+            Integer last = indexSet.last();
+            if (queryIndex == first) {
+                int diff = last - first;
+                minAns = Math.min(minAns, Math.min(diff, nums.length - diff));
+            }
+            if (queryIndex == last) {
+                int diff = last - first;
+                minAns = Math.min(minAns, Math.min(diff, nums.length - diff));
+            }
+
+            ans.add(minAns);
+        }
+
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution{
+    public List<Integer> solveQueries(int nums[],int queries[]){
+        Map<Integer,List<Integer>> map=new HashMap<>();
+        for(int i=0;i<nums.length;i++)
+        {
+            List<Integer> temp=map.getOrDefault(nums[i],new ArrayList<>());
+            temp.add(i);
+            map.put(nums[i],temp);
+        }
+        for(int no:map.keySet())
+        {
+            Collections.sort(map.get(no));
+        }
+       
+        List<Integer> res=new ArrayList<>();
+        // System.out.println(map);
+        for(int i:queries)
+        {
+            int no=nums[i];
+            if(map.get(no).size()==1)
+            {
+                res.add(-1);
+            }
+            else
+            {
+                List<Integer> temp=map.get(no);
+                int ind=Collections.binarySearch(temp,i);
+                int l=Integer.MAX_VALUE,r=Integer.MAX_VALUE;
+                if(ind==0)
+                {
+                    int temp1=temp.get(temp.size()-1)-temp.get(ind);
+                    int temp2=nums.length-temp.get(temp.size()-1)+temp.get(ind);
+                    int temp3=temp.get(1)-temp.get(ind);
+                    int temp4=nums.length-temp.get(1)+temp.get(ind);
+                    r=Math.min(temp3,temp4);
+                      l=Math.min(temp1,temp2);
+                }
+                else if(ind==temp.size()-1)
+                {
+                    int temp1=temp.get(ind)-temp.get(ind-1);
+                    int temp2=nums.length-temp.get(ind)+temp.get(ind-1);
+                    int temp3=temp.get(ind)-temp.get(0);
+                    int temp4=nums.length-temp.get(ind)+temp.get(0);
+                    l=Math.min(temp1,temp2);
+                    r=Math.min(temp3,temp4);
+                }
+                else
+                {
+                    int temp1=temp.get(ind)-temp.get(ind-1);
+                    int temp2=nums.length-temp.get(ind)+temp.get(ind-1);
+                    l=Math.min(temp1,temp2);
+                    int temp3=temp.get(ind+1)-temp.get(ind);
+                    int temp4=nums.length-temp.get(ind+1)+temp.get(ind);
+                    r=Math.min(temp3,temp4);
+                }
+
+                res.add(Math.min(l,r));
+            }
+
+            
+            
+        }
+        return res;
+        
+    }
+
+    
+}
+
+
+or
+
+
+
+class Solution {
+    public List<Integer> solveQueries(int[] nums, int[] queries) {
+        int n = nums.length;
+        Map<Integer, List<Integer>> map = new HashMap<>();
+        
+        for (int i = 0; i < n; i++) {
+            map.computeIfAbsent(nums[i], k -> new ArrayList<>()).add(i);
+        }
+
+        List<Integer> res= new ArrayList<>();
+
+        for (int q : queries) {
+            int value = nums[q];  
+            List<Integer> pos = map.get(value);
+            
+            if (pos.size() < 2) {
+                res.add(-1);
+                continue;
+            }
+
+        int p = Collections.binarySearch(pos, q);
+        int size = pos.size();
+
+            int left = pos.get((p- 1 + size) % size);
+             int right = pos.get((p + 1) % size);
+
+            int minDist = Math.min(distance(q,left,n), 
+                                distance(q,right,n));
+            res.add(minDist);
+        }
+
+        return res;
+    }
+    private int distance(int a,int b,int n) {
+        int diff = Math.abs(a-b);
+        return Math.min(diff,n -diff);
+    }
+}
+
+
+or
+
+
+
