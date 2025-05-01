@@ -1,0 +1,296 @@
+https://leetcode.com/problems/find-longest-special-substring-that-occurs-thrice-i/description/
+
+2981. Find Longest Special Substring That Occurs Thrice I
+Medium
+Topics
+Companies
+Hint
+You are given a string s that consists of lowercase English letters.
+
+A string is called special if it is made up of only a single character. For example, the string "abc" is not special, whereas the strings "ddd", "zz", and "f" are special.
+
+Return the length of the longest special substring of s which occurs at least thrice, or -1 if no special substring occurs at least thrice.
+
+A substring is a contiguous non-empty sequence of characters within a string.
+
+ 
+
+Example 1:
+
+Input: s = "aaaa"
+Output: 2
+Explanation: The longest special substring which occurs thrice is "aa": substrings "aaaa", "aaaa", and "aaaa".
+It can be shown that the maximum length achievable is 2.
+Example 2:
+
+Input: s = "abcdef"
+Output: -1
+Explanation: There exists no special substring which occurs at least thrice. Hence return -1.
+Example 3:
+
+Input: s = "abcaba"
+Output: 1
+Explanation: The longest special substring which occurs thrice is "a": substrings "abcaba", "abcaba", and "abcaba".
+It can be shown that the maximum length achievable is 1.
+ 
+
+Constraints:
+
+3 <= s.length <= 50
+s consists of only lowercase English letters.
+
+
+
+# java
+
+
+
+class Solution {
+  public int maximumLength(String s) {
+    final int n = s.length();
+    int ans = -1;
+    int runningLen = 0;
+    char prevLetter = '@';
+    // counts[i][j] := the frequency of ('a' + i) repeating j times
+    int[][] counts = new int[26][n + 1];
+
+    for (final char c : s.toCharArray())
+      if (c == prevLetter) {
+        ++counts[c - 'a'][++runningLen];
+      } else {
+        runningLen = 1;
+        ++counts[c - 'a'][runningLen];
+        prevLetter = c;
+      }
+
+    for (int[] count : counts) {
+      ans = Math.max(ans, getMaxFreq(count, n));
+    }
+
+    return ans;
+  }
+
+  // Returns the maximum frequency that occurs more than three times.
+  private int getMaxFreq(int[] count, int maxFreq) {
+    int times = 0;
+    for (int freq = maxFreq; freq >= 1; --freq) {
+      times += count[freq];
+      if (times >= 3)
+        return freq;
+    }
+    return -1;
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    private String s;
+    private int n;
+
+    public int maximumLength(String s) {
+        this.s = s;
+        n = s.length();
+        int l = 0, r = n;
+        while (l < r) {
+            int mid = (l + r + 1) >> 1;
+            if (check(mid)) {
+                l = mid;
+            } else {
+                r = mid - 1;
+            }
+        }
+        return l == 0 ? -1 : l;
+    }
+
+    private boolean check(int x) {
+        int[] cnt = new int[26];
+        for (int i = 0; i < n;) {
+            int j = i + 1;
+            while (j < n && s.charAt(j) == s.charAt(i)) {
+                j++;
+            }
+            int k = s.charAt(i) - 'a';
+            cnt[k] += Math.max(0, j - i - x + 1);
+            if (cnt[k] >= 3) {
+                return true;
+            }
+            i = j;
+        }
+        return false;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+
+    public int maximumLength(String s) {
+        // Create a HashMap to store the count of all substrings
+        HashMap<String, Integer> count = new HashMap<>();
+
+        // Iterate through the string to create substrings
+        for (int start = 0; start < s.length(); start++) {
+            StringBuilder currString = new StringBuilder();
+
+            for (int end = start; end < s.length(); end++) {
+                // If the string is empty, or the current character is equal to
+                // the previously added character, then add it to the HashMap.
+                // Otherwise, break the iteration.
+                if (
+                    currString.length() == 0 ||
+                    currString.charAt(currString.length() - 1) == s.charAt(end)
+                ) {
+                    currString.append(s.charAt(end)); // Use append instead of concatenation
+                    count.put(
+                        currString.toString(),
+                        count.getOrDefault(currString.toString(), 0) + 1
+                    );
+                } else {
+                    break;
+                }
+            }
+        }
+
+        // Create a variable ans to store the longest length of substring with
+        // frequency at least 3.
+        int ans = 0;
+        for (String str : count.keySet()) {
+            if (count.get(str) >= 3 && str.length() > ans) ans = str.length();
+        }
+
+        if (ans == 0) return -1;
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+
+    public int maximumLength(String s) {
+        // Create a map to store the count of all substrings
+        Map<Pair<Character, Integer>, Integer> count = new HashMap<>();
+        int substringLength = 0;
+
+        for (int start = 0; start < s.length(); start++) {
+            char character = s.charAt(start);
+            substringLength = 0;
+
+            for (int end = start; end < s.length(); end++) {
+                // If the current character matches the initial character, increment the count
+                if (character == s.charAt(end)) {
+                    substringLength++;
+                    Pair<Character, Integer> key = new Pair<>(
+                        character,
+                        substringLength
+                    );
+                    count.put(key, count.getOrDefault(key, 0) + 1);
+                } else {
+                    break;
+                }
+            }
+        }
+
+        // Variable to store the longest substring length with frequency at least 3
+        int ans = -1;
+        for (Map.Entry<
+            Pair<Character, Integer>,
+            Integer
+        > entry : count.entrySet()) {
+            int length = entry.getKey().getValue();
+            if (entry.getValue() >= 3 && length > ans) {
+                ans = length;
+            }
+        }
+
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+
+
+class Solution {
+    public int maximumLength(String st) {
+        Map<Map.Entry<Character, Integer>, Integer> mps = new HashMap<>();
+        int count;
+
+        for (int i = 0; i < st.length(); i++) {
+            count = 1;
+            mps.put(Map.entry(st.charAt(i), count), mps.getOrDefault(Map.entry(st.charAt(i), count), 0) + 1);
+
+            for (int j = i; j < st.length(); j++) {
+                if (j + 1 < st.length() && st.charAt(j) == st.charAt(j + 1)) {
+                    count++;
+                    mps.put(Map.entry(st.charAt(i), count), mps.getOrDefault(Map.entry(st.charAt(i), count), 0) + 1);
+                } else {
+                    break;
+                }
+            }
+        }
+
+        int ans1 = 0;
+        for (Map.Entry<Map.Entry<Character, Integer>, Integer> x : mps.entrySet()) {
+            if (x.getValue() >= 3) {
+                ans1 = Math.max(x.getKey().getValue(), ans1);
+            }
+        }
+        return (ans1 == 0) ? -1 : ans1;
+    }
+}
+
+
+
+
+or
+
+
+
+// bs
+
+public class Solution {
+    public int maximumLength(String s) {
+        int n = s.length();
+        int l = 1, r = n;
+
+        if (!helper(s, n, l)) return -1;
+
+        while (l + 1 < r) {
+            int mid = (l + r) / 2;
+            if (helper(s, n, mid)) l = mid;
+            else r = mid;
+        }
+
+        return l;
+    }
+
+    private boolean helper(String s, int n, int x) {
+        int[] cnt = new int[26];
+        int p = 0;
+
+        for (int i = 0; i < n; i++) {
+            while (s.charAt(p) != s.charAt(i)) p++;
+            if (i - p + 1 >= x) cnt[s.charAt(i) - 'a']++;
+            if (cnt[s.charAt(i) - 'a'] > 2) return true;
+        }
+
+        return false;
+    }
+}
+
