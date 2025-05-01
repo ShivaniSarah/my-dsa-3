@@ -1,0 +1,263 @@
+https://leetcode.com/problems/smallest-subarrays-with-maximum-bitwise-or/description/
+
+2411. Smallest Subarrays With Maximum Bitwise OR
+Medium
+Topics
+Companies
+Hint
+You are given a 0-indexed array nums of length n, consisting of non-negative integers. For each index i from 0 to n - 1, you must determine the size of the minimum sized non-empty subarray of nums starting at i (inclusive) that has the maximum possible bitwise OR.
+
+In other words, let Bij be the bitwise OR of the subarray nums[i...j]. You need to find the smallest subarray starting at i, such that bitwise OR of this subarray is equal to max(Bik) where i <= k <= n - 1.
+The bitwise OR of an array is the bitwise OR of all the numbers in it.
+
+Return an integer array answer of size n where answer[i] is the length of the minimum sized subarray starting at i with maximum bitwise OR.
+
+A subarray is a contiguous non-empty sequence of elements within an array.
+
+ 
+
+Example 1:
+
+Input: nums = [1,0,2,1,3]
+Output: [3,3,2,2,1]
+Explanation:
+The maximum possible bitwise OR starting at any index is 3. 
+- Starting at index 0, the shortest subarray that yields it is [1,0,2].
+- Starting at index 1, the shortest subarray that yields the maximum bitwise OR is [0,2,1].
+- Starting at index 2, the shortest subarray that yields the maximum bitwise OR is [2,1].
+- Starting at index 3, the shortest subarray that yields the maximum bitwise OR is [1,3].
+- Starting at index 4, the shortest subarray that yields the maximum bitwise OR is [3].
+Therefore, we return [3,3,2,2,1]. 
+Example 2:
+
+Input: nums = [1,2]
+Output: [2,1]
+Explanation:
+Starting at index 0, the shortest subarray that yields the maximum bitwise OR is of length 2.
+Starting at index 1, the shortest subarray that yields the maximum bitwise OR is of length 1.
+Therefore, we return [2,1].
+ 
+
+Constraints:
+
+n == nums.length
+1 <= n <= 105
+0 <= nums[i] <= 109
+
+
+
+# java
+
+
+class Solution {
+  public int[] smallestSubarrays(int[] nums) {
+    final int MAX_BIT = 30;
+    int[] ans = new int[nums.length];
+    // closest[j] := the closest index i s.t. the j-th bit of nums[i] is 1
+    int[] closest = new int[MAX_BIT];
+
+    Arrays.fill(ans, 1);
+
+    for (int i = nums.length - 1; i >= 0; --i)
+      for (int j = 0; j < MAX_BIT; ++j) {
+        if ((nums[i] >> j & 1) == 1)
+          closest[j] = i;
+        ans[i] = Math.max(ans[i], closest[j] - i + 1);
+      }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int[] smallestSubarrays(int[] nums) {
+        int n = nums.length;
+        int[] ans = new int[n];
+        int[] f = new int[32];
+        Arrays.fill(f, -1);
+        for (int i = n - 1; i >= 0; --i) {
+            int t = 1;
+            for (int j = 0; j < 32; ++j) {
+                if (((nums[i] >> j) & 1) == 1) {
+                    f[j] = i;
+                } else if (f[j] != -1) {
+                    t = Math.max(t, f[j] - i + 1);
+                }
+            }
+            ans[i] = t;
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+// bs
+
+
+class Solution {
+    public int[] smallestSubarrays(int[] nums) {
+        int lastoc[] = new int[32] ;
+        int n = nums.length ;
+        Map<Integer,ArrayList<Integer>> map = new HashMap<>() ;
+        for(int i=0 ; i<32 ; i++){
+            map.put(i , new ArrayList<>()) ;
+        }
+        for(int j=0 ; j<n ; j++){
+            int el = nums[j] ;
+            for(int i=0 ; i<32 ; i++){
+                if((el&(1<<i))!=0){
+                    map.get(i).add(j) ;
+                }
+            }
+        }
+        int ans[] = new int[n] ;
+        for(int i=0 ; i<n ; i++){
+            int el = nums[i] ;
+            int index=i ;
+            for(int j=0 ; j<32 ; j++){
+                if((el&(1<<j))==0){
+                    //binary search for set bit in jth index such that its greater than i
+                    int nextindex = bs(map.get(j),i) ;
+                    if(nextindex>index){
+                        index = nextindex ;
+                    }
+                }
+            }
+            ans[i]=index-i+1 ;
+        }
+        return ans ;
+    }
+    int bs(ArrayList<Integer> list , int x){
+        int ll=0 , rr=list.size()-1 ;
+        int index=x ;
+        while(ll<=rr){
+            int mid = ll+(rr-ll)/2 ;
+            if(list.get(mid)>x){
+                index=list.get(mid) ;
+                rr=mid-1 ;
+            }
+            else{
+                ll=mid+1 ;
+            }
+        }
+        return index ;
+    }
+}
+
+
+
+
+or
+
+
+// best
+class Solution {
+        public int[] smallestSubarrays(int[] A) {
+        int n = A.length, last[] = new int[30], res[] = new int[n];
+        for (int i = n - 1; i >= 0; --i) {
+            res[i] = 1;
+            for (int j = 0; j < 30; ++j) {
+                if ((A[i] & (1 << j)) > 0)
+                    last[j] = i;
+                res[i] = Math.max(res[i], last[j] - i + 1);
+            }
+        }
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int[] smallestSubarrays(int[] nums) {
+        int n = nums.length;
+        int[] max = new int[n];
+        int now = 0;
+		//1. The maximum value is calculated first (going back from N-1)
+        for(int i = n-1; i >= 0; i--){
+            now |= nums[i];
+            max[i] = now;
+        }
+        int[] bit = new int[31];
+        int right = 0;
+        now = 0;
+        int[] cnt = new int[n];
+        for(int i = 0; i < n; i++){
+		    //2. Keep adding until the maximum value is reached.
+            while(right < n && now < max[i]){
+                for(int j = 0; j < 31; j++){
+                    if((nums[right] >> j) % 2 == 1){
+                        bit[j]++;
+						//3. OR value increases when that bit goes 0 => 1
+                        if(bit[j] == 1){
+                            now += (1 << j);
+                        }
+                    }
+                }
+                right++;
+            }
+            cnt[i] = Math.max(1,right-i);
+			// 4. Remove nums[i] from the OR value
+            for(int j = 0; j < 31; j++){
+                if((nums[i] >> j) % 2 == 1){
+                    bit[j]--;
+                    if(bit[j] == 0){
+					    // 5. OR value decreases when the bit becomes 1 => 0
+                        now -= (1 << j);
+                    }
+                }
+            }
+        }
+        return cnt;
+    }
+}
+
+or
+
+
+class Solution {
+    public int[] smallestSubarrays(int[] nums) {
+        int n = nums.length;
+        int[] ans = new int[n];
+        
+        int[] store = new int[31];
+        Arrays.fill(store, -1);
+        for(int i = n-1; i >= 0; --i){
+            int temp = nums[i];
+            for(int j = 0; j < 31; ++j){
+                if((temp & 1) == 1){
+                    store[j] = i;
+                }
+                temp >>= 1;
+            }
+            
+            int maxVal = Integer.MIN_VALUE;
+            for(int val: store){
+                maxVal = Math.max(maxVal, val);
+            }
+            if(maxVal == -1){
+                ans[i] = 1;
+            }else{
+                ans[i] = maxVal - i + 1;    
+            }
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+
