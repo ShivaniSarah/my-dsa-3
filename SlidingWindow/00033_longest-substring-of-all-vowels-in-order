@@ -1,0 +1,347 @@
+https://leetcode.com/problems/longest-substring-of-all-vowels-in-order/description/
+
+
+1839. Longest Substring Of All Vowels in Order
+Medium
+Topics
+Companies
+Hint
+A string is considered beautiful if it satisfies the following conditions:
+
+Each of the 5 English vowels ('a', 'e', 'i', 'o', 'u') must appear at least once in it.
+The letters must be sorted in alphabetical order (i.e. all 'a's before 'e's, all 'e's before 'i's, etc.).
+For example, strings "aeiou" and "aaaaaaeiiiioou" are considered beautiful, but "uaeio", "aeoiu", and "aaaeeeooo" are not beautiful.
+
+Given a string word consisting of English vowels, return the length of the longest beautiful substring of word. If no such substring exists, return 0.
+
+A substring is a contiguous sequence of characters in a string.
+
+ 
+
+Example 1:
+
+Input: word = "aeiaaioaaaaeiiiiouuuooaauuaeiu"
+Output: 13
+Explanation: The longest beautiful substring in word is "aaaaeiiiiouuu" of length 13.
+Example 2:
+
+Input: word = "aeeeiiiioooauuuaeiou"
+Output: 5
+Explanation: The longest beautiful substring in word is "aeiou" of length 5.
+Example 3:
+
+Input: word = "a"
+Output: 0
+Explanation: There is no beautiful substring, so return 0.
+ 
+
+Constraints:
+
+1 <= word.length <= 5 * 105
+word consists of characters 'a', 'e', 'i', 'o', and 'u'.
+
+
+
+# java
+
+
+class Solution {
+  public int longestBeautifulSubstring(String word) {
+    int ans = 0;
+    int count = 1;
+
+    for (int l = 0, r = 1; r < word.length(); ++r) {
+      final char curr = word.charAt(r);
+      final char prev = word.charAt(r - 1);
+      if (curr >= prev) {
+        if (curr > prev)
+          ++count;
+        if (count == 5)
+          ans = Math.max(ans, r - l + 1);
+      } else {
+        count = 1;
+        l = r;
+      }
+    }
+
+    return ans;
+  }
+}
+
+or
+
+
+class Solution {
+    public int longestBeautifulSubstring(String word) {
+        int n = word.length();
+        List<Node> arr = new ArrayList<>();
+        for (int i = 0; i < n;) {
+            int j = i;
+            while (j < n && word.charAt(j) == word.charAt(i)) {
+                ++j;
+            }
+            arr.add(new Node(word.charAt(i), j - i));
+            i = j;
+        }
+        int ans = 0;
+        for (int i = 0; i < arr.size() - 4; ++i) {
+            Node a = arr.get(i), b = arr.get(i + 1), c = arr.get(i + 2), d = arr.get(i + 3),
+                 e = arr.get(i + 4);
+            if (a.c == 'a' && b.c == 'e' && c.c == 'i' && d.c == 'o' && e.c == 'u') {
+                ans = Math.max(ans, a.v + b.v + c.v + d.v + e.v);
+            }
+        }
+        return ans;
+    }
+}
+
+class Node {
+    char c;
+    int v;
+
+    Node(char c, int v) {
+        this.c = c;
+        this.v = v;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int longestBeautifulSubstring(String word) {
+         public int longestBeautifulSubstring(String word) {
+        int cnt=1;
+        int len=1;
+        int max_length=0;
+        
+        int n=word.length();
+        
+        for(int i=1;i<n;i++){
+            if(word.charAt(i)==word.charAt(i-1)){
+                 len++;
+            }else if(word.charAt(i-1)<word.charAt(i)){
+                cnt++;
+                len++;
+            }else{
+                len=1;
+                cnt=1;
+            }
+            
+            if(cnt==5){
+                max_length=Math.max(max_length,len);
+            }
+        }
+        return max_length;
+    }
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int longestBeautifulSubstring(String word) {
+        int max = 0;
+        int count = 1, i = 0, j = 1;
+
+        while (j < word.length()) {
+
+            if (word.charAt(j) < word.charAt(j - 1)) {
+                i = j;
+                count = 1;
+            }
+
+            else if (word.charAt(j) != word.charAt(j - 1))
+                count++;
+
+            if (count == 5)
+                max = Math.max(max, j - i + 1);
+
+            j++;
+        }
+        return max;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int longestBeautifulSubstring(String word) {
+      int max = 0;
+      for(int i = 1;i<word.length();i++){
+         int temp = 1;
+         Set<Character> verify = new HashSet<>();
+         verify.add(word.charAt(i-1));
+         while(i < word.length() && word.charAt(i) >= word.charAt(i-1)){
+            temp++;
+            verify.add(word.charAt(i));
+            i++;
+         }
+         max = verify.size() == 5 ? Math.max(max,temp) : max ;
+      }
+
+      return max;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int longestBeautifulSubstring(String word) {
+        int result = 0; 
+        int start = 0;
+        int n = word.length();
+        String vowels = "aeiou";
+        int v = vowels.length();
+        
+        if (n < v) return 0;   //if the word length is less than that of the actual vowel length return 0
+        
+        while (start < n){    //run loop until the start pointer reaches end
+            int end = start;   // end is the start to begin with
+            int k = 0;          //pointer to track vowel
+			//loop until if end is less than the word length and the character at end is equal to 
+			// the character at k in vowel
+            while (end < n && k < vowels.length() && word.charAt(end) == vowels.charAt(k)){
+                while(end < n && word.charAt(end) == vowels.charAt(k)) end++; //to handle repetition after matching
+              k++;
+            }
+			// record the max length each time
+            if (k == v) result = Math.max(result, end - start);
+            start = end;  //start is moved to the current end pointer
+            // increment start to next position of 'a'
+			while (start < n && word.charAt(start) != 'a') start++;
+        }
+        return result;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int longestBeautifulSubstring(String word) {
+        int maxLength = 0, vowelStage = 1, left = 0;
+
+        for(int i=1; i<word.length(); i++)
+        {
+            if(word.charAt(i-1) > word.charAt(i))
+            {
+                vowelStage = 1;
+                left = i;
+            }
+
+            else if(word.charAt(i-1) < word.charAt(i))
+            {
+                vowelStage++;
+            }
+
+            if(vowelStage == 5)
+            {
+                maxLength = Math.max(maxLength, i-left+1);
+            }
+        
+        }
+        return maxLength;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int longestBeautifulSubstring(String word) {
+        int maxLength = 0, vowelStage = 1, left = 0;
+
+        for(int i=1; i<word.length(); i++)
+        {
+            if(word.charAt(i-1) > word.charAt(i))
+            {
+                vowelStage = 1;
+                left = i;
+            }
+
+            else if(word.charAt(i-1) < word.charAt(i))
+            {
+                vowelStage++;
+            }
+
+            if(vowelStage == 5)
+            {
+                maxLength = Math.max(maxLength, i-left+1);
+            }
+        
+        }
+        return maxLength;
+    }
+}
+
+
+or
+
+class Solution {
+    public boolean isDistinct(char a, char b){
+        return a!=b;
+    }
+    public int longestBeautifulSubstring(String word) {
+        int maxLen = 0, n = word.length(), count = 1, wordLength = 1;
+        for(int i = 1;i<n;i++){
+            if(word.charAt(i-1) <= word.charAt(i)){
+                if(isDistinct(word.charAt(i-1), word.charAt(i))){
+                    count++;
+                }
+                wordLength++;
+                if(count == 5){
+                    maxLen = Math.max(maxLen, wordLength);
+                }
+            }
+            else{
+                count = 1;
+                wordLength = 1;
+            }
+        }
+        return maxLen;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int longestBeautifulSubstring(String word) {
+            int start = 0;
+            int res = 0;
+            Map<Character, Integer> charCount = new HashMap();
+            char ch = word.charAt(0);
+            charCount.put(ch, 1);
+
+            for(int end = 1; end < word.length(); end++)
+            {
+                if (word.charAt(end-1) > word.charAt(end))
+                {   
+                    charCount.clear();
+                    start = end;
+                }
+                ch = word.charAt(end);
+                charCount.put(ch, charCount.getOrDefault(ch, 0) + 1);
+
+                if(charCount.size() == 5)
+                    res=Math.max(res, end - start + 1);
+            }
+            return res;
+    }
+}
