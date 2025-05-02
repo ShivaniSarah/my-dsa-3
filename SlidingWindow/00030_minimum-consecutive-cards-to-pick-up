@@ -1,0 +1,267 @@
+https://leetcode.com/problems/minimum-consecutive-cards-to-pick-up/description/
+
+2260. Minimum Consecutive Cards to Pick Up
+Medium
+Topics
+Companies
+Hint
+You are given an integer array cards where cards[i] represents the value of the ith card. A pair of cards are matching if the cards have the same value.
+
+Return the minimum number of consecutive cards you have to pick up to have a pair of matching cards among the picked cards. If it is impossible to have matching cards, return -1.
+
+ 
+
+Example 1:
+
+Input: cards = [3,4,2,3,4,7]
+Output: 4
+Explanation: We can pick up the cards [3,4,2,3] which contain a matching pair of cards with value 3. Note that picking up the cards [4,2,3,4] is also optimal.
+Example 2:
+
+Input: cards = [1,0,5,3]
+Output: -1
+Explanation: There is no way to pick up a set of consecutive cards that contain a pair of matching cards.
+ 
+
+Constraints:
+
+1 <= cards.length <= 105
+0 <= cards[i] <= 106
+
+
+
+# java
+
+
+class Solution {
+  public int minimumCardPickup(int[] cards) {
+    int ans = Integer.MAX_VALUE;
+    Map<Integer, Integer> lastSeen = new HashMap<>();
+
+    for (int i = 0; i < cards.length; ++i) {
+      if (lastSeen.containsKey(cards[i]))
+        ans = Math.min(ans, i - lastSeen.get(cards[i]) + 1);
+      lastSeen.put(cards[i], i);
+    }
+
+    return ans == Integer.MAX_VALUE ? -1 : ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int minimumCardPickup(int[] cards) {
+        Map<Integer, Integer> last = new HashMap<>();
+        int n = cards.length;
+        int ans = n + 1;
+        for (int i = 0; i < n; ++i) {
+            if (last.containsKey(cards[i])) {
+                ans = Math.min(ans, i - last.get(cards[i]) + 1);
+            }
+            last.put(cards[i], i);
+        }
+        return ans > n ? -1 : ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution
+{
+    public int minimumCardPickup(int[] cards)
+    {
+        Map<Integer,Integer> map = new HashMap<>();
+        int min = Integer.MAX_VALUE;
+        for(int i = 0; i < cards.length; i++)
+        {
+            if(map.containsKey(cards[i]))
+                min = Math.min(i-map.get(cards[i])+1,min); // Check if the difference in indices is smaller than minimum
+            map.put(cards[i],i); // Update the last found index of the card
+        }
+        return min == Integer.MAX_VALUE?-1:min; // Repetition found or not
+    }
+}
+
+
+
+or
+
+
+
+//Finding repetition in array using hashmap
+//if a repetition is found then we calculate the length or 
+//number of cards we hab to pick to get that repetition
+//Maintain another variable to store min length
+//VOILAAAAA...
+class Solution {
+    public int minimumCardPickup(int[] cards) {
+        HashMap<Integer, Integer> map = new HashMap<>();
+        int ans = Integer.MAX_VALUE;
+
+        for(int i=0; i<cards.length; i++){
+
+            if(map.containsKey(cards[i])){
+            int idx = map.get(cards[i]);
+                int res = i - idx + 1;
+                ans = Math.min(ans, res);
+            }
+
+            map.put(cards[i], i);
+        }
+        return ans==Integer.MAX_VALUE ?-1 :ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minimumCardPickup(int[] cards) {
+
+    HashSet<Integer> set = new HashSet<>();  
+    int ans = Integer.MAX_VALUE;
+    int j = 0;
+
+    for(int card : cards){
+        if(!set.contains(card)){
+            set.add(card);
+        }else{ 
+            while(set.contains(card)){
+               ans = Math.min(set.size() + 1, ans);
+               set.remove(cards[j++]);
+            }
+              set.add(card);  
+        }
+    }
+    return ans == Integer.MAX_VALUE ? -1 : ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int minimumCardPickup(int[] cards) {
+        Map<Integer, Integer> hm=new HashMap<Integer,Integer>();
+        int min=Integer.MAX_VALUE;
+        for(int i=0;i<cards.length;i++)
+        {
+            if(hm.containsKey(cards[i]))
+            {
+                min=Math.min(min,(i+1)-hm.get(cards[i]));
+            }
+            hm.put(cards[i],i);
+        }
+        if(min==Integer.MAX_VALUE)
+            min=-1;
+        return min;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int minimumCardPickup(int[] cards) {
+        int ans = Integer.MAX_VALUE;
+        int n = cards.length;
+        // Use a TreeMap to store the count and last index of each card
+        TreeMap<Integer, Pair<Integer, Integer>> cardCount = new TreeMap<>();
+        for (int i = 0; i < n; i++) {
+            int lastCount = cardCount.getOrDefault(cards[i], new Pair<>(0, 0)).getKey();
+            int lastIndex = cardCount.getOrDefault(cards[i], new Pair<>(0, 0)).getValue();
+
+            cardCount.put(cards[i], new Pair<>(lastCount + 1, i));
+            
+            if (lastCount + 1 > lastCount && lastCount != 0) {
+                int current = i - lastIndex + 1;
+                ans = Math.min(current, ans);
+            }
+        }
+        // If no duplicate cards were found, return -1
+        if (ans == Integer.MAX_VALUE) return -1;
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minimumCardPickup(int[] cards) {
+        int ans = Integer.MAX_VALUE;
+        int n = cards.length;
+        // Use a HashMap to store the count and last index of each card
+        HashMap<Integer, Pair<Integer, Integer>> cardCount = new HashMap<>();
+        for (int i = 0; i < n; i++) {
+            int lastCount = cardCount.getOrDefault(cards[i], new Pair<>(0, 0)).getKey();
+            int lastIndex = cardCount.getOrDefault(cards[i], new Pair<>(0, 0)).getValue();
+
+            cardCount.put(cards[i], new Pair<>(lastCount + 1, i));
+            
+            if (lastCount + 1 > lastCount && lastCount != 0) {
+                int current = i - lastIndex + 1;
+                ans = Math.min(current, ans);
+            }
+        }
+        // If no duplicate cards were found, return -1
+        if (ans == Integer.MAX_VALUE) return -1;
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public static int minimumCardPickup(int[] arr) {
+		HashMap<Integer, Integer> map = new HashMap<>();
+		int min = Integer.MAX_VALUE;
+		for (int i = 0; i < arr.length; i++) {
+			if (map.containsKey(arr[i])) {
+				min = Math.min(min, i - map.get(arr[i]));
+			}
+			map.put(arr[i], i);
+		}
+		if (min == Integer.MAX_VALUE) {
+			return -1;
+		}
+		return min + 1;
+	}
+}
+
+
+or
+
+
+class Solution {
+    public int minimumCardPickup(int[] cards) {
+        int min=Integer.MAX_VALUE;
+        HashMap<Integer,Integer> hm=new HashMap<>();
+        for(int i=0;i<cards.length;i++){
+            if(hm.containsKey(cards[i])){
+                int l=hm.get(cards[i]);
+                min=Math.min(min,i-l+1);
+            }
+            hm.put(cards[i],i);
+        }
+        return min==Integer.MAX_VALUE?-1:min;
+    }
+}
+
+
