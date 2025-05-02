@@ -1,0 +1,469 @@
+https://leetcode.com/problems/continuous-subarrays/description/
+
+2762. Continuous Subarrays
+Medium
+Topics
+Companies
+Hint
+You are given a 0-indexed integer array nums. A subarray of nums is called continuous if:
+
+Let i, i + 1, ..., j be the indices in the subarray. Then, for each pair of indices i <= i1, i2 <= j, 0 <= |nums[i1] - nums[i2]| <= 2.
+Return the total number of continuous subarrays.
+
+A subarray is a contiguous non-empty sequence of elements within an array.
+
+ 
+
+Example 1:
+
+Input: nums = [5,4,2,4]
+Output: 8
+Explanation: 
+Continuous subarray of size 1: [5], [4], [2], [4].
+Continuous subarray of size 2: [5,4], [4,2], [2,4].
+Continuous subarray of size 3: [4,2,4].
+There are no subarrys of size 4.
+Total continuous subarrays = 4 + 3 + 1 = 8.
+It can be shown that there are no more continuous subarrays.
+ 
+
+Example 2:
+
+Input: nums = [1,2,3]
+Output: 6
+Explanation: 
+Continuous subarray of size 1: [1], [2], [3].
+Continuous subarray of size 2: [1,2], [2,3].
+Continuous subarray of size 3: [1,2,3].
+Total continuous subarrays = 3 + 2 + 1 = 6.
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+1 <= nums[i] <= 109
+
+
+
+# java
+
+
+class Solution {
+  public long continuousSubarrays(int[] nums) {
+    long ans = 1; // [nums[0]]
+    int left = nums[0] - 2;
+    int right = nums[0] + 2;
+    int l = 0;
+
+    // nums[l..r] is a valid window with range in [left, right].
+    for (int r = 1; r < nums.length; r++) {
+      if (left <= nums[r] && nums[r] <= right) {
+        left = Math.max(left, nums[r] - 2);
+        right = Math.min(right, nums[r] + 2);
+      } else {
+        // nums[r] is out-of-bounds, so reconstruct the window.
+        left = nums[r] - 2;
+        right = nums[r] + 2;
+        l = r;
+        // If we consistently move leftward in each iteration, it implies that
+        // the entire left subarray satisfies the given condition. For every
+        // subarray with l in the range [0, r], the condition is met, preventing
+        // the code from reaching the final "else" condition. Instead, it stops
+        // at the "if" condition.
+        while (nums[r] - 2 <= nums[l] && nums[l] <= nums[r] + 2) {
+          left = Math.max(left, nums[l] - 2);
+          right = Math.min(right, nums[l] + 2);
+          --l;
+        }
+        ++l;
+      }
+      // nums[l..r], nums[l + 1..r], ..., nums[r]
+      ans += r - l + 1;
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    public long continuousSubarrays(int[] nums) {
+        long ans = 0;
+        int i = 0, n = nums.length;
+        TreeMap<Integer, Integer> tm = new TreeMap<>();
+        for (int j = 0; j < n; ++j) {
+            tm.merge(nums[j], 1, Integer::sum);
+            while (tm.lastEntry().getKey() - tm.firstEntry().getKey() > 2) {
+                tm.merge(nums[i], -1, Integer::sum);
+                if (tm.get(nums[i]) == 0) {
+                    tm.remove(nums[i]);
+                }
+                ++i;
+            }
+            ans += j - i + 1;
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public long continuousSubarrays(int[] nums) {
+        // TreeMap to maintain sorted frequency map of current window
+        TreeMap<Integer, Integer> freq = new TreeMap<>();
+        int left = 0, right = 0;
+        int n = nums.length;
+        long count = 0; // Total count of valid subarrays
+
+        while (right < n) {
+            // Add current element to frequency map
+            freq.put(nums[right], freq.getOrDefault(nums[right], 0) + 1);
+
+            // While window violates the condition |nums[i] - nums[j]| ≤ 2
+            // Shrink window from left
+            while (freq.lastEntry().getKey() - freq.firstEntry().getKey() > 2) {
+                // Remove leftmost element from frequency map
+                freq.put(nums[left], freq.get(nums[left]) - 1);
+                if (freq.get(nums[left]) == 0) {
+                    freq.remove(nums[left]);
+                }
+                left++;
+            }
+
+            // Add count of all valid subarrays ending at right
+            count += right - left + 1;
+            right++;
+        }
+
+        return count;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public long continuousSubarrays(int[] nums) {
+        int left = 0, right = 0;
+        long count = 0; // Total count of valid subarrays
+
+        // Min and max heaps storing indices, sorted by nums[index] values
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>(
+            (a, b) -> nums[a] - nums[b]
+        );
+        PriorityQueue<Integer> maxHeap = new PriorityQueue<>(
+            (a, b) -> nums[b] - nums[a]
+        );
+
+        while (right < nums.length) {
+            // Add current index to both heaps
+            minHeap.add(right);
+            maxHeap.add(right);
+
+            // While window violates |nums[i] - nums[j]| ≤ 2 condition
+            // Shrink window from left and remove outdated indices
+            while (
+                left < right && nums[maxHeap.peek()] - nums[minHeap.peek()] > 2
+            ) {
+                left++;
+
+                // Remove indices that are now outside window
+                while (!maxHeap.isEmpty() && maxHeap.peek() < left) {
+                    maxHeap.poll();
+                }
+                while (!minHeap.isEmpty() && minHeap.peek() < left) {
+                    minHeap.poll();
+                }
+            }
+
+            // Add count of all valid subarrays ending at right
+            count += right - left + 1;
+            right++;
+        }
+
+        return count;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public long continuousSubarrays(int[] nums) {
+        // Monotonic deque to track maximum and minimum elements
+        Deque<Integer> maxQ = new ArrayDeque<>();
+        Deque<Integer> minQ = new ArrayDeque<>();
+        int left = 0;
+        long count = 0;
+
+        for (int right = 0; right < nums.length; right++) {
+            // Maintain decreasing monotonic queue for maximum values
+            while (!maxQ.isEmpty() && nums[maxQ.peekLast()] < nums[right]) {
+                maxQ.pollLast();
+            }
+            maxQ.offerLast(right);
+
+            // Maintain increasing monotonic queue for minimum values
+            while (!minQ.isEmpty() && nums[minQ.peekLast()] > nums[right]) {
+                minQ.pollLast();
+            }
+            minQ.offerLast(right);
+
+            // Shrink window if max-min difference exceeds 2
+            while (
+                !maxQ.isEmpty() &&
+                !minQ.isEmpty() &&
+                nums[maxQ.peekFirst()] - nums[minQ.peekFirst()] > 2
+            ) {
+                // Move left pointer past the element that breaks the condition
+                if (maxQ.peekFirst() < minQ.peekFirst()) {
+                    left = maxQ.peekFirst() + 1;
+                    maxQ.pollFirst();
+                } else {
+                    left = minQ.peekFirst() + 1;
+                    minQ.pollFirst();
+                }
+            }
+
+            // Add count of all valid subarrays ending at current right pointer
+            count += right - left + 1;
+        }
+        return count;
+    }
+}
+
+
+or
+
+
+// vest
+
+
+class Solution {
+
+    public long continuousSubarrays(int[] nums) {
+        int right = 0, left = 0;
+        int curMin, curMax;
+        long windowLen = 0, total = 0;
+
+        // Initialize window with first element
+        curMin = curMax = nums[right];
+
+        for (right = 0; right < nums.length; right++) {
+            // Update min and max for current window
+            curMin = Math.min(curMin, nums[right]);
+            curMax = Math.max(curMax, nums[right]);
+
+            // If window condition breaks (diff > 2)
+            if (curMax - curMin > 2) {
+                // Add subarrays from previous valid window
+                windowLen = right - left;
+                total += ((windowLen * (windowLen + 1)) / 2);
+
+                // Start new window at current position
+                left = right;
+                curMin = curMax = nums[right];
+
+                // Expand left boundary while maintaining condition
+                while (
+                    left > 0 && Math.abs(nums[right] - nums[left - 1]) <= 2
+                ) {
+                    left--;
+                    curMin = Math.min(curMin, nums[left]);
+                    curMax = Math.max(curMax, nums[left]);
+                }
+
+                // Remove overcounted subarrays if left boundary expanded
+                if (left < right) {
+                    windowLen = right - left;
+                    total -= ((windowLen * (windowLen + 1)) / 2);
+                }
+            }
+        }
+
+        // Add subarrays from final window
+        windowLen = right - left;
+        total += ((windowLen * (windowLen + 1)) / 2);
+
+        return total;
+    }
+}
+
+
+or
+
+
+// best
+
+class Solution {
+    public long continuousSubarrays(int[] nums) {
+        int l = 0;
+        long res = 0;  // Use long to avoid overflow
+        Deque<Integer> minD = new LinkedList<>(), maxD = new LinkedList<>();
+
+        for (int r = 0; r < nums.length; r++) {
+            // Maintain the min deque
+            while (!minD.isEmpty() && nums[minD.peekLast()] >= nums[r]) {
+                minD.pollLast();
+            }
+            // Maintain the max deque
+            while (!maxD.isEmpty() && nums[maxD.peekLast()] <= nums[r]) {
+                maxD.pollLast();
+            }
+
+            // Add the current element index to the deques
+            minD.offerLast(r);
+            maxD.offerLast(r);
+
+            // Shrink the window from the left until the condition holds
+            while (nums[maxD.peekFirst()] - nums[minD.peekFirst()] > 2) {
+                l++;
+                if (minD.peekFirst() < l) minD.pollFirst();
+                if (maxD.peekFirst() < l) maxD.pollFirst();
+            }
+
+            // Add the valid subarrays count from l to r
+            res += r - l + 1;
+        }
+
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public long continuousSubarrays(int[] nums) {
+        int n = nums.length;
+        int j = 0;
+        long cnt = 0;
+
+        Map<Integer, Integer> map = new HashMap<>();
+
+        for (int i = 0; i < n; i++) {
+            map.put(nums[i], map.getOrDefault(nums[i], 0) + 1);
+
+            while ((i - j + 1) > getCount(nums[i], map)) {
+                map.put(nums[j], map.get(nums[j]) - 1);
+
+                j++;
+            }
+
+            cnt += (i - j + 1);
+        }
+
+        return cnt;
+    }
+
+    private int getCount(int num, Map<Integer, Integer> map) {
+        return map.getOrDefault(num, 0) + map.getOrDefault(num - 1, 0) +
+            map.getOrDefault(num + 1, 0) + map.getOrDefault(num - 2, 0) +
+            map.getOrDefault(num + 2, 0);
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public long continuousSubarrays(int[] nums) {
+         long cnt = 0;
+        int l = 0, r = 0;
+
+        PriorityQueue<int[]> maxHeap = new PriorityQueue<>((a, b) -> b[0] - a[0]);
+        PriorityQueue<int[]> minHeap = new PriorityQueue<>((a, b) -> a[0] - b[0]);
+
+        while (r < nums.length) {
+            maxHeap.offer(new int[] { nums[r], r });
+            minHeap.offer(new int[] { nums[r], r });
+
+            while (!maxHeap.isEmpty() && !minHeap.isEmpty() && (maxHeap.peek()[0] - minHeap.peek()[0]) > 2) {
+                l++;
+                while (!maxHeap.isEmpty() && maxHeap.peek()[1] < l) maxHeap.poll();
+                while (!minHeap.isEmpty() && minHeap.peek()[1] < l) minHeap.poll();
+            }
+
+            cnt += (r - l + 1);
+            r++;
+        }
+        return cnt;
+    }
+}
+
+or
+
+
+import java.util.TreeMap;
+
+class Solution {
+    public long continuousSubarrays(int[] nums) {
+        TreeMap<Integer, Integer> map = new TreeMap<>();
+        int left = 0;
+        long count = 0;
+
+        for (int right = 0; right < nums.length; right++) {
+            
+            map.put(nums[right], map.getOrDefault(nums[right], 0) + 1);
+
+            while (map.lastKey() - map.firstKey() > 2) {
+                map.put(nums[left], map.get(nums[left]) - 1);
+                if (map.get(nums[left]) == 0) {
+                    map.remove(nums[left]);
+                }
+                left++;
+            }
+            count += right - left + 1;
+        }
+
+        return count;
+    }
+}
+
+or
+
+
+class Solution {
+    public long continuousSubarrays(int[] nums) {
+        TreeMap<Integer, Integer> map = new TreeMap<>();
+        int l = 0;
+        long count = 0;
+
+        for (int r = 0; r < nums.length; r++) {
+            map.put(nums[r], r);
+
+            while (map.lastKey() - map.firstKey() > 2) {
+                if (map.get(map.lastKey()) < map.get(map.firstKey())) {
+                    l = map.get(map.lastKey()) + 1;
+                    map.remove(map.lastKey());
+                } else {
+                    l = map.get(map.firstKey()) + 1;
+                    map.remove(map.firstKey());
+                }
+            }
+
+            count += r - l + 1;
+        }
+
+        return count;
+    }
+}
+
+or
+
+
