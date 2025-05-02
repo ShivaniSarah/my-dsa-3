@@ -120,7 +120,7 @@ class Solution {
 or
 
 
-
+// bets
 class Solution {
    public static long validSubstringCount(String word1, String word2) {
         int[] v = new int[26];
