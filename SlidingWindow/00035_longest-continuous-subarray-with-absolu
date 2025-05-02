@@ -1,0 +1,300 @@
+https://leetcode.com/problems/longest-continuous-subarray-with-absolute-diff-less-than-or-equal-to-limit/description/
+
+1438. Longest Continuous Subarray With Absolute Diff Less Than or Equal to Limit
+Medium
+Topics
+Companies
+Hint
+Given an array of integers nums and an integer limit, return the size of the longest non-empty subarray such that the absolute difference between any two elements of this subarray is less than or equal to limit.
+
+ 
+
+Example 1:
+
+Input: nums = [8,2,4,7], limit = 4
+Output: 2 
+Explanation: All subarrays are: 
+[8] with maximum absolute diff |8-8| = 0 <= 4.
+[8,2] with maximum absolute diff |8-2| = 6 > 4. 
+[8,2,4] with maximum absolute diff |8-2| = 6 > 4.
+[8,2,4,7] with maximum absolute diff |8-2| = 6 > 4.
+[2] with maximum absolute diff |2-2| = 0 <= 4.
+[2,4] with maximum absolute diff |2-4| = 2 <= 4.
+[2,4,7] with maximum absolute diff |2-7| = 5 > 4.
+[4] with maximum absolute diff |4-4| = 0 <= 4.
+[4,7] with maximum absolute diff |4-7| = 3 <= 4.
+[7] with maximum absolute diff |7-7| = 0 <= 4. 
+Therefore, the size of the longest subarray is 2.
+Example 2:
+
+Input: nums = [10,1,2,4,7,2], limit = 5
+Output: 4 
+Explanation: The subarray [2,4,7,2] is the longest since the maximum absolute diff is |2-7| = 5 <= 5.
+Example 3:
+
+Input: nums = [4,2,2,2,4,4,2,2], limit = 0
+Output: 3
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+1 <= nums[i] <= 109
+0 <= limit <= 109
+
+
+# java
+
+
+class Solution {
+    public int longestSubarray(int[] nums, int limit) {
+        TreeMap<Integer, Integer> tm = new TreeMap<>();
+        int ans = 0, j = 0;
+        for (int i = 0; i < nums.length; ++i) {
+            tm.put(nums[i], tm.getOrDefault(nums[i], 0) + 1);
+            while (tm.lastKey() - tm.firstKey() > limit) {
+                tm.put(nums[j], tm.get(nums[j]) - 1);
+                if (tm.get(nums[j]) == 0) {
+                    tm.remove(nums[j]);
+                }
+                ++j;
+            }
+            ans = Math.max(ans, i - j + 1);
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+
+    public int longestSubarray(int[] nums, int limit) {
+        PriorityQueue<int[]> maxHeap = new PriorityQueue<>(
+            (a, b) -> b[0] - a[0]
+        );
+        PriorityQueue<int[]> minHeap = new PriorityQueue<>(
+            Comparator.comparingInt(a -> a[0])
+        );
+
+        int left = 0, maxLength = 0;
+
+        for (int right = 0; right < nums.length; ++right) {
+            maxHeap.offer(new int[] { nums[right], right });
+            minHeap.offer(new int[] { nums[right], right });
+
+            // Check if the absolute difference between the maximum and minimum values in the current window exceeds the limit
+            while (maxHeap.peek()[0] - minHeap.peek()[0] > limit) {
+                // Move the left pointer to the right until the condition is satisfied.
+                // This ensures we remove the element causing the violation
+                left = Math.min(maxHeap.peek()[1], minHeap.peek()[1]) + 1;
+
+                // Remove elements from the heaps that are outside the current window
+                while (maxHeap.peek()[1] < left) {
+                    maxHeap.poll();
+                }
+                while (minHeap.peek()[1] < left) {
+                    minHeap.poll();
+                }
+            }
+
+            // Update maxLength with the length of the current valid window
+            maxLength = Math.max(maxLength, right - left + 1);
+        }
+
+        return maxLength;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public int longestSubarray(int[] nums, int limit) {
+        // TreeMap to maintain the elements within the current window
+        TreeMap<Integer, Integer> window = new TreeMap<>();
+        int left = 0, maxLength = 0;
+
+        for (int right = 0; right < nums.length; ++right) {
+            window.put(nums[right], window.getOrDefault(nums[right], 0) + 1);
+
+            // Check if the absolute difference between the maximum and minimum values in the current window exceeds the limit
+            while (window.lastKey() - window.firstKey() > limit) {
+                // Remove the element at the left pointer from the TreeMap
+                window.put(nums[left], window.get(nums[left]) - 1);
+                if (window.get(nums[left]) == 0) {
+                    window.remove(nums[left]);
+                }
+                // Move the left pointer to the right to exclude the element causing the violation
+                ++left;
+            }
+
+            // Update maxLength with the length of the current valid window
+            maxLength = Math.max(maxLength, right - left + 1);
+        }
+
+        return maxLength;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+
+    public int longestSubarray(int[] nums, int limit) {
+        Deque<Integer> maxDeque = new LinkedList<>();
+        Deque<Integer> minDeque = new LinkedList<>();
+        int left = 0;
+        int maxLength = 0;
+
+        for (int right = 0; right < nums.length; ++right) {
+            // Maintain the maxDeque in decreasing order
+            while (!maxDeque.isEmpty() && maxDeque.peekLast() < nums[right]) {
+                maxDeque.pollLast();
+            }
+            maxDeque.offerLast(nums[right]);
+
+            // Maintain the minDeque in increasing order
+            while (!minDeque.isEmpty() && minDeque.peekLast() > nums[right]) {
+                minDeque.pollLast();
+            }
+            minDeque.offerLast(nums[right]);
+
+            // Check if the current window exceeds the limit
+            while (maxDeque.peekFirst() - minDeque.peekFirst() > limit) {
+                // Remove the elements that are out of the current window
+                if (maxDeque.peekFirst() == nums[left]) {
+                    maxDeque.pollFirst();
+                }
+                if (minDeque.peekFirst() == nums[left]) {
+                    minDeque.pollFirst();
+                }
+                ++left;
+            }
+
+            maxLength = Math.max(maxLength, right - left + 1);
+        }
+
+        return maxLength;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int longestSubarray(int[] nums, int limit) {
+        
+        LinkedList<Integer> increase = new LinkedList<>();
+        LinkedList<Integer> decrease = new LinkedList<>();
+
+        int max = 0;
+        int left = 0;
+
+        for (int i = 0; i < nums.length; i++) {
+            int n = nums[i];
+
+            while (increase.size() > 0 && n < increase.getLast()) {
+                increase.removeLast();
+            }
+            increase.add(n);
+
+            while (decrease.size() > 0 && n > decrease.getLast()) {
+                decrease.removeLast();
+            }
+
+            decrease.add(n);
+
+            while (decrease.getFirst() - increase.getFirst() > limit) {
+                if (nums[left] == decrease.getFirst()) {
+                    decrease.removeFirst();
+                }
+                if (nums[left] == increase.getFirst()) {
+                    increase.removeFirst();
+                }
+                left++;
+            }
+
+            int size = i - left + 1;
+            max = Math.max(max, size);
+        }
+
+        return max;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int longestSubarray(int[] nums, int limit) {
+        int left = 0;
+        TreeSet<Integer> set = new TreeSet<>((a, b) -> nums[a] == nums[b] ? a - b : nums[a] - nums[b]);
+        set.add(0);
+        int res = 1;
+        for (int right = 1; right < nums.length; right++) {
+            set.add(right);
+            while (nums[set.last()] - nums[set.first()] > limit) {
+                set.remove(left++);
+            }
+            res = Math.max(res, right - left + 1);
+        }
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int longestSubarray(int[] nums, int limit) {
+        Deque<Integer> decQ = new LinkedList<>();
+        Deque<Integer> incQ = new LinkedList<>();
+        int ans = 0;
+        int left = 0;
+
+        for (int right = 0; right < nums.length; ++right) {
+            int num = nums[right];
+
+            while (!decQ.isEmpty() && num > decQ.peekLast()) {
+                decQ.pollLast();
+            }
+            decQ.addLast(num);
+
+            while (!incQ.isEmpty() && num < incQ.peekLast()) {
+                incQ.pollLast();
+            }
+            incQ.addLast(num);
+
+            while (decQ.peekFirst() - incQ.peekFirst() > limit) {
+                if (decQ.peekFirst() == nums[left]) {
+                    decQ.pollFirst();
+                }
+                if (incQ.peekFirst() == nums[left]) {
+                    incQ.pollFirst();
+                }
+                ++left;
+            }
+
+            ans = Math.max(ans, right - left + 1);
+        }
+
+        return ans;
+    }
+}
+
+
+
