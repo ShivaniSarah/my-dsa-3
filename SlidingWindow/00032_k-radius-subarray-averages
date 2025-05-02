@@ -1,0 +1,330 @@
+https://leetcode.com/problems/k-radius-subarray-averages/description/
+
+2090. K Radius Subarray Averages
+Medium
+Topics
+Companies
+Hint
+You are given a 0-indexed array nums of n integers, and an integer k.
+
+The k-radius average for a subarray of nums centered at some index i with the radius k is the average of all elements in nums between the indices i - k and i + k (inclusive). If there are less than k elements before or after the index i, then the k-radius average is -1.
+
+Build and return an array avgs of length n where avgs[i] is the k-radius average for the subarray centered at index i.
+
+The average of x elements is the sum of the x elements divided by x, using integer division. The integer division truncates toward zero, which means losing its fractional part.
+
+For example, the average of four elements 2, 3, 1, and 5 is (2 + 3 + 1 + 5) / 4 = 11 / 4 = 2.75, which truncates to 2.
+ 
+
+Example 1:
+
+
+Input: nums = [7,4,3,9,1,8,5,2,6], k = 3
+Output: [-1,-1,-1,5,4,4,-1,-1,-1]
+Explanation:
+- avg[0], avg[1], and avg[2] are -1 because there are less than k elements before each index.
+- The sum of the subarray centered at index 3 with radius 3 is: 7 + 4 + 3 + 9 + 1 + 8 + 5 = 37.
+  Using integer division, avg[3] = 37 / 7 = 5.
+- For the subarray centered at index 4, avg[4] = (4 + 3 + 9 + 1 + 8 + 5 + 2) / 7 = 4.
+- For the subarray centered at index 5, avg[5] = (3 + 9 + 1 + 8 + 5 + 2 + 6) / 7 = 4.
+- avg[6], avg[7], and avg[8] are -1 because there are less than k elements after each index.
+Example 2:
+
+Input: nums = [100000], k = 0
+Output: [100000]
+Explanation:
+- The sum of the subarray centered at index 0 with radius 0 is: 100000.
+  avg[0] = 100000 / 1 = 100000.
+Example 3:
+
+Input: nums = [8], k = 100000
+Output: [-1]
+Explanation: 
+- avg[0] is -1 because there are less than k elements before and after index 0.
+ 
+
+Constraints:
+
+n == nums.length
+1 <= n <= 105
+0 <= nums[i], k <= 105
+
+
+# java
+
+
+class Solution {
+  public int[] getAverages(int[] nums, int k) {
+    final int n = nums.length;
+    final int size = 2 * k + 1;
+    int[] ans = new int[n];
+    Arrays.fill(ans, -1);
+    if (size > n)
+      return ans;
+
+    long sum = 0;
+
+    for (int i = 0; i < size; ++i)
+      sum += nums[i];
+
+    for (int i = k; i + k < n; ++i) {
+      ans[i] = (int) (sum / size);
+      if (i + k + 1 < n)
+        sum += nums[i + k + 1] - nums[i - k];
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    public int[] getAverages(int[] nums, int k) {
+        int n = nums.length;
+        long[] s = new long[n + 1];
+        for (int i = 0; i < n; ++i) {
+            s[i + 1] = s[i] + nums[i];
+        }
+        int[] ans = new int[n];
+        Arrays.fill(ans, -1);
+        for (int i = 0; i < n; ++i) {
+            if (i - k >= 0 && i + k < n) {
+                ans[i] = (int) ((s[i + k + 1] - s[i - k]) / (k << 1 | 1));
+            }
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int[] getAverages(int[] nums, int k) {
+        int n = nums.length;
+        int windowSize = 2 * k + 1;
+        int[] ans = new int[n];
+        Arrays.fill(ans,-1);
+        
+        if (n < windowSize) {
+            return ans;
+        }
+        
+        long[] prefixSum = new long[n + 1];
+        for (int i = 0; i < n; ++i) {
+            prefixSum[i + 1] = prefixSum[i] + nums[i];
+        }
+        
+        for (int i = k; i + k < n; ++i) {
+            ans[i] = (int) ((prefixSum[i + k + 1] - prefixSum[i - k]) / windowSize);
+        }
+        
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int[] getAverages(int[] nums, int k) {
+        int n = nums.length;
+        int windowSize = 2 * k + 1;
+        
+        long windowSum = 0;
+        int[] result = new int[n];
+        Arrays.fill(result,-1);
+
+        if (n < windowSize) {
+            return result;
+        }
+
+        for (int i = 0; i < n; ++i) {
+            windowSum += nums[i]; // Add nums[i] to the window sum
+
+            if (i - windowSize >= 0) {
+                windowSum -= nums[i - windowSize]; // Remove nums[i - windowSize] from the window sum
+            }
+
+            if (i >= windowSize - 1) {
+                result[i - k] = (int) (windowSum / windowSize); // Calculate and store the average in the result
+            }
+        }
+
+        return result;
+    }
+}
+
+
+or
+
+
+class Solution
+{
+    public int[] getAverages(int[] nums, int k)
+    {
+        if(k == 0)
+            return nums;
+			
+        int N = nums.length;
+        long[] sum = new long[N];
+        sum[0] = nums[0];
+		
+        for(int i = 1; i < N; i++)
+            sum[i] = sum[i-1]+nums[i]; // Sum of 0 - ith element at sum[i]
+			
+        int[] ret = new int[N];
+        Arrays.fill(ret,-1);
+		
+        for(int i = k; i < N-k; i++) // Beyond this range, there are less than k elements so -1
+        {
+            long temp = (sum[i+k]-sum[i-k]+nums[i-k])/(k*2+1);
+            ret[i] = (int)temp;
+        }
+        return ret;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int[] getAverages(int[] nums, int k) {
+        int n = nums.length;
+        int [] ans = new int[n];
+        Arrays.fill(ans, -1);
+        
+        long sum = 0;
+        int length = 2*k+1;
+        if(length>n) return ans;
+        for(int i = 0;i<length;i++){
+            sum+=nums[i];
+        }
+        ans[k] = (int)(sum/length);
+        int start = 0 ;
+        for(int last = length;last<n;last++){
+            sum = sum - nums[start]+ nums[last];
+            start++;
+            ans[last-k] = (int)(sum/length);
+        }
+        return ans;
+    }
+}
+
+or
+
+
+class Solution {
+    public int[] getAverages(int[] nums, int k) {
+        int n = nums.length;
+        // Create an array to store the mid vals if present
+        int[] ans = new int[n];
+        for (int i = 0; i < n; i++) {
+            ans[i] = -1;
+        }
+        // End bounds check
+        if (n % 2 == 0 && n / 2 <= k) {
+            return ans;
+        } else if (n % 2 != 0 && n / 2 < k) {
+            return ans;
+        }
+
+        int j = 0, i = 0, sz = 2 * k + 1, m = k;
+        long s = 0;
+        // Iteration over the array
+        while (i < n && j < n) {
+            s += nums[i];
+            if (i - j + 1 == sz) {
+                ans[m] = (int) (s / sz);
+                s -= nums[j];
+                j++;
+                m++;
+            }
+            i++;
+        }
+        return ans;
+    }
+};
+
+or
+
+
+class Solution {
+    public int[] getAverages(int[] nums, int k) {
+        int n = nums.length;
+        int ans[] = new int[n];
+        Arrays.fill(ans,-1);
+        int windowSize = 2*k+1;
+        if(n < windowSize){
+            return ans;
+        }
+        int start = 0;
+        int end = windowSize-1;
+        long currSum = 0;
+        for(int i = 0 ; i < windowSize-1; i ++){
+            currSum += nums[i];
+        }
+        for(int i = k; i < n; i ++){
+            if(i + k >= n){
+                break;
+            }
+            currSum += nums[end++];
+            ans[i] = (int)(currSum/windowSize);
+            currSum -= nums[start++];
+        }
+        return ans;
+    }
+}
+
+or
+
+
+class Solution {
+  public int[] getAverages(int[] nums, int k) {
+    int n = nums.length, K = 2*k + 1, ans[] = new int[n];
+    var sum = 0L;
+
+    Arrays.fill(ans, -1);
+    if (K > n) return ans;
+
+    for (var i = 0; i < K; i++)
+      sum += nums[i];
+
+    ans[k] = (int) (sum / K);
+    for (var i = k+1; i < n-k; i++) {
+      sum += nums[i+k] - nums[i-k-1];
+      ans[i] = (int) (sum / K);
+    }
+    return ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int[] getAverages(int[] nums, int k) {
+        int n=nums.length, radius = 2*k+1;
+        long pre[] = new long[n+1]; // use long because integer overflow
+        for(int i=0; i<n; i++){
+            pre[i+1] = pre[i] + nums[i];
+        }
+        
+        int res[] = new int[n];
+        Arrays.fill(res, -1);
+        for(int i=k; i<n-k; i++){
+            res[i] = (int) ((pre[i+k+1] - pre[i-k]) / radius);
+        }
+        return res;
+    }
+}
+
