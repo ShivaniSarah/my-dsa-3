@@ -1,0 +1,673 @@
+https://leetcode.com/problems/replace-question-marks-in-string-to-minimize-its-value/description/
+
+
+
+3081. Replace Question Marks in String to Minimize Its Value
+Medium
+Topics
+Companies
+Hint
+You are given a string s. s[i] is either a lowercase English letter or '?'.
+
+For a string t having length m containing only lowercase English letters, we define the function cost(i) for an index i as the number of characters equal to t[i] that appeared before it, i.e. in the range [0, i - 1].
+
+The value of t is the sum of cost(i) for all indices i.
+
+For example, for the string t = "aab":
+
+cost(0) = 0
+cost(1) = 1
+cost(2) = 0
+Hence, the value of "aab" is 0 + 1 + 0 = 1.
+Your task is to replace all occurrences of '?' in s with any lowercase English letter so that the value of s is minimized.
+
+Return a string denoting the modified string with replaced occurrences of '?'. If there are multiple strings resulting in the minimum value, return the lexicographically smallest one.
+
+ 
+
+Example 1:
+
+Input: s = "???"
+
+Output: "abc"
+
+Explanation: In this example, we can replace the occurrences of '?' to make s equal to "abc".
+
+For "abc", cost(0) = 0, cost(1) = 0, and cost(2) = 0.
+
+The value of "abc" is 0.
+
+Some other modifications of s that have a value of 0 are "cba", "abz", and, "hey".
+
+Among all of them, we choose the lexicographically smallest.
+
+Example 2:
+
+Input: s = "a?a?"
+
+Output: "abac"
+
+Explanation: In this example, the occurrences of '?' can be replaced to make s equal to "abac".
+
+For "abac", cost(0) = 0, cost(1) = 0, cost(2) = 1, and cost(3) = 0.
+
+The value of "abac" is 1.
+
+ 
+
+Constraints:
+
+1 <= s.length <= 105
+s[i] is either a lowercase English letter or '?'.
+
+
+# java
+
+
+
+class Solution {
+  public String minimizeStringValue(String s) {
+    StringBuilder sb = new StringBuilder();
+    int[] count = new int[26];
+    List<Character> letters = new ArrayList<>();
+
+    for (final char c : s.toCharArray())
+      if (c != '?')
+        ++count[c - 'a'];
+
+    for (final char c : s.toCharArray()) {
+      if (c != '?')
+        continue;
+      final char minFreqLetter = getMinFreqLetter(count);
+      letters.add(minFreqLetter);
+      ++count[minFreqLetter - 'a'];
+    }
+
+    Collections.sort(letters);
+    int i = 0; // letters' index
+
+    for (final char c : s.toCharArray())
+      sb.append(c == '?' ? letters.get(i++) : c);
+
+    return sb.toString();
+  }
+
+  private char getMinFreqLetter(int[] count) {
+    char minFreqLetter = 'a';
+    for (char c = 'b'; c <= 'z'; ++c)
+      if (count[c - 'a'] < count[minFreqLetter - 'a'])
+        minFreqLetter = c;
+    return minFreqLetter;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public String minimizeStringValue(String s) {
+        int[] cnt = new int[26];
+        int n = s.length();
+        int k = 0;
+        char[] cs = s.toCharArray();
+        for (char c : cs) {
+            if (c == '?') {
+                ++k;
+            } else {
+                ++cnt[c - 'a'];
+            }
+        }
+        PriorityQueue<int[]> pq
+            = new PriorityQueue<>((a, b) -> a[0] == b[0] ? a[1] - b[1] : a[0] - b[0]);
+        for (int i = 0; i < 26; ++i) {
+            pq.offer(new int[] {cnt[i], i});
+        }
+        int[] t = new int[k];
+        for (int j = 0; j < k; ++j) {
+            int[] p = pq.poll();
+            t[j] = p[1];
+            pq.offer(new int[] {p[0] + 1, p[1]});
+        }
+        Arrays.sort(t);
+
+        for (int i = 0, j = 0; i < n; ++i) {
+            if (cs[i] == '?') {
+                cs[i] = (char) (t[j++] + 'a');
+            }
+        }
+        return new String(cs);
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public String minimizeStringValue(String s) {
+        // Initialize a map to store the frequencies of characters
+        Map<Character, Integer> charFreq = new HashMap<>();
+        
+        // Initialize a list to store the positions of '?'
+        List<Integer> pos = new ArrayList<>();
+        
+        // Iterate over the input string to determine character frequencies and positions of '?'
+        for (char ch : s.toCharArray()) {
+            if (ch != '?')  {
+                charFreq.put(ch, charFreq.getOrDefault(ch, 0) + 1);
+            }
+        }
+        
+        // Initialize a list to store the characters to replace '?'
+        List<Character> ans = new ArrayList<>();
+        
+        // Find the positions of '?' and store them in the 'pos' list
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == '?') {
+                pos.add(i);
+            }
+        }
+        
+        // Iterate over the positions of '?' to find the lexicographically smallest character
+        for (int i = 0; i < pos.size(); i++) {
+            int freq = Integer.MAX_VALUE;
+            for (char c = 'a'; c <= 'z'; c++) {
+                freq = Math.min(charFreq.getOrDefault(c, 0), freq);
+            }
+            for (char c = 'a'; c <= 'z'; c++) {
+                if (freq == charFreq.getOrDefault(c, 0)) {
+                    ans.add(c);
+                    charFreq.put(c, charFreq.getOrDefault(c, 0) + 1);
+                    break;
+                }
+            }
+        }
+        
+        // Sort the characters to replace '?' lexicographically
+        Collections.sort(ans);
+        
+        // Replace '?' characters with the characters from 'ans' list
+        int j = 0;
+        StringBuilder sb = new StringBuilder(s);
+        for (int i : pos) {
+            sb.setCharAt(i, ans.get(j++));
+        }
+        
+        // Return the modified string
+        return sb.toString();
+    }
+}
+
+
+
+
+or
+
+
+
+
+public class Solution {
+    public String minimizeStringValue(String s) {
+        int[] freq = new int[26];
+        PriorityQueue<Pair> pq = new PriorityQueue<>();
+        
+        for(int i = 0; i < s.length(); i++) {
+            if(s.charAt(i) != '?') {
+                freq[s.charAt(i) - 'a']++;
+            }
+        }
+        
+        for(int i = 0; i < 26; i++) {
+            pq.add(new Pair(freq[i], (char)('a' + i)));
+        }
+        
+        StringBuilder temp = new StringBuilder();
+        for(int i = 0; i < s.length(); i++) {
+            if(s.charAt(i) == '?') {
+                Pair pair = pq.poll();
+                char toInsert = pair.ch;
+                int frequency = pair.freq;
+                temp.append(toInsert);
+                pq.add(new Pair(++frequency, toInsert));
+            }
+        }
+        
+        char[] tempArr = temp.toString().toCharArray();
+        Arrays.sort(tempArr);
+        String sortedTemp = new String(tempArr);
+        
+        StringBuilder result = new StringBuilder(s);
+        int j = 0;
+        for(int i = 0; i < s.length(); i++) {
+            if(s.charAt(i) == '?') {
+                result.setCharAt(i, sortedTemp.charAt(j++));
+            }
+        }
+        
+        return result.toString();
+    }
+    
+    class Pair implements Comparable<Pair> {
+        int freq;
+        char ch;
+        
+        Pair(int freq, char ch) {
+            this.freq = freq;
+            this.ch = ch;
+        }
+        
+        @Override
+        public int compareTo(Pair other) {
+            if(this.freq == other.freq) {
+                return this.ch - other.ch;
+            }
+            return this.freq - other.freq;
+        }
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public String minimizeStringValue(String s) {
+        char[] chars = s.toCharArray();
+        int n = chars.length;
+        int[] freq = new int[26];
+
+        List<Character> replacements = new ArrayList<>();
+
+        PriorityQueue<Character> pq = new PriorityQueue<>((a, b) -> {
+            if (freq[a - 'a'] == freq[b - 'a']) return a - b;
+            return freq[a - 'a'] - freq[b - 'a'];
+        }); 
+
+        for (int i = 0; i < n; i++) {
+            char ch = chars[i];
+            if (ch != '?') freq[ch - 'a']++;
+        }
+
+        for (Character ch = 'a'; ch <= 'z'; ch++) {
+            pq.add(ch);
+        }
+
+        // System.out.println(pq);
+
+        for (int i = 0; i < n; i++) {
+            char ch = chars[i];
+
+            if (ch == '?') {
+                char bestReplacement = pq.poll();
+                replacements.add(bestReplacement);
+                freq[bestReplacement - 'a']++;
+                pq.add(bestReplacement);
+            }
+        }
+
+        int j = 0;
+        Collections.sort(replacements);
+
+        for (int i = 0; i < n; i++) {
+            char ch = chars[i];
+
+            if (ch == '?') {
+                chars[i] = replacements.get(j++);
+            }            
+        }
+
+        return new String(chars);
+    }
+}
+
+
+or
+
+
+
+
+class Solution {
+    public String minimizeStringValue(String s) {
+        char[] chars = s.toCharArray();
+        int n = chars.length;
+        int[] freq = new int[26];
+
+        List<Character> replacements = new ArrayList<>(); 
+
+        for (int i = 0; i < n; i++) {
+            char ch = chars[i];
+            if (ch != '?') freq[ch - 'a']++;
+        }
+
+        for (int i = 0; i < n; i++) {
+            char ch = chars[i];
+
+            if (ch == '?') {
+                char bestReplacement = findBestReplacement(freq);
+                replacements.add(bestReplacement);
+                freq[bestReplacement - 'a']++;
+            }
+        }
+
+        int j = 0;
+        Collections.sort(replacements);
+
+        for (int i = 0; i < n; i++) {
+            char ch = chars[i];
+
+            if (ch == '?') {
+                chars[i] = replacements.get(j++);
+            }            
+        }
+
+        return new String(chars);
+    }
+    
+    private char findBestReplacement(int[] freq) {
+        int min = Integer.MAX_VALUE;
+        char bestCharacter = '&';
+        
+        for (int i = 0; i < 26; i++) {
+            if (min > freq[i]) {
+                min = freq[i];
+                bestCharacter = (char)('a' + i);
+            }
+        }
+        
+        return bestCharacter;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public String minimizeStringValue(String s) {
+        int count = 0;  // count -> ? 
+        int[] freq = new int[26];
+        for(char ch : s.toCharArray()) {
+            if(ch == '?') count++;
+            else freq[ch-'a']++;
+        }
+
+        PriorityQueue<Pair> pq = new PriorityQueue<>((a, b) -> a.freq == b.freq ? (a.ch-'0') - (b.ch-'0'): a.freq - b.freq);
+        for(int i = 0; i < freq.length; i++) {
+            char ch = (char)('a' + i);
+            pq.offer(new Pair(ch, freq[i]));
+        }
+
+        List<Character> ls = new ArrayList<>();
+        int ind = 0;
+        for(int i = 0; i < count; i++) {
+            Pair p = pq.poll();
+            ls.add(p.ch);
+
+            pq.offer(new Pair(p.ch, p.freq + 1));
+        }
+
+        Collections.sort(ls);
+        
+        StringBuilder ans = new StringBuilder();
+        for(char ch : s.toCharArray()) {
+            if(ch == '?') ans.append(ls.get(ind++));
+            else ans.append(ch);
+        }
+
+        return ans.toString();
+    }
+}
+
+class Pair {
+    char ch;
+    int freq;
+
+    public Pair(char ch, int freq) {
+        this.ch = ch;
+        this.freq = freq;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public String minimizeStringValue(String s) {
+        StringBuilder sb = new StringBuilder();
+        int[] bucket = new int[26];
+        List<Character> list = new ArrayList<>();
+        for (int i=0; i<s.length(); i++) {
+            if (s.charAt(i) != '?') bucket[s.charAt(i) - 'a']++;
+        }
+        //search from backwards
+        for (int i=0; i<s.length(); i++) {
+            if (s.charAt(i) == '?') {
+                int minIndex = -1;
+                int min = Integer.MAX_VALUE;
+                for (int j=bucket.length-1; j>=0; j--) {
+                    if (bucket[j] <= min) {
+                        min = bucket[j];
+                        minIndex = j;
+                    }
+                }
+                char minChar = (char)(minIndex+'a');
+                list.add(minChar);
+                bucket[minIndex]++;
+            }
+        }
+        Collections.sort(list); //lexicographical
+        int a=0;
+        for (int i=0; i<s.length(); i++) {
+            if (s.charAt(i) != '?') {
+                sb.append(s.charAt(i));
+            } else {
+                sb.append(list.get(a++));
+            }
+        }
+        return sb.toString();
+    }
+}
+
+
+
+or
+
+
+
+import java.util.*;
+
+class Solution {
+    public String minimizeStringValue(String s) {
+        int n = s.length();
+        int[] freq = new int[26]; 
+        List<Integer> questionMarks = new ArrayList<>(); 
+        StringBuilder sb = new StringBuilder(s);
+
+        for (int i = 0; i < n; i++) {
+            char ch = s.charAt(i);
+            if (ch != '?') {
+                freq[ch - 'a']++;
+            } else {
+                questionMarks.add(i);
+            }
+        }
+
+        List<Character> replacements = new ArrayList<>();
+        for (int i = 0; i < questionMarks.size(); i++) {
+            char toReplace = findCharWithMinFrequency(freq);
+            replacements.add(toReplace);
+            freq[toReplace - 'a']++; 
+        }
+
+        Collections.sort(replacements);
+
+        int replacementIndex = 0;
+        for (int idx : questionMarks) {
+            sb.setCharAt(idx, replacements.get(replacementIndex++));
+        }
+
+        return sb.toString();
+    }
+
+    private char findCharWithMinFrequency(int[] freq) {
+        int minFreq = Integer.MAX_VALUE;
+        char result = 'a';
+
+        for (int i = 0; i < 26; i++) {
+            if (freq[i] < minFreq) {
+                minFreq = freq[i];
+                result = (char) (i + 'a');
+            }
+        }
+
+        return result;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public String minimizeStringValue(String s) {
+        int[] freq = new int[26];
+        int numberQuestionMarks = 0;
+        for (char ch: s.toCharArray()){
+            if (ch != '?'){
+                freq[ch - 'a']++;
+            } else {
+                numberQuestionMarks++;
+            }
+        }
+        int[] toReplace = new int[numberQuestionMarks];
+        for (int i = 0; i < toReplace.length; i++){
+            int charToReplaceWith = 0;
+            for (int j = 0; j < 26; j++){
+                if (freq[j] < freq[charToReplaceWith]){
+                    charToReplaceWith = j;
+                }
+            }
+            toReplace[i] = charToReplaceWith;
+            freq[charToReplaceWith]++;
+        }
+        Arrays.sort(toReplace);
+        
+        int read = 0;
+        char[] arr = s.toCharArray();
+        
+        for (int i = 0; i < arr.length; i++){
+            if (arr[i] == '?'){
+                arr[i] = (char) ('a' + toReplace[read]);
+                read++;
+            }
+        }
+
+        return new String(arr);
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public String minimizeStringValue(String s) {
+        int n = s.length(), ind = 0;
+        int[] freq = new int[26];
+        StringBuilder sb = new StringBuilder();
+        StringBuilder res = new StringBuilder();
+        for(int i = 0; i < n; i++) {
+            if(s.charAt(i) != '?')
+                freq[s.charAt(i) - 'a']++;
+        }
+        for(int i = 0; i < n; i++) {
+            if(s.charAt(i) == '?') {
+                sb.append(minimumFreqChar(freq));
+            }
+        }
+        char[] ar = sb.toString().toCharArray();
+        Arrays.sort(ar);
+        for(int i = 0; i < n; i++) {
+            res.append(s.charAt(i) == '?' ? ar[ind++] : s.charAt(i));
+        }
+        return res.toString();
+    }
+    public char minimumFreqChar(int[] freq) {
+        char c = 'a';
+        int val = Integer.MAX_VALUE;
+        for(int i = 0; i < 26; i++) {
+            if(freq[i] < val) {
+                val = freq[i];
+                c = (char)('a' + i);
+            }
+        }
+        freq[c - 'a']++;
+        return c;
+    }
+}
+
+
+or
+
+
+
+class Data {
+    public int freq;
+    public char c;
+    public Data(char c, int freq) {
+        this.c = c;
+        this.freq = freq;
+    }
+}
+class Solution {
+    public String minimizeStringValue(String s) {
+        Map<Character, Integer> map = new HashMap<>();
+        for (char c : s.toCharArray()) {
+            map.put(c, map.getOrDefault(c, 0)+1);
+        }
+        Queue<Data> queue = new PriorityQueue<>((a, b) -> {
+            if (a.freq == b.freq) {
+                return Character.compare(a.c, b.c);
+            }
+            return a.freq - b.freq;
+        });
+        for (char c = 'a';c <= 'z';c++) {
+            queue.add(new Data(c, map.getOrDefault(c, 0)));
+        }
+        List<Character> used = new ArrayList<>();
+        char[] res = s.toCharArray();
+        for (int i = 0;i < s.length();i++) {
+            char c = s.charAt(i);
+            if (c != '?') continue;
+            Data data = queue.poll();
+            used.add(data.c);
+            data.freq++;
+            queue.add(data);
+        }
+
+        Collections.sort(used);
+
+        int p1 = 0;
+
+        for (int i = 0;i < res.length;i++) {
+            if (res[i] == '?')
+                res[i] = used.get(p1++);
+        }
+
+
+        return String.valueOf(res);
+    }
+}
+
+
+
