@@ -1,0 +1,288 @@
+https://leetcode.com/problems/count-the-number-of-good-subarrays/description/
+
+2537. Count the Number of Good Subarrays
+Medium
+Topics
+Companies
+Hint
+Given an integer array nums and an integer k, return the number of good subarrays of nums.
+
+A subarray arr is good if there are at least k pairs of indices (i, j) such that i < j and arr[i] == arr[j].
+
+A subarray is a contiguous non-empty sequence of elements within an array.
+
+ 
+
+Example 1:
+
+Input: nums = [1,1,1,1,1], k = 10
+Output: 1
+Explanation: The only good subarray is the array nums itself.
+Example 2:
+
+Input: nums = [3,1,4,3,2,2,4], k = 2
+Output: 4
+Explanation: There are 4 different good subarrays:
+- [3,1,4,3,2,2] that has 2 pairs.
+- [3,1,4,3,2,2,4] that has 3 pairs.
+- [1,4,3,2,2,4] that has 2 pairs.
+- [4,3,2,2,4] that has 2 pairs.
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+1 <= nums[i], k <= 109
+
+
+
+# java
+
+
+class Solution {
+    public long countGood(int[] nums, int k) {
+        Map<Integer, Integer> cnt = new HashMap<>();
+        long ans = 0, cur = 0;
+        int i = 0;
+        for (int x : nums) {
+            cur += cnt.getOrDefault(x, 0);
+            cnt.merge(x, 1, Integer::sum);
+            while (cur - cnt.get(nums[i]) + 1 >= k) {
+                cur -= cnt.merge(nums[i++], -1, Integer::sum);
+            }
+            if (cur >= k) {
+                ans += i + 1;
+            }
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public long countGood(int[] nums, int k) {
+        int n = nums.length;
+        int same = 0, right = -1;
+        HashMap<Integer, Integer> cnt = new HashMap<>();
+        long ans = 0;
+        for (int left = 0; left < n; ++left) {
+            while (same < k && right + 1 < n) {
+                ++right;
+                same += cnt.getOrDefault(nums[right], 0);
+                cnt.put(nums[right], cnt.getOrDefault(nums[right], 0) + 1);
+            }
+            if (same >= k) {
+                ans += n - right;
+            }
+            cnt.put(nums[left], cnt.get(nums[left]) - 1);
+            same -= cnt.get(nums[left]);
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public long countGood(int[] nums, int k) {
+        long cnt = 0;
+        for (int i = 0; i < nums.length; i++) {
+            Map<Integer, Integer> mpp = new HashMap<>();
+            long pairs = 0;
+            for (int j = i; j < nums.length; j++) {
+                pairs += mpp.getOrDefault(nums[j], 0);
+                mpp.put(nums[j], mpp.getOrDefault(nums[j], 0) + 1);
+                if (pairs >= k) cnt++;
+            }
+        }
+        return cnt;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public long countGood(int[] nums, int k) {
+        Map<Integer, Integer> mpp = new HashMap<>();
+        long cnt = 0; int left = 0;
+        for (int i = 0; i < nums.length; i++) {
+            k -= mpp.getOrDefault(nums[i], 0);
+            mpp.put(nums[i], mpp.getOrDefault(nums[i], 0) + 1);
+            while (k <= 0) {
+                mpp.put(nums[left], mpp.get(nums[left]) - 1);
+                k += mpp.get(nums[left++]);
+            }
+            cnt += left;
+        }
+        return cnt;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public long countGood(int[] nums, int k) {
+        Map<Integer, Integer> freq = new HashMap<>();
+        int left = 0;
+        long pairCount = 0;
+        long goodSubarrays = 0;
+
+        for (int right = 0; right < nums.length; right++) {
+            int count = freq.getOrDefault(nums[right], 0);
+            pairCount += count;
+            freq.put(nums[right], count + 1);
+
+            while (pairCount >= k) {
+                goodSubarrays += nums.length - right;
+                int leftNum = nums[left++];
+                int f = freq.get(leftNum);
+                freq.put(leftNum, f - 1);
+                pairCount -= (f - 1);
+            }
+        }
+
+        return goodSubarrays;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public long countGood(int[] nums, int k) {
+        // Kakashi's ninja notebook: tracking each number's appearance
+        Map<Integer, Integer> freq = new HashMap<>();
+        
+        long ans = 0;        // Hinata gently counting how many good subarrays
+        long pairs = 0;      // Naruto yelling out number of friendly pairs
+        int left = 0;        // Sasuke, the calmer one, trying to keep things balanced
+
+        // Naruto: charging forward into each element
+        for (int right = 0; right < nums.length; right++) {
+            int val = nums[right];
+
+            // Kakashi: "How many clones of this value already in the mission?"
+            pairs += freq.getOrDefault(val, 0);  // More clones? More pairs!
+            
+            // Add this clone to the ninja logbook
+            freq.put(val, freq.getOrDefault(val, 0) + 1);
+
+            // Time to check if we've got enough pairs
+            while (pairs >= k) {
+                // If we’ve got at least k pairs, 
+                // all subarrays starting from current left to the end of array are valid
+                ans += nums.length - right;
+
+                // Sasuke: Time to shrink the team from left
+                int out = nums[left++];
+                freq.put(out, freq.get(out) - 1);   // Kakashi updates notebook
+                pairs -= freq.get(out);             // Reduce pair count for removed value
+            }
+        }
+
+        return ans;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public long countGood(int[] nums, int k) {
+        Map<Integer, Integer> map= new HashMap<>();
+        long ans = 0;       // to store number of good subarrays
+        int pairs = 0;      // to store pairs of current subarray
+        int left = 0, right = 0;    // pointers
+        while (right < nums.length) {
+            // if frequency is 0, and we find an element, we don't have pair yet.
+            // If frequency >= 1, we will have pairs. Say frequency of x is 1 and we found x again, 
+            // so we have 1 pair now => n same elements = n(n - 1)/2 pairs
+            // variable 'pairs' will tell us how many pairs we have got in our current window
+            pairs += map.getOrDefault(nums[right], 0);  // update pairs
+            // update the frequency in the map 
+            map.put(nums[right], 1 + map.getOrDefault(nums[right], 0));
+            // If we have found >= k pairs, We will try to shrink the window from left, 
+            // else we won't enter the loop
+            while (pairs >= k) {
+                // we discard the element at the leftmost end of our window
+                // and its frequency in the map decreases by 1
+                map.put(nums[left], map.get(nums[left]) - 1);
+                // why we are doing this, is explained by the attached image
+                pairs -= map.get(nums[left]);
+                left++;     // we shrink the window from left
+            }
+            ans += left;    // The left pointer gives us the number of valid pairs in the window [left,right]
+			// Note : The siding window we are maintaining here has the min num of elements in range [left,right] 
+			// with atleast k pairs, if we extend our window to the left it will by default contain the minimum k pairs + may contain more
+			// hence if [left, right] is valid that means [left-1,right] is also valid, [left-2, right] is also valid. 
+			// Thus we just add the left pointer to ans as it will contains the range from [0,left-1] which is forming the valid pair with right
+            right++;    // expand the window from right
+        }
+
+        return ans;
+    }
+}
+
+// TC: O(n), SC: O(n)
+
+
+or
+
+
+
+class Solution 
+{
+    public long countGood(int[] nums, int k) 
+    {
+        int n = nums.length;
+        int i = 0, j = 0;
+        long result = 0, pairs = 0;
+
+        HashMap<Integer, Integer> map = new HashMap<>();
+
+        while (j < n) 
+        {
+            // Step 1: Count pairs formed by nums[j]
+            pairs += map.getOrDefault(nums[j], 0);
+
+            // Step 2: Update frequency map
+            map.put(nums[j], map.getOrDefault(nums[j], 0) + 1);
+
+            // Step 3: Check if current window has >= k good pairs
+            while (pairs >= k) 
+            {
+                // Step 3a: Add subarrays count
+                result += (n - j);
+
+                // Step 3b: Shrink window from the left
+                map.put(nums[i], map.get(nums[i]) - 1);
+                pairs -= map.get(nums[i]); 
+                i++;
+            }
+
+            j++;
+        }
+
+        return result;
+    }
+}
+
+
