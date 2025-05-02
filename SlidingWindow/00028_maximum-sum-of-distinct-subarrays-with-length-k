@@ -44,3 +44,198 @@ Constraints:
 # java
 
 
+class Solution {
+  public long maximumSubarraySum(int[] nums, int k) {
+    long ans = 0;
+    long sum = 0;
+    int distinct = 0;
+    Map<Integer, Integer> count = new HashMap<>();
+
+    for (int i = 0; i < nums.length; ++i) {
+      sum += nums[i];
+      if (count.merge(nums[i], 1, Integer::sum) == 1)
+        ++distinct;
+      if (i >= k) {
+        if (count.merge(nums[i - k], -1, Integer::sum) == 0)
+          --distinct;
+        sum -= nums[i - k];
+      }
+      if (i >= k - 1 && distinct == k)
+        ans = Math.max(ans, sum);
+    }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public long maximumSubarraySum(int[] nums, int k) {
+        int n = nums.length;
+        Map<Integer, Integer> cnt = new HashMap<>(k);
+        long s = 0;
+        for (int i = 0; i < k; ++i) {
+            cnt.merge(nums[i], 1, Integer::sum);
+            s += nums[i];
+        }
+        long ans = cnt.size() == k ? s : 0;
+        for (int i = k; i < n; ++i) {
+            cnt.merge(nums[i], 1, Integer::sum);
+            s += nums[i];
+            if (cnt.merge(nums[i - k], -1, Integer::sum) == 0) {
+                cnt.remove(nums[i - k]);
+            }
+            s -= nums[i - k];
+            if (cnt.size() == k) {
+                ans = Math.max(ans, s);
+            }
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+
+    public long maximumSubarraySum(int[] nums, int k) {
+        long ans = 0;
+        long currentSum = 0;
+        int begin = 0;
+        int end = 0;
+
+        HashMap<Integer, Integer> numToIndex = new HashMap<>();
+
+        while (end < nums.length) {
+            int currNum = nums[end];
+            int lastOccurrence = numToIndex.getOrDefault(currNum, -1);
+            // if current window already has number or if window is too big, adjust window
+            while (begin <= lastOccurrence || end - begin + 1 > k) {
+                currentSum -= nums[begin];
+                begin++;
+            }
+            numToIndex.put(currNum, end);
+            currentSum += nums[end];
+            if (end - begin + 1 == k) {
+                ans = Math.max(ans, currentSum);
+            }
+            end++;
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public long maximumSubarraySum(int[] nums, int k) {
+        int n = nums.length;
+        Set<Integer> elements = new HashSet<>();
+        long currentSum = 0;
+        long maxSum = 0;
+        int begin = 0;
+        
+        for (int end = 0; end < n; end++) {
+            if (!elements.contains(nums[end])) {
+                currentSum += nums[end];
+                elements.add(nums[end]);
+                
+                if (end - begin + 1 == k) {
+                    maxSum = Math.max(maxSum, currentSum);
+                    currentSum -= nums[begin];
+                    elements.remove(nums[begin]);
+                    begin++;
+                }
+            } else {
+                while (nums[begin] != nums[end]) {
+                    currentSum -= nums[begin];
+                    elements.remove(nums[begin]);
+                    begin++;
+                }
+                begin++;
+            }
+        }
+        
+        return maxSum;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public long maximumSubarraySum(int[] nums, int k) {
+        long res = 0;
+        Map<Integer, Integer> count = new HashMap<>();
+        long curSum = 0;
+        
+        int l = 0;
+        for (int r = 0; r < nums.length; r++) {
+            curSum += nums[r];
+            count.put(nums[r], count.getOrDefault(nums[r], 0) + 1);
+            
+            if (r - l + 1 > k) {
+                count.put(nums[l], count.get(nums[l]) - 1);
+                if (count.get(nums[l]) == 0) {
+                    count.remove(nums[l]);
+                }
+                curSum -= nums[l];
+                l++;
+            }
+            
+            if (count.size() == r - l + 1 && r - l + 1 == k) {
+                res = Math.max(res, curSum);
+            }
+        }
+        
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public long maximumSubarraySum(int[] nums, int k) {
+        long res = 0;
+        Map<Integer, Integer> prevIdx = new HashMap<>();
+        long curSum = 0;
+        
+        int l = 0;
+        
+        for (int r = 0; r < nums.length; r++) {
+            curSum += nums[r];
+            
+            int i = prevIdx.getOrDefault(nums[r], -1);
+            
+            while (l <= i || r - l + 1 > k) {
+                curSum -= nums[l];
+                l++;
+            }
+            
+            if (r - l + 1 == k) {
+                res = Math.max(res, curSum);
+            }
+            
+            prevIdx.put(nums[r], r);
+        }
+        
+        return res;
+    }
+}
+
+
+
