@@ -1,0 +1,292 @@
+https://leetcode.com/problems/reschedule-meetings-for-maximum-free-time-i/
+
+
+3439. Reschedule Meetings for Maximum Free Time I
+Medium
+Topics
+Companies
+Hint
+You are given an integer eventTime denoting the duration of an event, where the event occurs from time t = 0 to time t = eventTime.
+
+You are also given two integer arrays startTime and endTime, each of length n. These represent the start and end time of n non-overlapping meetings, where the ith meeting occurs during the time [startTime[i], endTime[i]].
+
+You can reschedule at most k meetings by moving their start time while maintaining the same duration, to maximize the longest continuous period of free time during the event.
+
+The relative order of all the meetings should stay the same and they should remain non-overlapping.
+
+Return the maximum amount of free time possible after rearranging the meetings.
+
+Note that the meetings can not be rescheduled to a time outside the event.
+
+ 
+
+Example 1:
+
+Input: eventTime = 5, k = 1, startTime = [1,3], endTime = [2,5]
+
+Output: 2
+
+Explanation:
+
+
+
+Reschedule the meeting at [1, 2] to [2, 3], leaving no meetings during the time [0, 2].
+
+Example 2:
+
+Input: eventTime = 10, k = 1, startTime = [0,2,9], endTime = [1,4,10]
+
+Output: 6
+
+Explanation:
+
+
+
+Reschedule the meeting at [2, 4] to [1, 3], leaving no meetings during the time [3, 9].
+
+Example 3:
+
+Input: eventTime = 5, k = 2, startTime = [0,1,2,3,4], endTime = [1,2,3,4,5]
+
+Output: 0
+
+Explanation:
+
+There is no time during the event not occupied by meetings.
+
+ 
+
+Constraints:
+
+1 <= eventTime <= 109
+n == startTime.length == endTime.length
+2 <= n <= 105
+1 <= k <= n
+0 <= startTime[i] < endTime[i] <= eventTime
+endTime[i] <= startTime[i + 1] where i lies in the range [0, n - 2].
+
+
+
+# java
+
+
+class Solution {
+  public int maxFreeTime(int eventTime, int k, int[] startTime, int[] endTime) {
+    int[] gaps = getGaps(eventTime, startTime, endTime);
+    int windowSum = Arrays.stream(gaps, 0, k + 1).sum();
+    int ans = windowSum;
+
+    for (int i = k + 1; i < gaps.length; i++) {
+      windowSum += gaps[i] - gaps[i - k - 1];
+      ans = Math.max(ans, windowSum);
+    }
+
+    return ans;
+  }
+
+  private int[] getGaps(int eventTime, int[] startTime, int[] endTime) {
+    int[] gaps = new int[startTime.length + 1];
+    gaps[0] = startTime[0];
+    for (int i = 1; i < startTime.length; ++i)
+      gaps[i] = startTime[i] - endTime[i - 1];
+    gaps[startTime.length] = eventTime - endTime[endTime.length - 1];
+    return gaps;
+  }
+}
+
+
+or
+
+
+// best
+class Solution {
+    public int maxFreeTime(int eventTime, int k, int[] startTime, int[] endTime) {
+        int n = startTime.length;
+        int[] gaps = new int[n + 1];
+
+        // Calculate initial and final gaps
+        gaps[0] = startTime[0];  // Time before the first event
+        gaps[n] = eventTime - endTime[n - 1];  // Time after the last event
+
+        // Calculate gaps between events
+        for (int i = 1; i < n; i++) {
+            gaps[i] = startTime[i] - endTime[i - 1];
+        }
+
+        // Sliding window of size k + 1
+        int window = 0;
+        for (int i = 0; i <= k; i++) {
+            window += gaps[i];
+        }
+
+        int maxGap = window;
+        for (int i = k + 1; i <= n; i++) {
+            window += gaps[i] - gaps[i - (k + 1)];
+            maxGap = Math.max(maxGap, window);
+        }
+
+        return maxGap;
+    }
+}
+
+or
+
+
+class Solution {
+    public int maxFreeTime(int eventTime, int k, int[] startTime, int[] endTime) {
+        int n = startTime.length;
+        int[] gaps = new int[n + 1];
+
+        gaps[0] = startTime[0];
+        gaps[n] = eventTime - endTime[n - 1];
+
+        for (int i = 1; i < n; i++) {
+            gaps[i] = startTime[i] - endTime[i - 1];
+        }
+
+        int[] pref = new int[n + 2];
+        for (int i = 1; i <= n + 1; i++) {
+            pref[i] = pref[i - 1] + gaps[i - 1];
+        }
+
+        int ans = 0;
+        for (int i = k + 1; i <= n + 1; i++) {
+            ans = Math.max(ans, pref[i] - pref[i - (k + 1)]);
+        }
+
+        return ans;
+    }
+}
+
+
+
+
+or
+
+
+class Solution {
+    int maxFreeTime(int eventTime, int k, int[] startTime, int[] endTime) {
+    int[] gap = new int[startTime.length +1];
+    gap[0] = startTime[0];
+    for(int i = 1; i < startTime.length; ++i) gap[i] = startTime[i] -  endTime[i-1];
+    gap[startTime.length] = eventTime - endTime[endTime.length-1];
+    int ans = 0, sum = 0;
+    for(int i = 0; i < gap.length; ++i){
+        sum += gap[i] - ((i >=  k+1)?gap[i - (k+1)]:0);
+        ans = Math.max(ans, sum);
+    }
+    return ans;
+}
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int maxFreeTime(int eventTime, int k, int[] startTime, int[] endTime) {
+        // 1. Combine and Sort Meetings:
+        List<int[]> meetings = new ArrayList<>();
+        for (int i = 0; i < startTime.length; i++) {
+            meetings.add(new int[] { startTime[i], endTime[i] });
+        }
+        Collections.sort(meetings, (a, b) -> a[0] - b[0]);
+
+        // 2. Add Boundary Meetings:
+        meetings.add(0, new int[] { -1, 0 });
+        meetings.add(new int[] { eventTime, eventTime + 1 });
+        int n = meetings.size();
+
+        // 3. Calculate Free Time Intervals:
+        List<Integer> freeTime = new ArrayList<>();
+        for (int i = 1; i < n; i++) {
+            freeTime.add(meetings.get(i)[0] - meetings.get(i - 1)[1]);
+        }
+
+        // 4. Handle Edge Case
+        if (k + 1 > freeTime.size()) {
+            int totalFreeTime = 0;
+            for (int ft : freeTime) {
+                totalFreeTime += ft;
+            }
+            return totalFreeTime;
+        }
+
+        // 5. Calculate Initial Window Sum:
+        int windowSum = 0;
+        for (int i = 0; i < k + 1; i++) {
+            windowSum += freeTime.get(i);
+        }
+        int maxFreeTime = windowSum;
+
+        // 6. Sliding Window:
+        for (int i = k + 1; i < freeTime.size(); i++) {
+            windowSum += freeTime.get(i) - freeTime.get(i - (k + 1));
+            maxFreeTime = Math.max(maxFreeTime, windowSum);
+        }
+
+        return maxFreeTime;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int maxFreeTime(int event, int k, int[] start, int[] end) {
+        int n = end.length;
+        int dif[] = new int[n+1];
+
+        dif[0] = start[0];
+        for(int i=1;i<n;i++) dif[i] = start[i]-end[i-1];
+        dif[n] = event-end[n-1];
+
+        int lf=0; int rf=0;
+        int sum=0; int ans=0;
+        while(rf<=n){
+            sum += dif[rf];
+            if(rf-lf+1==(k+1)){
+                ans = Math.max(ans,sum);
+                sum -= dif[lf];
+                lf++;
+            }
+            rf++;
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int maxFreeTime(int eventTime, int k, int[] startTime, int[] endTime){
+        int n = startTime.length;
+        int[] gaps = new int[n + 1];
+
+        gaps[0] = startTime[0];
+        gaps[n] = eventTime - endTime[n-1];
+        for(int i=1;i<n;i++) gaps[i] = startTime[i] - endTime[i-1];
+
+        k += 1;
+        
+        int max = 0;
+        for(int i=0;i<k;i++) max += gaps[i];
+        int res = max;
+
+        for(int r=k;r<n+1;r++){
+            max = max - gaps[r-k] + gaps[r];
+            res = Math.max(max, res);
+        }
+        return res;
+    }
+}
+
+
+
