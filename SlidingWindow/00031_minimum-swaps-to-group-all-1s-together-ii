@@ -1,0 +1,502 @@
+https://leetcode.com/problems/minimum-swaps-to-group-all-1s-together-ii/description/
+
+2134. Minimum Swaps to Group All 1's Together II
+Medium
+Topics
+Companies
+Hint
+A swap is defined as taking two distinct positions in an array and swapping the values in them.
+
+A circular array is defined as an array where we consider the first element and the last element to be adjacent.
+
+Given a binary circular array nums, return the minimum number of swaps required to group all 1's present in the array together at any location.
+
+ 
+
+Example 1:
+
+Input: nums = [0,1,0,1,1,0,0]
+Output: 1
+Explanation: Here are a few of the ways to group all the 1's together:
+[0,0,1,1,1,0,0] using 1 swap.
+[0,1,1,1,0,0,0] using 1 swap.
+[1,1,0,0,0,0,1] using 2 swaps (using the circular property of the array).
+There is no way to group all 1's together with 0 swaps.
+Thus, the minimum number of swaps required is 1.
+Example 2:
+
+Input: nums = [0,1,1,1,0,0,1,1,0]
+Output: 2
+Explanation: Here are a few of the ways to group all the 1's together:
+[1,1,1,0,0,0,0,1,1] using 2 swaps (using the circular property of the array).
+[1,1,1,1,1,0,0,0,0] using 2 swaps.
+There is no way to group all 1's together with 0 or 1 swaps.
+Thus, the minimum number of swaps required is 2.
+Example 3:
+
+Input: nums = [1,1,0,0,1]
+Output: 0
+Explanation: All the 1's are already grouped together due to the circular property of the array.
+Thus, the minimum number of swaps required is 0.
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+nums[i] is either 0 or 1.
+
+
+# java
+
+class Solution {
+  public int minSwaps(int[] nums) {
+    final int n = nums.length;
+    final int k = (int) Arrays.stream(nums).filter(a -> a == 1).count();
+    int ones = 0;    // the number of ones in the window
+    int maxOnes = 0; // the maximum number of ones in the window
+
+    for (int i = 0; i < n * 2; ++i) {
+      if (i >= k && nums[(i - k) % n] == 1)
+        --ones;
+      if (nums[i % n] == 1)
+        ++ones;
+      maxOnes = Math.max(maxOnes, ones);
+    }
+
+    return k - maxOnes;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public int minSwaps(int[] nums) {
+        int cnt = 0;
+        for (int v : nums) {
+            cnt += v;
+        }
+        int n = nums.length;
+        int[] s = new int[(n << 1) + 1];
+        for (int i = 0; i < (n << 1); ++i) {
+            s[i + 1] = s[i] + nums[i % n];
+        }
+        int mx = 0;
+        for (int i = 0; i < (n << 1); ++i) {
+            int j = i + cnt - 1;
+            if (j < (n << 1)) {
+                mx = Math.max(mx, s[j + 1] - s[i]);
+            }
+        }
+        return cnt - mx;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public int minSwaps(int[] nums) {
+        // Calculate the minimum swaps needed to group all 1s or all 0s together
+        int op1 = minSwapsHelper(nums, 0); // Grouping all 0s together
+        int op2 = minSwapsHelper(nums, 1); // Grouping all 1s together
+        return Math.min(op1, op2);
+    }
+
+    // Helper function to calculate the minimum swaps required to group all `val` together
+    public int minSwapsHelper(int[] data, int val) {
+        int length = data.length;
+        int[] rightSuffixSum = new int[length + 1];
+
+        // Construct the suffix sum array for counting opposite values (val ^ 1)
+        for (int i = length - 1; i >= 0; i--) {
+            rightSuffixSum[i] = rightSuffixSum[i + 1];
+            if (data[i] == (val ^ 1)) rightSuffixSum[i]++;
+        }
+        // Total zeros in the array if `val` is 1 (or vice versa)
+        int totalSwapsNeeded = rightSuffixSum[0];
+        // Track current number of required swaps in the current segment
+        int currentSwapCount = 0;
+        int minimumSwaps =
+            totalSwapsNeeded - rightSuffixSum[length - totalSwapsNeeded];
+
+        // Iterate to find the minimum swaps by sliding the potential block of grouped `val`
+        for (int i = 0; i < totalSwapsNeeded; i++) {
+            if (data[i] == (val ^ 1)) currentSwapCount++;
+            int remaining = (totalSwapsNeeded - i - 1);
+            int requiredSwaps =
+                ((i + 1) - currentSwapCount) +
+                (remaining - rightSuffixSum[length - remaining]);
+            minimumSwaps = Math.min(minimumSwaps, requiredSwaps);
+        }
+        return minimumSwaps;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+
+    public int minSwaps(int[] nums) {
+        // Calculate the minimum swaps needed to group all 1s or all 0s together
+        int op1 = minSwapsHelper(nums, 0); // Grouping all 0s together
+        int op2 = minSwapsHelper(nums, 1); // Grouping all 1s together
+        return Math.min(op1, op2);
+    }
+
+    // Helper function to calculate the minimum swaps required
+    // to group all `val` together
+    public int minSwapsHelper(int[] data, int val) {
+        int length = data.length;
+        int totalValCount = 0;
+
+        // Count the total number of `val` in the array
+        for (int i = length - 1; i >= 0; i--) {
+            if (data[i] == val) totalValCount++;
+        }
+
+        // If there is no `val` or the array is full of `val`,
+        // no swaps are needed
+        if (totalValCount == 0 || totalValCount == length) return 0;
+
+        int start = 0, end = 0;
+        int maxValInWindow = 0, currentValInWindow = 0;
+
+        // Initial window setup: count the number of `val` in
+        // the first window of size `totalValCount`
+        while (end < totalValCount) {
+            if (data[end++] == val) currentValInWindow++;
+        }
+        maxValInWindow = Math.max(maxValInWindow, currentValInWindow);
+
+        // Slide the window across the array to find the
+        // maximum number of `val` in any window
+        while (end < length) {
+            if (data[start++] == val) currentValInWindow--;
+            if (data[end++] == val) currentValInWindow++;
+            maxValInWindow = Math.max(maxValInWindow, currentValInWindow);
+        }
+
+        // Minimum swaps are the total `val` minus
+        // the maximum found in any window
+        return totalValCount - maxValInWindow;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+
+    public int minSwaps(int[] nums) {
+        // Initialize minimum swaps to a large value
+        int minimumSwaps = Integer.MAX_VALUE;
+
+        // Calculate the total number of 1s in the array
+        int totalOnes = 0;
+        for (int num : nums) {
+            totalOnes += num;
+        }
+
+        // Initialize the count of 1s in the current window
+        int onesCount = nums[0];
+        int end = 0;
+
+        // Slide the window across the array
+        for (int start = 0; start < nums.length; ++start) {
+            // Adjust onesCount by removing the element that is sliding out of
+            // the window
+            if (start != 0) {
+                onesCount -= nums[start - 1];
+            }
+
+            // Expand the window to the right until it reaches the desired size
+            while (end - start + 1 < totalOnes) {
+                end++;
+                onesCount += nums[end % nums.length];
+            }
+
+            // Update the minimum number of swaps needed
+            minimumSwaps = Math.min(minimumSwaps, totalOnes - onesCount);
+        }
+
+        return minimumSwaps;
+    }
+}
+
+
+or
+
+
+public int minSwaps(int[] nums) {
+    int ones = 0, x = 0, onesInWindow = 0, i = 0, n = nums.length;
+    for (int v: nums)
+        if (v == 1) ones++;
+    int nums2[] = new int[n * 2];
+    for (i = 0; i < n * 2; i++)
+        nums2[i] = nums[i % n];
+    for (i = 0; i < n * 2; i++) {
+        if (i >= ones && nums2[i - ones] == 1) x--;
+        if (nums2[i] == 1) x++;
+        onesInWindow = Math.max(x, onesInWindow);
+    }
+    return ones - onesInWindow;
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int minSwaps(int[] nums) {
+        int k = Arrays.stream(nums).sum();
+        int n = nums.length;
+        int cnt = 0;
+        for (int i = 0; i < k; ++i) {
+            cnt += nums[i];
+        }
+        int mx = cnt;
+        for (int i = k; i < n + k; ++i) {
+            cnt += nums[i % n] - nums[(i - k + n) % n];
+            mx = Math.max(mx, cnt);
+        }
+        return k - mx;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minSwaps(int[] nums) {
+    int ones = Arrays.stream(nums).sum(), n = nums.length, res = nums.length;
+    for (int i = 0, j = 0, cnt = 0; i < n; ++i) {
+        while (j - i < ones)
+            cnt += nums[j++ % n];
+        res = Math.min(res, ones - cnt);
+        cnt -= nums[i];
+    }
+    return res;
+}
+}
+
+
+or
+
+
+class Solution {
+    public int minSwaps(int[] nums) {
+        int n = nums.length;
+        int totalOnes = 0;
+
+        // Count total number of 1's
+        for (int num : nums) {
+            totalOnes += num;
+        }
+
+        // Edge cases
+        if (totalOnes == 0 || totalOnes == n) return 0;
+
+        int currentOnes = 0;
+
+        // Count 1's in the first window of size totalOnes
+        for (int i = 0; i < totalOnes; i++) {
+            currentOnes += nums[i];
+        }
+
+        int maxOnes = currentOnes;
+
+        // Use two pointers to slide the window
+        for (int i = 0; i < n; i++) {
+            currentOnes -= nums[i];
+            currentOnes += nums[(i + totalOnes) % n];
+            maxOnes = Math.max(maxOnes, currentOnes);
+        }
+
+        return totalOnes - maxOnes;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int minSwaps(int[] nums) {
+        int n = nums.length;
+        int totalOnes = 0;
+
+        // Count total number of 1's and create a doubled array
+        int[] doubledNums = new int[2 * n];
+        for (int i = 0; i < n; i++) {
+            totalOnes += nums[i];
+            doubledNums[i] = doubledNums[i + n] = nums[i];
+        }
+
+        // Edge cases
+        if (totalOnes == 0 || totalOnes == n) return 0;
+
+        // Create cumulative sum array
+        int[] cumulativeSum = new int[2 * n + 1];
+        for (int i = 0; i < 2 * n; i++) {
+            cumulativeSum[i + 1] = cumulativeSum[i] + doubledNums[i];
+        }
+
+        int maxOnesInWindow = 0;
+
+        // Check all possible windows of size totalOnes
+        for (int i = 0; i <= n; i++) {
+            int onesInWindow = cumulativeSum[i + totalOnes] - cumulativeSum[i];
+            maxOnesInWindow = Math.max(maxOnesInWindow, onesInWindow);
+        }
+
+        return totalOnes - maxOnesInWindow;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    	public int minSwaps(int[] nums) {
+		int len = nums.length;
+		int totalOne = 0;
+
+		for (int i = 0; i < len; i++) {
+			if (nums[i] == 1)
+				totalOne++;
+		}
+		if (len == totalOne || totalOne == 0)
+			return 0;
+		int min = Integer.MAX_VALUE;
+		int i = 0;
+		int count = 0;
+		for (int k = i; k < totalOne; k++) {
+			if (nums[k] == 0)
+				count++;
+		}
+		min = Math.min(min, count);
+		i++;
+		for (; i < len; i++) {
+			int j = (i + totalOne - 1) % len;
+			if (nums[j] == 0 && nums[i - 1] == 1)
+				count++;
+			else if (nums[j] == 1 && nums[i - 1] == 0)
+				count--;
+			min = Math.min(min, count);
+		}
+		return min;
+	}
+		
+}
+
+
+or
+
+
+class Solution {
+    public int minSwaps(int[] nums) {
+        int total = 0;
+        for (int num : nums) {
+            total += num; // Total number of 1's in the array
+        }
+        int n = nums.length;
+        
+        // If there are no 1's, no swaps are needed
+        if (total == 0) {
+            return 0;
+        }
+        
+        // Extend the array to handle the circular nature
+        int[] extendedNums = new int[n * 2];
+        System.arraycopy(nums, 0, extendedNums, 0, n);
+        System.arraycopy(nums, 0, extendedNums, n, n);
+        
+        // Initialize the sliding window
+        int windowSum = 0;
+        for (int i = 0; i < total; i++) {
+            windowSum += extendedNums[i];
+        }
+        int maxOnes = windowSum;
+        int swaps = total - maxOnes;
+        
+        for (int i = 1; i < n; i++) {
+            // Update the number of 1's in the current window by sliding the window
+            windowSum += extendedNums[i + total - 1] - extendedNums[i - 1];
+            maxOnes = Math.max(maxOnes, windowSum);
+            swaps = Math.min(swaps, total - maxOnes);
+        }
+        
+        return swaps;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minSwaps(int[] nums) {
+        int n = nums.length;
+        int total = 0;
+        for (int num : nums) {
+            total += num;
+        }
+
+        int[] extendedNums = new int[2 * n];
+        System.arraycopy(nums, 0, extendedNums, 0, n);
+        System.arraycopy(nums, 0, extendedNums, n, n);
+        
+        int[] prefix = new int[2 * n + 1];
+        for (int i = 0; i < 2 * n; i++) {
+            prefix[i + 1] = prefix[i] + extendedNums[i];
+        }
+
+        int biggestOnes = 0;
+        for (int i = 0; i < n; i++) {
+            biggestOnes = Math.max(biggestOnes, prefix[i + total] - prefix[i]);
+        }
+        
+        return total - biggestOnes;
+    }
+}
+
+
+or
+
+class Solution {
+    public int minSwaps(int[] nums) {
+        int k = Arrays.stream(nums).sum();
+        int n = nums.length;
+        int cnt = 0;
+        for (int i = 0; i < k; ++i) {
+            cnt += nums[i];
+        }
+        int mx = cnt;
+        for (int i = k; i < n + k; ++i) {
+            cnt += nums[i % n] - nums[(i - k + n) % n];
+            mx = Math.max(mx, cnt);
+        }
+        return k - mx;
+    }
+}
+
+
+or
+
