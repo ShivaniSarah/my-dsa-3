@@ -1,0 +1,360 @@
+https://leetcode.com/problems/find-the-power-of-k-size-subarrays-i/
+
+
+3254. Find the Power of K-Size Subarrays I
+Medium
+Topics
+Companies
+Hint
+You are given an array of integers nums of length n and a positive integer k.
+
+The power of an array is defined as:
+
+Its maximum element if all of its elements are consecutive and sorted in ascending order.
+-1 otherwise.
+You need to find the power of all subarrays of nums of size k.
+
+Return an integer array results of size n - k + 1, where results[i] is the power of nums[i..(i + k - 1)].
+
+ 
+
+Example 1:
+
+Input: nums = [1,2,3,4,3,2,5], k = 3
+
+Output: [3,4,-1,-1,-1]
+
+Explanation:
+
+There are 5 subarrays of nums of size 3:
+
+[1, 2, 3] with the maximum element 3.
+[2, 3, 4] with the maximum element 4.
+[3, 4, 3] whose elements are not consecutive.
+[4, 3, 2] whose elements are not sorted.
+[3, 2, 5] whose elements are not consecutive.
+Example 2:
+
+Input: nums = [2,2,2,2,2], k = 4
+
+Output: [-1,-1]
+
+Example 3:
+
+Input: nums = [3,2,3,2,3,2], k = 2
+
+Output: [-1,3,-1,3,-1]
+
+ 
+
+Constraints:
+
+1 <= n == nums.length <= 500
+1 <= nums[i] <= 105
+1 <= k <= n
+
+
+# java
+
+
+class Solution {
+
+    public int[] resultsArray(int[] nums, int k) {
+        int length = nums.length;
+        int[] result = new int[length - k + 1];
+
+        for (int start = 0; start <= length - k; start++) {
+            boolean isConsecutiveAndSorted = true;
+
+            // Check if the current subarray is sorted and consecutive
+            for (int index = start; index < start + k - 1; index++) {
+                if (nums[index + 1] != nums[index] + 1) {
+                    isConsecutiveAndSorted = false;
+                    break;
+                }
+            }
+
+            // If valid, take the maximum of the subarray, otherwise set to -1
+            if (isConsecutiveAndSorted) {
+                // Maximum element of this subarray
+                result[start] = nums[start + k - 1];
+            } else {
+                result[start] = -1;
+            }
+        }
+
+        return result;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+
+    public int[] resultsArray(int[] nums, int k) {
+        int length = nums.length;
+        int[] result = new int[length - k + 1];
+        Deque<Integer> indexDeque = new ArrayDeque<>();
+
+        for (int currentIndex = 0; currentIndex < length; currentIndex++) {
+            // Remove elements that are out of the window
+            if (
+                !indexDeque.isEmpty() &&
+                indexDeque.peekFirst() < currentIndex - k + 1
+            ) {
+                indexDeque.pollFirst();
+            }
+
+            // Check if current element breaks the consecutive and sorted condition
+            if (
+                !indexDeque.isEmpty() &&
+                nums[currentIndex] != nums[currentIndex - 1] + 1
+            ) {
+                indexDeque.clear(); // Invalidate the entire deque if condition breaks
+            }
+
+            // Add current element index to the deque
+            indexDeque.offerLast(currentIndex);
+
+            // Check if the window is of size k and update result
+            if (currentIndex >= k - 1) {
+                if (indexDeque.size() == k) { // Valid window of size k
+                    result[currentIndex - k + 1] = nums[indexDeque.peekLast()];
+                } else {
+                    result[currentIndex - k + 1] = -1; // Not valid, return -1
+                }
+            }
+        }
+
+        return result;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+
+    public int[] resultsArray(int[] nums, int k) {
+        if (k == 1) {
+            return nums; // If k is 1, every single element is a valid subarray
+        }
+
+        int length = nums.length;
+        int[] result = new int[length - k + 1];
+        Arrays.fill(result, -1); // Initialize results to -1
+        int consecutiveCount = 1; // Count of consecutive elements
+
+        for (int index = 0; index < length - 1; index++) {
+            if (nums[index] + 1 == nums[index + 1]) {
+                consecutiveCount++;
+            } else {
+                consecutiveCount = 1; // Reset count if not consecutive
+            }
+
+            // If we have enough consecutive elements, update the result
+            if (consecutiveCount >= k) {
+                result[index - k + 2] = nums[index + 1];
+            }
+        }
+
+        return result;
+    }
+}
+
+
+or
+
+
+class Solution {
+  public int[] resultsArray(int[] nums, int k) {
+    final int n = nums.length;
+    int[] ans = new int[n - k + 1];
+    int start = 0;
+
+    for (int i = 0; i < n; ++i) {
+      if (i > 0 && nums[i] != nums[i - 1] + 1)
+        start = i;
+      if (i >= k - 1)
+        ans[i - k + 1] = i - start + 1 >= k ? nums[i] : -1;
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int[] resultsArray(int[] nums, int k) {
+        int n = nums.length;
+        int[] f = new int[n];
+        Arrays.fill(f, 1);
+        for (int i = 1; i < n; ++i) {
+            if (nums[i] == nums[i - 1] + 1) {
+                f[i] = f[i - 1] + 1;
+            }
+        }
+        int[] ans = new int[n - k + 1];
+        for (int i = k - 1; i < n; ++i) {
+            ans[i - k + 1] = f[i] >= k ? nums[i] : -1;
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int[] resultsArray(int[] nums, int k) {
+            if (nums == null || nums.length < k) {
+            return new int[0];
+        }
+
+        int arr[]=new int[nums.length-k+1];
+        int i=0;
+        int j=k-1;
+        int a=0;
+        while(j<nums.length){
+            if(solved(nums,i,j)){
+                arr[a]=nums[j];
+            }
+            else{
+                arr[a]=-1;
+            }
+            i++;
+            j++;
+            a++;
+        }
+        return arr;
+        
+    }
+
+    private boolean solved(int nums[],int start,int end){
+        for(int i=start;i<end;i++){
+            if(nums[i]+1!=nums[i+1]){
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+
+
+or
+
+
+
+// best
+
+
+class Solution {
+    /**
+     * Find the Power of K-Size Subarrays 
+     */
+    public int[] resultsArray(int[] nums, int k) {
+        // Skip if k is 1
+        if (k == 1) {
+            return nums;
+        }
+        
+        int n = nums.length;
+        List<Integer> resultList = new ArrayList<>();
+        int left = 0;
+        int right = 1;
+        
+        while (right < n) {
+            // Check if current sequence is not consecutive
+            boolean isNotConsecutive = nums[right] - nums[right-1] != 1;
+            
+            if (isNotConsecutive) {
+                // Mark invalid sequences
+                while (left < right && left + k - 1 < n) {
+                    resultList.add(-1);
+                    left++;
+                }
+                left = right;
+            }
+            // Found valid k-length sequence
+            else if (right - left == k - 1) {
+                resultList.add(nums[right]);
+                left++;
+            }
+            
+            right++;
+        }
+        
+        // Convert ArrayList to int array
+        int[] result = new int[resultList.size()];
+        for (int i = 0; i < resultList.size(); i++) {
+            result[i] = resultList.get(i);
+        }
+        return result;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    /**
+     * Find the Power of K-Size Subarrays 
+     */
+    public int[] resultsArray(int[] nums, int k) {
+        // Skip if k is 1
+        if (k == 1) {
+            return nums;
+        }
+        
+        int n = nums.length;
+        List<Integer> resultList = new ArrayList<>();
+        int left = 0;
+        int right = 1;
+        
+        while (right < n) {
+            // Check if current sequence is not consecutive
+            boolean isNotConsecutive = nums[right] - nums[right-1] != 1;
+            
+            if (isNotConsecutive) {
+                // Mark invalid sequences
+                while (left < right && left + k - 1 < n) {
+                    resultList.add(-1);
+                    left++;
+                }
+                left = right;
+            }
+            // Found valid k-length sequence
+            else if (right - left == k - 1) {
+                resultList.add(nums[right]);
+                left++;
+            }
+            
+            right++;
+        }
+        
+        // Convert ArrayList to int array
+        int[] result = new int[resultList.size()];
+        for (int i = 0; i < resultList.size(); i++) {
+            result[i] = resultList.get(i);
+        }
+        return result;
+    }
+}
+
+
