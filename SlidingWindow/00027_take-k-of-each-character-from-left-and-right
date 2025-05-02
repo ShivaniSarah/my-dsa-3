@@ -1,0 +1,563 @@
+https://leetcode.com/problems/take-k-of-each-character-from-left-and-right/description/
+
+
+2516. Take K of Each Character From Left and Right
+Medium
+Topics
+Companies
+Hint
+You are given a string s consisting of the characters 'a', 'b', and 'c' and a non-negative integer k. Each minute, you may take either the leftmost character of s, or the rightmost character of s.
+
+Return the minimum number of minutes needed for you to take at least k of each character, or return -1 if it is not possible to take k of each character.
+
+ 
+
+Example 1:
+
+Input: s = "aabaaaacaabc", k = 2
+Output: 8
+Explanation: 
+Take three characters from the left of s. You now have two 'a' characters, and one 'b' character.
+Take five characters from the right of s. You now have four 'a' characters, two 'b' characters, and two 'c' characters.
+A total of 3 + 5 = 8 minutes is needed.
+It can be proven that 8 is the minimum number of minutes needed.
+Example 2:
+
+Input: s = "a", k = 1
+Output: -1
+Explanation: It is not possible to take one 'b' or 'c' so return -1.
+ 
+
+Constraints:
+
+1 <= s.length <= 105
+s consists of only the letters 'a', 'b', and 'c'.
+0 <= k <= s.length
+
+
+# java
+
+
+
+class Solution {
+  public int takeCharacters(String s, int k) {
+    final int n = s.length();
+    int ans = n;
+    int[] count = new int[3];
+
+    for (final char c : s.toCharArray())
+      ++count[c - 'a'];
+
+    if (count[0] < k || count[1] < k || count[2] < k)
+      return -1;
+
+    for (int l = 0, r = 0; r < n; ++r) {
+      --count[s.charAt(r) - 'a'];
+      while (count[s.charAt(r) - 'a'] < k)
+        ++count[s.charAt(l++) - 'a'];
+      ans = Math.min(ans, n - (r - l + 1));
+    }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int takeCharacters(String s, int k) {
+        int[] cnt = new int[3];
+        int n = s.length();
+        for (int i = 0; i < n; ++i) {
+            ++cnt[s.charAt(i) - 'a'];
+        }
+        if (cnt[0] < k || cnt[1] < k || cnt[2] < k) {
+            return -1;
+        }
+        int ans = 0, j = 0;
+        for (int i = 0; i < n; ++i) {
+            int c = s.charAt(i) - 'a';
+            --cnt[c];
+            while (cnt[c] < k) {
+                ++cnt[s.charAt(j++) - 'a'];
+            }
+            ans = Math.max(ans, i - j + 1);
+        }
+        return n - ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    int minMinutes = Integer.MAX_VALUE;
+
+    public int takeCharacters(String s, int k) {
+        if (k == 0) return 0;
+        int[] count = new int[3];
+        solve(s, k, 0, s.length() - 1, count, 0);
+        return minMinutes == Integer.MAX_VALUE ? -1 : minMinutes;
+    }
+
+    private void solve(
+        String s,
+        int k,
+        int left,
+        int right,
+        int[] count,
+        int minutes
+    ) {
+        // Base case: check if we have k of each character
+        if (count[0] >= k && count[1] >= k && count[2] >= k) {
+            minMinutes = Math.min(minMinutes, minutes);
+            return;
+        }
+
+        // If we can't take more characters
+        if (left > right) return;
+
+        // Take from left
+        int[] leftCount = count.clone();
+        leftCount[s.charAt(left) - 'a']++;
+        solve(s, k, left + 1, right, leftCount, minutes + 1);
+
+        // Take from right
+        int[] rightCount = count.clone();
+        rightCount[s.charAt(right) - 'a']++;
+        solve(s, k, left, right - 1, rightCount, minutes + 1);
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public int takeCharacters(String s, int k) {
+        int[] count = new int[3];
+        int n = s.length();
+
+        // Count total occurrences
+        for (char c : s.toCharArray()) {
+            count[c - 'a']++;
+        }
+
+        // Check if we have enough characters
+        for (int i = 0; i < 3; i++) {
+            if (count[i] < k) return -1;
+        }
+
+        int[] window = new int[3];
+        int left = 0, maxWindow = 0;
+
+        // Find the longest window that leaves k of each character outside
+        for (int right = 0; right < n; right++) {
+            window[s.charAt(right) - 'a']++;
+
+            // Shrink window if we take too many characters
+            while (
+                left <= right &&
+                (count[0] - window[0] < k ||
+                    count[1] - window[1] < k ||
+                    count[2] - window[2] < k)
+            ) {
+                window[s.charAt(left) - 'a']--;
+                left++;
+            }
+
+            maxWindow = Math.max(maxWindow, right - left + 1);
+        }
+
+        return n - maxWindow;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int takeCharacters(String s, int k) {
+        // Total counts
+        int[] count = new int[3];
+        for (char c : s.toCharArray()) {
+            count[c - 'a']++;
+        }
+        
+        if (Math.min(Math.min(count[0], count[1]), count[2]) < k) {
+            return -1;
+        }
+        
+        // Sliding Window
+        int res = Integer.MAX_VALUE;
+        int l = 0;
+        for (int r = 0; r < s.length(); r++) {
+            count[s.charAt(r) - 'a']--;
+            
+            while (Math.min(Math.min(count[0], count[1]), count[2]) < k) {
+                count[s.charAt(l) - 'a']++;
+                l++;
+            }
+            res = Math.min(res, s.length() - (r - l + 1));
+        }
+        return res;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int takeCharacters(String s, int k) {
+        int[] charCount = new int[3];
+        char[] chars = s.toCharArray();
+        int length = chars.length;
+        
+        int left;
+        for (left = 0; left < length; left++) {
+            charCount[chars[left] - 'a']++;
+            if (isValidCount(charCount, k)) {
+                break;
+            }
+        }
+        
+        if (left == length) {
+            return -1;
+        }
+        
+        int currentCount = left + 1;
+        int minCount = currentCount;
+        int right = length - 1;
+        
+        while (left >= 0) {
+            int currentChar = chars[left] - 'a';
+            
+            if (charCount[currentChar] == k) {
+                while (chars[left] != chars[right]) {
+                    charCount[chars[right] - 'a']++;
+                    right--;
+                    currentCount++;
+                }
+                right--;
+            } else {
+                charCount[currentChar]--;
+                currentCount--;
+                minCount = Math.min(currentCount, minCount);
+            }
+            left--;
+        }
+        
+        return minCount;
+    }
+    
+    private boolean isValidCount(int[] count, int k) {
+        return count[0] >= k && count[1] >= k && count[2] >= k;
+    }
+}
+
+
+/* Simplest alternative 
+
+class Solution {
+    public int takeCharacters(String s, int k) {
+        int[] freq = new int[3];
+        int n = s.length();
+        
+        for (char c : s.toCharArray()) {
+            freq[c - 'a']++;
+        }
+        
+        if (freq[0] < k || freq[1] < k || freq[2] < k) {
+            return -1;
+        }
+        
+        int[] curr = new int[3];
+        int maxLen = 0;
+        int left = 0;
+        
+        for (int right = 0; right < n; right++) {
+            curr[s.charAt(right) - 'a']++;
+            
+            while (left <= right && (curr[0] > freq[0] - k || 
+                   curr[1] > freq[1] - k || 
+                   curr[2] > freq[2] - k)) {
+                curr[s.charAt(left) - 'a']--;
+                left++;
+            }
+            
+            maxLen = Math.max(maxLen, right - left + 1);
+        }
+        
+        return n - maxLen;
+    }
+}
+*/
+
+
+or
+
+
+
+class Solution {
+    public int takeCharacters(String s, int k) {
+        int[] d = new int[3], h = new int[3];
+        for (char c : s.toCharArray()) d[c - 'a']++;
+        for (int i = 0; i < 3; i++) if ((d[i] -= k) < 0) return -1;
+        
+        int m = 0, l = 0;
+        for (int r = 0; r < s.length(); r++) {
+            h[s.charAt(r) - 'a']++;
+            while (l <= r && h[s.charAt(r) - 'a'] > d[s.charAt(r) - 'a']) h[s.charAt(l++) - 'a']--;
+            m = Math.max(m, r - l + 1);
+        }
+        return s.length() - m;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int takeCharacters(String s, int k) {
+        int n = s.length();
+        int l = 0, r = 0;
+        int ans = n;
+        int a = 0, b = 0, c = 0;
+
+        // Count total occurrences of 'a', 'b', and 'c'
+        int totalA = 0, totalB = 0, totalC = 0;
+        for (char ch : s.toCharArray()) {
+            if (ch == 'a') totalA++;
+            else if (ch == 'b') totalB++;
+            else if (ch == 'c') totalC++;
+        }
+
+        // If there are not enough 'a', 'b', or 'c', return -1
+        if (totalA < k || totalB < k || totalC < k) {
+            return -1;
+        }
+
+        // Reset counters and start sliding window
+        while (r < n) {
+            if (s.charAt(r) == 'a') a++;
+            if (s.charAt(r) == 'b') b++;
+            if (s.charAt(r) == 'c') c++;
+            r++;
+
+            // Shrink window if it exceeds the limits
+            while (a > totalA - k || b > totalB - k || c > totalC - k) {
+                if (s.charAt(l) == 'a') a--;
+                if (s.charAt(l) == 'b') b--;
+                if (s.charAt(l) == 'c') c--;
+                l++;
+            }
+
+            // Update the answer with the minimum number of characters to remove
+            ans = Math.min(ans, n - (r - l));
+        }
+
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int takeCharacters(String s, int k) {
+        int[] arr=new int[3];
+        // count all the frq of string
+        for(char ch:s.toCharArray()) arr[ch-'a']++;
+        
+        // if total frq of any char is less than k return -1;
+        if(arr[0]<k||arr[1]<k||arr[2]<k) return -1;
+        int ans=arr[0]+arr[1]+arr[2];
+        int st=0;
+        
+        for(char ch:s.toCharArray()){
+            arr[ch-'a']--;
+            
+            // if any char length is less than k then increase start position
+            if(arr[0]<k||arr[1]<k||arr[2]<k){
+                //get the min ans
+                ans=Math.min(arr[0]+arr[1]+arr[2]+1,ans);
+                while(s.charAt(st)!=ch){
+                    arr[s.charAt(st)-'a']++;
+                    st++;
+                }
+                arr[ch-'a']++;
+                st++;
+            }
+        }
+        ans=Math.min(arr[0]+arr[1]+arr[2],ans);
+                
+        return ans;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int takeCharacters(String s, int k) {
+        int[] tot = new int[3]; // To store total count of 'a', 'b', 'c'
+
+        // Count total occurrences of 'a', 'b', 'c'
+        for (char c : s.toCharArray()) {
+            tot[c - 'a']++;
+        }
+
+        // If any character count is less than k, return -1
+        if (tot[0] < k || tot[1] < k || tot[2] < k) {
+            return -1;
+        }
+
+        int ans = s.length();
+        int[] um = new int[3]; // To track characters in the current window
+        int l = 0, r = 0;
+
+        while (r < s.length()) {
+            um[s.charAt(r) - 'a']++;
+
+            while (tot[0] - um[0] < k || tot[1] - um[1] < k || tot[2] - um[2] < k) {
+                um[s.charAt(l) - 'a']--;
+                l++;
+            }
+
+            int windowSize = r - l + 1;
+            ans = Math.min(ans, s.length() - windowSize);
+            r++;
+        }
+
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int takeCharacters(String s, int k) {
+        int[] freq = new int[3];
+        for (char c : s.toCharArray()) {
+            freq[c - 'a']++;
+        }
+        if (min3(freq[0], freq[1], freq[2]) < k)
+            return -1;
+        int steps = Integer.MAX_VALUE, l = 0, n = s.length();
+        for (int r = 0; r < n; r++) {
+            freq[s.charAt(r) - 'a']--;
+            while (l < n && min3(freq[0], freq[1], freq[2]) < k) {
+                freq[s.charAt(l) - 'a']++;
+                l++;
+            }
+            steps = Math.min(steps, n - (r - l + 1));
+        }
+        return steps;
+    }
+    private int min3(int x, int y, int z) {
+        return Math.min(x, Math.min(y, z));
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int takeCharacters(String s, int k) {
+        int n = s.length();
+        int l = 0, r = 0;
+        int ans = n;
+        int a = 0, b = 0, c = 0;
+
+        // Count total occurrences of 'a', 'b', and 'c'
+        int totalA = 0, totalB = 0, totalC = 0;
+        for (char ch : s.toCharArray()) {
+            if (ch == 'a') totalA++;
+            else if (ch == 'b') totalB++;
+            else if (ch == 'c') totalC++;
+        }
+
+        // If there are not enough 'a', 'b', or 'c', return -1
+        if (totalA < k || totalB < k || totalC < k) {
+            return -1;
+        }
+
+        // Reset counters and start sliding window
+        while (r < n) {
+            if (s.charAt(r) == 'a') a++;
+            if (s.charAt(r) == 'b') b++;
+            if (s.charAt(r) == 'c') c++;
+            r++;
+
+            // Shrink window if it exceeds the limits
+            while (a > totalA - k || b > totalB - k || c > totalC - k) {
+                if (s.charAt(l) == 'a') a--;
+                if (s.charAt(l) == 'b') b--;
+                if (s.charAt(l) == 'c') c--;
+                l++;
+            }
+
+            // Update the answer with the minimum number of characters to remove
+            ans = Math.min(ans, n - (r - l));
+        }
+
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int takeCharacters(String s, int k) {
+        int[] arr=new int[3];
+        // count all the frq of string
+        for(char ch:s.toCharArray()) arr[ch-'a']++;
+        
+        // if total frq of any char is less than k return -1;
+        if(arr[0]<k||arr[1]<k||arr[2]<k) return -1;
+        int ans=arr[0]+arr[1]+arr[2];
+        int st=0;
+        
+        for(char ch:s.toCharArray()){
+            arr[ch-'a']--;
+            
+            // if any char length is less than k then increase start position
+            if(arr[0]<k||arr[1]<k||arr[2]<k){
+                //get the min ans
+                ans=Math.min(arr[0]+arr[1]+arr[2]+1,ans);
+                while(s.charAt(st)!=ch){
+                    arr[s.charAt(st)-'a']++;
+                    st++;
+                }
+                arr[ch-'a']++;
+                st++;
+            }
+        }
+        ans=Math.min(arr[0]+arr[1]+arr[2],ans);
+                
+        return ans;
+    }
+}
+
+
