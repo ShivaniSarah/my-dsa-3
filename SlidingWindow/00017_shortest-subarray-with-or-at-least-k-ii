@@ -1,0 +1,351 @@
+https://leetcode.com/problems/shortest-subarray-with-or-at-least-k-ii/
+
+3097. Shortest Subarray With OR at Least K II
+Medium
+Topics
+Companies
+Hint
+You are given an array nums of non-negative integers and an integer k.
+
+An array is called special if the bitwise OR of all of its elements is at least k.
+
+Return the length of the shortest special non-empty subarray of nums, or return -1 if no special subarray exists.
+
+ 
+
+Example 1:
+
+Input: nums = [1,2,3], k = 2
+
+Output: 1
+
+Explanation:
+
+The subarray [3] has OR value of 3. Hence, we return 1.
+
+Example 2:
+
+Input: nums = [2,1,8], k = 10
+
+Output: 3
+
+Explanation:
+
+The subarray [2,1,8] has OR value of 11. Hence, we return 3.
+
+Example 3:
+
+Input: nums = [1,2], k = 0
+
+Output: 1
+
+Explanation:
+
+The subarray [1] has OR value of 1. Hence, we return 1.
+
+ 
+
+Constraints:
+
+1 <= nums.length <= 2 * 105
+0 <= nums[i] <= 109
+0 <= k <= 109
+
+
+
+# jav
+
+
+class Solution {
+  // Same as 3095. Shortest Subarray With OR at Least K I
+  public int minimumSubarrayLength(int[] nums, int k) {
+    final int MAX = 50;
+    final int n = nums.length;
+    int ans = n + 1;
+    int ors = 0;
+    int[] count = new int[MAX + 1];
+
+    for (int l = 0, r = 0; r < n; ++r) {
+      ors = orNum(ors, nums[r], count);
+      while (ors >= k && l <= r) {
+        ans = Math.min(ans, r - l + 1);
+        ors = undoOrNum(ors, nums[l], count);
+        ++l;
+      }
+    }
+
+    return (ans == n + 1) ? -1 : ans;
+  }
+
+  private static final int MAX_BIT = 30;
+
+  private int orNum(int ors, int num, int[] count) {
+    for (int i = 0; i < MAX_BIT; ++i)
+      if ((num >> i & 1) == 1 && ++count[i] == 1)
+        ors += 1 << i;
+    return ors;
+  }
+
+  private int undoOrNum(int ors, int num, int[] count) {
+    for (int i = 0; i < MAX_BIT; ++i)
+      if ((num >> i & 1) == 1 && --count[i] == 0)
+        ors -= 1 << i;
+    return ors;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int minimumSubarrayLength(int[] nums, int k) {
+        int n = nums.length;
+        int[] cnt = new int[32];
+        int ans = n + 1;
+        for (int i = 0, j = 0, s = 0; j < n; ++j) {
+            s |= nums[j];
+            for (int h = 0; h < 32; ++h) {
+                if ((nums[j] >> h & 1) == 1) {
+                    ++cnt[h];
+                }
+            }
+            for (; s >= k && i <= j; ++i) {
+                ans = Math.min(ans, j - i + 1);
+                for (int h = 0; h < 32; ++h) {
+                    if ((nums[i] >> h & 1) == 1) {
+                        if (--cnt[h] == 0) {
+                            s ^= 1 << h;
+                        }
+                    }
+                }
+            }
+        }
+        return ans > n ? -1 : ans;
+    }
+}
+
+
+or
+
+
+
+// bs
+
+
+class Solution {
+
+    public int minimumSubarrayLength(int[] nums, int k) {
+        int left = 1;
+        int right = nums.length;
+        int minLength = -1;
+
+        // Binary search on the length of subarray
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+
+            if (hasValidSubarray(nums, k, mid)) {
+                minLength = mid;
+                right = mid - 1; // Try to find smaller length
+            } else {
+                left = mid + 1; // Try larger length
+            }
+        }
+
+        return minLength;
+    }
+
+    // Checks if there exists a subarray of given length whose bitwise OR is >= k
+    private boolean hasValidSubarray(
+        int[] nums,
+        int targetSum,
+        int windowSize
+    ) {
+        int arrayLength = nums.length;
+        int[] bitCounts = new int[32]; // Tracks count of set bits at each position
+
+        // Sliding window approach
+        for (int right = 0; right < arrayLength; right++) {
+            // Add current number to window
+            updateBitCounts(bitCounts, nums[right], 1);
+
+            // Remove leftmost number if window exceeds size
+            if (right >= windowSize) {
+                updateBitCounts(bitCounts, nums[right - windowSize], -1);
+            }
+
+            // Check if current window is valid
+            if (
+                right >= windowSize - 1 &&
+                convertBitCountsToNumber(bitCounts) >= targetSum
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Updates bit count array when adding/removing a number from window
+    private void updateBitCounts(int[] bitCounts, int number, int delta) {
+        for (int bitPosition = 0; bitPosition < 32; bitPosition++) {
+            // Check if bit is set at current position
+            if (((number >> bitPosition) & 1) != 0) {
+                bitCounts[bitPosition] += delta;
+            }
+        }
+    }
+
+    // Converts bit count array back to number using OR operation
+    private int convertBitCountsToNumber(int[] bitCounts) {
+        int number = 0;
+        for (int bitPosition = 0; bitPosition < 32; bitPosition++) {
+            if (bitCounts[bitPosition] != 0) {
+                number |= 1 << bitPosition;
+            }
+        }
+        return number;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public int minimumSubarrayLength(int[] nums, int k) {
+        int minLength = Integer.MAX_VALUE;
+        int windowStart = 0;
+        int windowEnd = 0;
+        int[] bitCounts = new int[32]; // Tracks count of set bits at each position
+
+        // Expand window until end of array
+        while (windowEnd < nums.length) {
+            // Add current number to window
+            updateBitCounts(bitCounts, nums[windowEnd], 1);
+
+            // Contract window while OR value is valid
+            while (
+                windowStart <= windowEnd &&
+                convertBitCountsToNumber(bitCounts) >= k
+            ) {
+                // Update minimum length found so far
+                minLength = Math.min(minLength, windowEnd - windowStart + 1);
+
+                // Remove leftmost number and shrink window
+                updateBitCounts(bitCounts, nums[windowStart], -1);
+                windowStart++;
+            }
+
+            windowEnd++;
+        }
+
+        return minLength == Integer.MAX_VALUE ? -1 : minLength;
+    }
+
+    // Updates bit count array when adding/removing a number from window
+    private void updateBitCounts(int[] bitCounts, int number, int delta) {
+        for (int bitPosition = 0; bitPosition < 32; bitPosition++) {
+            // Check if bit is set at current position
+            if (((number >> bitPosition) & 1) != 0) {
+                bitCounts[bitPosition] += delta;
+            }
+        }
+    }
+
+    // Converts bit count array back to number using OR operation
+    private int convertBitCountsToNumber(int[] bitCounts) {
+        int result = 0;
+        for (int bitPosition = 0; bitPosition < 32; bitPosition++) {
+            if (bitCounts[bitPosition] != 0) {
+                result |= 1 << bitPosition;
+            }
+        }
+        return result;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minimumSubarrayLength(int[] nums, int k) {
+        int n = nums.length;
+        int[] bitCount = new int[32];
+        int currentOR = 0;
+        int left = 0;
+        int minLength = Integer.MAX_VALUE;
+        
+        for (int right = 0; right < n; right++) {
+            currentOR |= nums[right];
+            
+            for (int bit = 0; bit < 32; bit++) {
+                if ((nums[right] & (1 << bit)) != 0) {
+                    bitCount[bit]++;
+                }
+            }
+            
+            while (left <= right && currentOR >= k) {
+                minLength = Math.min(minLength, right - left + 1);
+                
+                int updatedOR = 0;
+                for (int bit = 0; bit < 32; bit++) {
+                    if ((nums[left] & (1 << bit)) != 0) {
+                        bitCount[bit]--;
+                    }
+                    if (bitCount[bit] > 0) {
+                        updatedOR |= (1 << bit);
+                    }
+                }
+                currentOR = updatedOR;
+                left++;
+            }
+        }
+        
+        return minLength == Integer.MAX_VALUE ? -1 : minLength;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int minimumSubarrayLength(int[] nums, int k) {
+        int[] count = new int[32];
+        int start = 0, end = 0, min = nums.length + 1;
+
+        while (end < nums.length) {
+            updateBits(count, nums[end], 1);
+            while (start <= end && getVal(count) >= k) {
+                min = Math.min(min, end - start + 1);
+                updateBits(count, nums[start], -1);
+                start++;
+            }
+            end++;
+        }
+        return min == nums.length + 1 ? -1 : min;
+    }
+
+    private void updateBits(int[] count, int num, int val) {
+        for (int i = 0; i < 32; i++) {
+            if ((num & (1 << i)) != 0) {
+                count[i] += val;
+            }
+        }
+    }
+
+    private int getVal(int[] count) {
+        int ans = 0;
+        for (int i = 0; i < 32; i++) {
+            if (count[i] > 0) {
+                ans |= (1 << i);
+            }
+        }
+        return ans;
+    }
+}
+
+
