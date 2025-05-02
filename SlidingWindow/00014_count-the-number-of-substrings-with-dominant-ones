@@ -1,5 +1,62 @@
 https://leetcode.com/problems/count-the-number-of-substrings-with-dominant-ones/description/
 
+3234. Count the Number of Substrings With Dominant Ones
+Medium
+Topics
+Companies
+Hint
+You are given a binary string s.
+
+Return the number of substrings with dominant ones.
+
+A string has dominant ones if the number of ones in the string is greater than or equal to the square of the number of zeros in the string.
+
+ 
+
+Example 1:
+
+Input: s = "00011"
+
+Output: 5
+
+Explanation:
+
+The substrings with dominant ones are shown in the table below.
+
+i	j	s[i..j]	Number of Zeros	Number of Ones
+3	3	1	0	1
+4	4	1	0	1
+2	3	01	1	1
+3	4	11	0	2
+2	4	011	1	2
+Example 2:
+
+Input: s = "101101"
+
+Output: 16
+
+Explanation:
+
+The substrings with non-dominant ones are shown in the table below.
+
+Since there are 21 substrings total and 5 of them have non-dominant ones, it follows that there are 16 substrings with dominant ones.
+
+i	j	s[i..j]	Number of Zeros	Number of Ones
+1	1	0	1	0
+4	4	0	1	0
+1	4	0110	2	2
+0	4	10110	2	3
+1	5	01101	2	3
+ 
+
+Constraints:
+
+1 <= s.length <= 4 * 104
+s consists only of characters '0' and '1'.
+
+
+# java
+
 
 class Solution {
   public int numberOfSubstrings(String s) {
@@ -32,3 +89,233 @@ class Solution {
     return ans;
   }
 }
+
+
+or
+
+
+
+class Solution {
+    public int numberOfSubstrings(String s) {
+        int output = 0;
+        int prefix[] = new int[s.length()];
+        for(int i=0;i<s.length();i++){
+            if(i == 0) prefix[i] = (s.charAt(i) == '1')? 1:0;
+            else prefix[i] = prefix[i-1] + ((s.charAt(i) == '1')? 1:0);
+        }
+        for(int i=0;i<s.length();i++){
+            int count = 0,one = 0;
+            for(int j=i;j<s.length();j++){
+                one = prefix[j]-((i == 0)?0:prefix[i-1]); //count of one
+                count = j-i+1-one;  //count of zero
+                if(count*count > one)  j+=((count*count)-one-1);  //jump where next soltuion is possible
+                if(count*count <= one) {
+                    int kl = (int)Math.sqrt(one);
+                    output++;
+                    if(kl>count){  //again jump where zero can be greater than one.
+                        output += (j+(kl-count))>=s.length()?(s.length()-j-1):(kl-count); //condition added just to ensure not to exceed the s.length()
+                        j = j+(kl-count);
+                    }
+                }
+            }
+        }
+        return output;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int numberOfSubstrings(String s) {
+        int ans = 0;
+        int n = s.length();
+        int[] prefix = new int[n];
+
+        //Weil Solve it by prefix sum so lets convert it to an array.
+        // Create a prefix array to store the number of '1's seen up to each index
+
+        for (int i = 0; i < n; i++) {
+            if (s.charAt(i) == '1') {
+                prefix[i] = 1;
+            }
+        }
+        // Accumulate the count of '1's in the prefix array
+        for (int i = 1; i < n; i++) {
+            prefix[i] += prefix[i - 1];
+        }
+
+        // Starting from the 0th.
+        for (int i = 0; i < n; i++) {
+            int zeros = 0, ones = 0;
+            // Check each possible ending index for the substring starting at index i
+            for (int j = i; j < n; j++) {
+                ones = prefix[j];
+                if (i != 0) {
+                    ones -= prefix[i - 1];
+                }
+                zeros = j - i + 1 - ones;
+
+                // If the condition is false, skip to the next relevant substring
+                //Now will jump to the next index which can stands a chance to be
+                //a relevant index.
+
+                if (zeros * zeros > ones) {
+                    j += (zeros * zeros - ones - 1);
+                }
+
+                //If the condition is true then we will look upto ehich index can the
+                //condition still hold true.
+
+                if (zeros * zeros <= ones) {
+                    ans++;
+
+                    // Lets Optimize by checking further substrings
+                    
+                    if (zeros * zeros < ones) {
+                        int diff = (int) Math.sqrt(ones) - zeros;
+                        int nextJ = j + diff;
+                        if (nextJ >= n) {
+                            ans += (n - j - 1);
+                        } else {
+                            ans += diff;
+                        }
+                        j = nextJ;
+                    }
+                }
+            }
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+
+class Solution {
+    public int numberOfSubstrings(String s) {
+                int n = s.length();
+        int ans = 0;
+        int[] prefixCount = new int[n];
+
+        prefixCount[0] = s.charAt(0) - '0';
+
+        for (int i = 1; i < n; ++i) {
+            prefixCount[i] = prefixCount[i - 1] + (s.charAt(i) - '0');
+        }
+
+        for (int i = 0; i < n; ++i) {
+            for (int j = i; j < n;) {
+                int ones = i == 0 ? prefixCount[j] : prefixCount[j] - prefixCount[i - 1];
+                int zeros = (j - i + 1) - ones;
+
+                if (ones >= zeros * zeros) {
+                    ans += 1;
+                    if (ones > zeros * zeros) {
+                        int diff = (int) Math.sqrt(ones) - zeros;
+                        if (j + diff < n) {
+                            ans += diff;
+                        } else {
+                            ans += n - j - 1;
+                        }
+                        j += diff + 1;
+                    } else {
+                        j += 1;
+                    }
+                } else {
+                    j += zeros * zeros - ones;
+                }
+            }
+        }
+
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int numberOfSubstrings(String s) {
+        
+        char c[]=s.toCharArray();
+        int n=s.length();
+        int one[]=new int[n+1];
+        int count=0;
+        for(int i=0;i<n;i++){
+            if(c[i]=='1')
+                count++;
+            
+            one[i+1]=count;
+        }
+        int ans=0;
+        
+        for(int i=0;i<n;i++){
+            
+            for(int j=i;j<n;j++){
+                
+                int c1= one[j+1]-one[i];
+                int c0= j-i+1 - c1;
+                
+                if( c0*c0 <= c1 ){
+                    ans++;
+                    int val = Math.min(Math.max((int)Math.sqrt(c1)-c0-1,0),n-1-j ) ;
+                    j+=val;
+                    ans+=val;
+                }
+                else{
+                    j+= c0*c0 - c1-1; 
+                }
+                
+                
+            }
+        }
+        
+        return ans;
+        
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int numberOfSubstrings(String s) {
+        int output = 0;
+        int prefix[] = new int[s.length()];
+        for(int i=0;i<s.length();i++){
+            if(i == 0) prefix[i] = (s.charAt(i) == '1')? 1:0;
+            else prefix[i] = prefix[i-1] + ((s.charAt(i) == '1')? 1:0);
+        }
+        for(int i=0;i<s.length();i++){
+            int count = 0,one = 0;
+            for(int j=i;j<s.length();j++){
+                one = prefix[j]-((i == 0)?0:prefix[i-1]); //count of one
+                count = j-i+1-one;  //count of zero
+                if(count*count > one)  j+=((count*count)-one-1);  //jump where next soltuion is possible
+                if(count*count <= one) {
+                    int kl = (int)Math.sqrt(one);
+                    output++;
+                    if(kl>count){  //again jump where zero can be greater than one.
+                        output += (j+(kl-count))>=s.length()?(s.length()-j-1):(kl-count); //condition added just to ensure not to exceed the s.length()
+                        j = j+(kl-count);
+                    }
+                }
+            }
+        }
+        return output;
+    }
+}
+
+
+or
+
+
