@@ -1,0 +1,472 @@
+https://leetcode.com/problems/sliding-subarray-beauty/description/
+
+2653. Sliding Subarray Beauty
+Medium
+Topics
+Companies
+Hint
+Given an integer array nums containing n integers, find the beauty of each subarray of size k.
+
+The beauty of a subarray is the xth smallest integer in the subarray if it is negative, or 0 if there are fewer than x negative integers.
+
+Return an integer array containing n - k + 1 integers, which denote the beauty of the subarrays in order from the first index in the array.
+
+A subarray is a contiguous non-empty sequence of elements within an array.
+
+ 
+
+Example 1:
+
+Input: nums = [1,-1,-3,-2,3], k = 3, x = 2
+Output: [-1,-2,-2]
+Explanation: There are 3 subarrays with size k = 3. 
+The first subarray is [1, -1, -3] and the 2nd smallest negative integer is -1. 
+The second subarray is [-1, -3, -2] and the 2nd smallest negative integer is -2. 
+The third subarray is [-3, -2, 3] and the 2nd smallest negative integer is -2.
+Example 2:
+
+Input: nums = [-1,-2,-3,-4,-5], k = 2, x = 2
+Output: [-1,-2,-3,-4]
+Explanation: There are 4 subarrays with size k = 2.
+For [-1, -2], the 2nd smallest negative integer is -1.
+For [-2, -3], the 2nd smallest negative integer is -2.
+For [-3, -4], the 2nd smallest negative integer is -3.
+For [-4, -5], the 2nd smallest negative integer is -4. 
+Example 3:
+
+Input: nums = [-3,1,2,-3,0,-3], k = 2, x = 1
+Output: [-3,0,-3,-3,-3]
+Explanation: There are 5 subarrays with size k = 2.
+For [-3, 1], the 1st smallest negative integer is -3.
+For [1, 2], there is no negative integer so the beauty is 0.
+For [2, -3], the 1st smallest negative integer is -3.
+For [-3, 0], the 1st smallest negative integer is -3.
+For [0, -3], the 1st smallest negative integer is -3.
+ 
+
+Constraints:
+
+n == nums.length 
+1 <= n <= 105
+1 <= k <= n
+1 <= x <= k 
+-50 <= nums[i] <= 50 
+
+
+# java
+
+
+class Solution {
+  public int[] getSubarrayBeauty(int[] nums, int k, int x) {
+    int[] ans = new int[nums.length - k + 1];
+    int[] count = new int[50]; // count[i] := the frequency of (i + 50)
+
+    for (int i = 0; i < nums.length; ++i) {
+      if (nums[i] < 0)
+        ++count[nums[i] + 50];
+      if (i - k >= 0 && nums[i - k] < 0)
+        --count[nums[i - k] + 50];
+      if (i + 1 >= k)
+        ans[i - k + 1] = getXthSmallestNum(count, x);
+    }
+
+    return ans;
+  }
+
+  private int getXthSmallestNum(int[] count, int x) {
+    int prefix = 0;
+    for (int i = 0; i < 50; ++i) {
+      prefix += count[i];
+      if (prefix >= x)
+        return i - 50;
+    }
+    return 0;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int[] getSubarrayBeauty(int[] nums, int k, int x) {
+        int n = nums.length;
+        int[] cnt = new int[101];
+        for (int i = 0; i < k; ++i) {
+            ++cnt[nums[i] + 50];
+        }
+        int[] ans = new int[n - k + 1];
+        ans[0] = f(cnt, x);
+        for (int i = k, j = 1; i < n; ++i) {
+            ++cnt[nums[i] + 50];
+            --cnt[nums[i - k] + 50];
+            ans[j++] = f(cnt, x);
+        }
+        return ans;
+    }
+
+    private int f(int[] cnt, int x) {
+        int s = 0;
+        for (int i = 0; i < 50; ++i) {
+            s += cnt[i];
+            if (s >= x) {
+                return i - 50;
+            }
+        }
+        return 0;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+   public int[] getSubarrayBeauty(int[] nums, int k, int x) {
+    int[] counter = new int[50], ans = new int[nums.length - k + 1];;
+    for (int i = 0; i < nums.length; i++) {
+        if (nums[i] < 0) counter[nums[i] + 50]++;
+        if (i - k >= 0 && nums[i - k] < 0) counter[nums[i - k] + 50]--;
+        if (i - k + 1 < 0) continue;
+        for (int j = 0, count = 0; j < 50; j++) {
+            count += counter[j];
+            if (count >= x) {
+                ans[i - k + 1] = j - 50;
+                break;
+            }
+        }
+    }
+    return ans;
+}
+}
+
+
+
+or
+
+
+
+class Solution {
+   public int[] getSubarrayBeauty(int[] nums, int k, int x) {
+    int[] counter = new int[50], ans = new int[nums.length - k + 1];;
+    for (int i = 0; i < nums.length; i++) {
+        if (nums[i] < 0) counter[nums[i] + 50]++;
+        if (i - k >= 0 && nums[i - k] < 0) counter[nums[i - k] + 50]--;
+        for (int j = 0, count = 0; j < 50 && count < x && i >= k - 1; j++)
+            if ((count += counter[j]) >= x)
+                ans[i - k + 1] = j - 50;
+    }
+    return ans;
+}
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int[] getSubarrayBeauty(int[] nums, int k, int x) {
+        int n = nums.length;
+        int[] freq = new int[51];
+        int[] res = new int[nums.length - k + 1];
+        
+        for(int i = 0, j = 0, idx = 0; i < n; i++) {
+            if(nums[i] < 0) freq[Math.abs(nums[i])]++;
+            if(i - j + 1 >= k) {
+                int cnt = 0;
+                for(int L = 50; L >= 1; L--) {
+                    cnt += freq[L];
+                    if(cnt >= x) { res[idx++] = -L; break;}
+                }
+                if(cnt < x) res[idx++] = 0;
+                if(nums[j] < 0) freq[Math.abs(nums[j])]--;
+                j++;
+            }
+        }
+        return res;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int[] getSubarrayBeauty(int[] nums, int k, int x) {
+        int n = nums.length;
+        int[] res = new int[n-k+1];
+        int p=0;
+        Map<Integer,Integer> hm = new TreeMap<>();
+        int l=0;
+        int r=0;
+        while(r<n){
+            if(nums[r]<0) hm.put(nums[r],hm.getOrDefault(nums[r],0)+1);
+            if(r-l+1>k){
+                if(nums[l]<0){
+                    hm.put(nums[l],hm.get(nums[l])-1);
+                    if(hm.get(nums[l])==0)hm.remove(nums[l]);
+                }
+                l++;
+            }
+            if(r-l+1==k){
+                int count =0;
+                boolean flag= false;
+                for(Map.Entry<Integer,Integer> it:hm.entrySet()){
+                    count+=it.getValue();
+                    if(count>=x){
+                        res[p]=it.getKey();
+                        p++;
+                        flag=true;
+                        break;
+                    }
+                }
+                if(!flag)res[p++]=0;
+            }
+            r++;
+        }
+        return res;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int[] getSubarrayBeauty(int[] nums, int k, int x) {
+        int n = nums.length;
+        int[] ans = new int[n - k +1];
+
+        HashMap<Integer,Integer> map = new HashMap<>();
+        int left = 0;
+
+        for (int i = 0; i < k; i++) map.put(nums[i], map.getOrDefault(nums[i], 0) + 1);
+
+        int cnt = x, temp = 0;
+            for (int i = -50; i <= 50; i++) {
+                if (map.containsKey(i)){
+                    cnt -= map.get(i);
+                }
+
+                if (cnt <= 0) {
+                    temp = i;
+                    break;
+                }
+            }
+
+
+        if (temp < 0) ans[left] = temp;
+
+        map.put(nums[left], map.get(nums[left]) - 1);
+
+        left++;
+
+
+        for (int right = k; right < nums.length; right++) {
+            map.put(nums[right], map.getOrDefault(nums[right], 0)+1);
+
+             cnt = x;
+              temp = 0;
+            for (int i = -50; i <= 50; i++) {
+                if (map.containsKey(i)){
+                    cnt -= map.get(i);
+                }
+
+                if (cnt <= 0) {
+                    temp = i;
+                    break;
+                }
+            }
+
+            // System.out.println(map);
+
+            if (temp < 0) ans[left] = temp;
+
+            map.put(nums[left], map.get(nums[left]) - 1);
+
+            left++;
+        }
+
+        return ans;
+    }
+    
+}
+
+
+
+or
+
+
+class Solution {
+    public int[] getSubarrayBeauty(int[] nums, int k, int x) {
+        int n = nums.length;
+        int[] ans = new int[n - k + 1];        //ans array to return
+        int index_of_ans = 0;                  //index pointer for ans array to store values
+        int[] countSort = new int[101];        //array to perform count sort
+        int start = 0;                         //start pointer for sliding window to change size
+        int i = 0;
+        int data = 0;                          //to calculate total negative numbers in window
+        // 'data' will help in optimising some cases where negative numbers are less than x.
+        // Creation of sliding window and side by side adding value in countSort array.
+        for(; i < k; i++)
+        {
+            if(nums[i] < 0) data++;    //if new value to be added is negative ,increment data
+            countSort[nums[i] + 50]++;
+        }
+        int val = find(countSort , x , data);
+        ans[index_of_ans++] = val;
+
+        for(;i < n; i++)
+        {
+            if(nums[i] < 0) data++;    //if new value to be added is negative ,increment data
+            countSort[nums[i] + 50]++;
+            if(nums[start] < 0) data--; //if the start was negative , decrement data
+            countSort[nums[start] + 50]--;    //remove value at start index from countSort array
+            start++;
+            
+            val = find(countSort , x , data);
+            ans[index_of_ans++] = val;
+        }
+        return ans;
+    }
+
+    private int find(int[] countSort , int x , int data)
+    {
+        if(data < x) return 0;
+        for(int i = 0; i < 101; i++)
+        {
+            if(x - countSort[i] <= 0){
+                return (i - 50);
+            }
+            else x = x - countSort[i];
+        }
+        return 0;
+    }
+}
+
+
+or
+
+
+class Solution {
+  public int[] getSubarrayBeauty(int[] nums, int k, int x) {
+    int[] ans = new int[nums.length - k + 1];
+    int[] count = new int[50]; // count[i] := the frequency of (i + 50)
+
+    for (int i = 0; i < nums.length; ++i) {
+      if (nums[i] < 0)
+        ++count[nums[i] + 50];
+      if (i - k >= 0 && nums[i - k] < 0)
+        --count[nums[i - k] + 50];
+      if (i + 1 >= k)
+        ans[i - k + 1] = getXthSmallestNum(count, x);
+    }
+
+    return ans;
+  }
+
+  private int getXthSmallestNum(int[] count, int x) {
+    int prefix = 0;
+    for (int i = 0; i < 50; ++i) {
+      prefix += count[i];
+      if (prefix >= x)
+        return i - 50;
+    }
+    return 0;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int[] getSubarrayBeauty(int[] nums, int k, int x) {
+        int n = nums.length;
+        int a[] = new int[101];
+        int res[] = new int[n - k + 1];
+        for (int i=0;i<k;i++)
+        {
+            a[nums[i]+50]++;
+        }
+        for (int i=0;i<=n-k;i++)
+        {
+            int count=0,val=-1;
+            for(int j=0;j<=49;j++)
+            {
+                if(a[j]>0)
+                {
+                    count+=a[j];
+                    if(count>=x)
+                    {
+                        val=j;
+                        break;
+                    }
+                }
+            }
+            a[nums[i]+50]--;
+            if(i<n-k)
+            {
+                a[nums[i+k]+50]++;
+            }
+            res[i] = val == -1 ? 0 : val-50;
+        }
+        return res;
+    }
+}
+
+
+or
+
+
+// bucket sort
+
+
+class Solution {
+    public int[] getSubarrayBeauty(int[] nums, int k, int x) {
+        int n = nums.length;
+        int[] rslt = new int[n-k+1];
+        
+        int[] bucket = new int[101];
+        
+        for(int i = 0; i < k; i++){
+            int elem = nums[i];
+            int bktidx = elem + 50;
+            bucket[bktidx]++;
+        }
+        
+        rslt[0] = getBucket(bucket, x);
+        for(int i = k; i < n; i++){
+            int outgoing = nums[i-k];
+            int outbktidx = outgoing + 50;
+            bucket[outbktidx]--;
+            
+            int incoming = nums[i];
+            int inxbktidx = incoming + 50;
+            bucket[inxbktidx]++;
+            
+            rslt[i-k+1] = getBucket(bucket, x);
+        }
+        return rslt;
+    }
+    private int getBucket(int[] bucket, int x){
+        int cnt = 0;
+        for(int i = 0; i < bucket.length; i++){
+            int frqi = bucket[i];
+            if (cnt + frqi >= x){
+                return Math.min(0, i-50);
+            } 
+            cnt += frqi;
+        }
+        return 0;
+    }
+}
+
+
