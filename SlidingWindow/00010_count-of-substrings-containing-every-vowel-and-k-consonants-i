@@ -1,0 +1,337 @@
+https://leetcode.com/problems/count-of-substrings-containing-every-vowel-and-k-consonants-i/description/
+
+
+3305. Count of Substrings Containing Every Vowel and K Consonants I
+Medium
+Topics
+Companies
+Hint
+You are given a string word and a non-negative integer k.
+
+Return the total number of substrings of word that contain every vowel ('a', 'e', 'i', 'o', and 'u') at least once and exactly k consonants.
+
+ 
+
+Example 1:
+
+Input: word = "aeioqq", k = 1
+
+Output: 0
+
+Explanation:
+
+There is no substring with every vowel.
+
+Example 2:
+
+Input: word = "aeiou", k = 0
+
+Output: 1
+
+Explanation:
+
+The only substring with every vowel and zero consonants is word[0..4], which is "aeiou".
+
+Example 3:
+
+Input: word = "ieaouqqieaouqq", k = 1
+
+Output: 3
+
+Explanation:
+
+The substrings with every vowel and one consonant are:
+
+word[0..5], which is "ieaouq".
+word[6..11], which is "qieaou".
+word[7..12], which is "ieaouq".
+ 
+
+Constraints:
+
+5 <= word.length <= 250
+word consists only of lowercase English letters.
+0 <= k <= word.length - 5
+
+
+# java
+
+
+class Solution {
+  public int countOfSubstrings(String word, int k) {
+    return substringsWithAtMost(word, k) - substringsWithAtMost(word, k - 1);
+  }
+
+  // Return the number of substrings containing every vowel with at most k
+  // consonants.
+  private int substringsWithAtMost(String word, int k) {
+    if (k == -1)
+      return 0;
+
+    int res = 0;
+    int vowels = 0;
+    int uniqueVowels = 0;
+    Map<Character, Integer> vowelLastSeen = new HashMap<>();
+
+    for (int l = 0, r = 0; r < word.length(); ++r) {
+      if (isVowel(word.charAt(r))) {
+        ++vowels;
+        if (!vowelLastSeen.containsKey(word.charAt(r)) || vowelLastSeen.get(word.charAt(r)) < l)
+          ++uniqueVowels;
+        vowelLastSeen.put(word.charAt(r), r);
+      }
+      while (r - l + 1 - vowels > k) {
+        if (isVowel(word.charAt(l))) {
+          --vowels;
+          if (vowelLastSeen.get(word.charAt(l)) == l)
+            --uniqueVowels;
+        }
+        ++l;
+      }
+      if (uniqueVowels == 5) {
+        // Add substrings containing every vowel with at most k consonants to
+        // the answer. They are
+        // word[l..r], word[l + 1..r], ..., word[min(vowelLastSeen[vowel])..r]
+        final int minVowelLastSeen = Arrays.asList('a', 'e', 'i', 'o', 'u')
+                                         .stream()
+                                         .mapToInt(vowel -> vowelLastSeen.get(vowel))
+                                         .min()
+                                         .getAsInt();
+        res += minVowelLastSeen - l + 1;
+      }
+    }
+
+    return res;
+  }
+
+  private boolean isVowel(char c) {
+    return "aeiou".indexOf(c) != -1;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int countOfSubstrings(String word, int k) {
+        return f(word, k) - f(word, k + 1);
+    }
+
+    private int f(String word, int k) {
+        int ans = 0;
+        int l = 0, x = 0;
+        Map<Character, Integer> cnt = new HashMap<>(5);
+        for (char c : word.toCharArray()) {
+            if (vowel(c)) {
+                cnt.merge(c, 1, Integer::sum);
+            } else {
+                ++x;
+            }
+            while (x >= k && cnt.size() == 5) {
+                char d = word.charAt(l++);
+                if (vowel(d)) {
+                    if (cnt.merge(d, -1, Integer::sum) == 0) {
+                        cnt.remove(d);
+                    }
+                } else {
+                    --x;
+                }
+            }
+            ans += l;
+        }
+        return ans;
+    }
+
+    private boolean vowel(char c) {
+        return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u';
+    }
+}
+
+
+or
+
+
+
+import java.util.HashMap;
+import java.util.HashSet;
+
+class Solution {
+    public int countOfSubstrings(String word, int k) {
+        HashSet<Character> vowels = new HashSet<>();
+        vowels.add('a');
+        vowels.add('e');
+        vowels.add('i');
+        vowels.add('o');
+        vowels.add('u');
+
+        HashMap<Character, Integer> vowelCount = new HashMap<>();
+        int consonantCount = 0, l = 0, n = word.length(), ans = 0;
+
+        for (int r = 0; r < n; r++) {
+            if (vowels.contains(word.charAt(r))) {
+                vowelCount.put(word.charAt(r), vowelCount.getOrDefault(word.charAt(r), 0) + 1);
+            } else {
+                consonantCount++;
+            }
+
+            while (consonantCount > k) {
+                if (vowelCount.containsKey(word.charAt(l))) {
+                    vowelCount.put(word.charAt(l), vowelCount.get(word.charAt(l)) - 1);
+                    if (vowelCount.get(word.charAt(l)) == 0) {
+                        vowelCount.remove(word.charAt(l));
+                    }
+                } else {
+                    consonantCount--;
+                }
+                l++;
+            }
+
+            if (vowelCount.size() == 5 && consonantCount == k) {
+                ans++;
+                int lf = l;
+                HashMap<Character, Integer> vowelCountCopy = new HashMap<>(vowelCount);
+                int consonantCountCopy = consonantCount;
+
+                while (vowelCountCopy.size() == 5) {
+                    if (vowelCountCopy.containsKey(word.charAt(lf))) {
+                        vowelCountCopy.put(word.charAt(lf), vowelCountCopy.get(word.charAt(lf)) - 1);
+                        if (vowelCountCopy.get(word.charAt(lf)) == 0) {
+                            vowelCountCopy.remove(word.charAt(lf));
+                        }
+                    } else {
+                        consonantCountCopy--;
+                    }
+                    lf++;
+                    if (consonantCountCopy == k && vowelCountCopy.size() == 5) ans++;
+                    if (consonantCountCopy < k) break;
+                }
+            }
+        }
+
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public static int countOfSubstrings(String s, int k) {
+        int ans = 0;
+        int n = s.length();
+
+        for (int i = 0; i < n; i++) {
+            int a = 0, e = 0, i_count = 0, o = 0, u = 0, c = 0;
+
+            for (int j = i; j < n; j++) {
+                if (s.charAt(j) == 'a') a++;
+                else if (s.charAt(j) == 'e') e++;
+                else if (s.charAt(j) == 'i') i_count++;
+                else if (s.charAt(j) == 'o') o++;
+                else if (s.charAt(j) == 'u') u++;
+                else c++;
+
+                if (a > 0 && e > 0 && i_count > 0 && o > 0 && u > 0 && c == k) {
+                    ans++;
+                }
+            }
+        }
+
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int countOfSubstrings(String word, int k) {
+        int n = word.length(), start = 0, left = 0, ans = 0;
+        int[] charCnt = new int[6];
+
+        for (int rght = 0; rght < n; rght++) {
+            charCnt[getIndex(word.charAt(rght))]++;
+
+            while (left < rght && charCnt[5] > k) {
+                charCnt[getIndex(word.charAt(left))]--;
+                left++;
+                start = left;
+            }
+
+            while (charCnt[5] == k && left < rght) {
+                int idx = getIndex(word.charAt(left));
+                if (idx < 5) {
+                    if (charCnt[idx] > 1) {
+                        charCnt[idx]--;
+                        left++;
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            if (charCnt[5] == k && Arrays.stream(charCnt, 0, 5).min().orElse(1) > 0) {
+                ans += (left - start + 1);
+            }
+        }
+
+        return ans;
+    }
+
+    private int getIndex(char ch) {
+        switch (ch) {
+            case 'a': return 0;
+            case 'e': return 1;
+            case 'i': return 2;
+            case 'o': return 3;
+            case 'u': return 4;
+            default : return 5; 
+        }
+    } 
+}
+
+
+or
+
+
+
+class Solution {
+    public int countOfSubstrings(String word, int k) {
+        int n=word.length();
+        int ans=0;
+        for(int z=0;z<n;z++){
+        // HashMap<Character,Integer> freq=new HashMap<>();
+        int a=0;
+        int e=0;
+        int i=0;
+        int o=0;
+        int u=0;
+        int consonant=0;
+
+        for(int j=z;j<n;j++){
+            char ch=word.charAt(j);
+            if(ch=='a') a++;
+            else if(ch=='e') e++;
+            else if(ch=='i') i++;
+            else if(ch=='o') o++;
+            else if(ch=='u') u++;
+            else consonant++;
+            if(a>0 && e>0 && i>0 && o>0 && u>0 && (consonant==k)) {
+            ans++;
+            }
+        }
+        }
+        return ans;
+
+        
+    }
+}
