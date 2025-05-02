@@ -1,0 +1,412 @@
+https://leetcode.com/problems/alternating-groups-ii/description/
+
+3208. Alternating Groups II
+Medium
+Topics
+Companies
+Hint
+There is a circle of red and blue tiles. You are given an array of integers colors and an integer k. The color of tile i is represented by colors[i]:
+
+colors[i] == 0 means that tile i is red.
+colors[i] == 1 means that tile i is blue.
+An alternating group is every k contiguous tiles in the circle with alternating colors (each tile in the group except the first and last one has a different color from its left and right tiles).
+
+Return the number of alternating groups.
+
+Note that since colors represents a circle, the first and the last tiles are considered to be next to each other.
+
+ 
+
+Example 1:
+
+Input: colors = [0,1,0,1,0], k = 3
+
+Output: 3
+
+Explanation:
+
+
+
+Alternating groups:
+
+
+
+Example 2:
+
+Input: colors = [0,1,0,0,1,0,1], k = 6
+
+Output: 2
+
+Explanation:
+
+
+
+Alternating groups:
+
+
+
+Example 3:
+
+Input: colors = [1,1,0,1], k = 4
+
+Output: 0
+
+Explanation:
+
+
+
+ 
+
+Constraints:
+
+3 <= colors.length <= 105
+0 <= colors[i] <= 1
+3 <= k <= colors.length
+
+
+# java
+
+
+class Solution {
+  public int numberOfAlternatingGroups(int[] colors, int k) {
+    final int n = colors.length;
+    int ans = 0;
+    int alternating = 1;
+
+    for (int i = 0; i < n + k - 2; ++i) {
+      alternating = colors[i % n] == colors[(i - 1 + n) % n] ? 1 : alternating + 1;
+      if (alternating >= k)
+        ++ans;
+    }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public int numberOfAlternatingGroups(int[] colors, int k) {
+        int n = colors.length;
+        int ans = 0, cnt = 0;
+        for (int i = 0; i < n << 1; ++i) {
+            if (i > 0 && colors[i % n] == colors[(i - 1) % n]) {
+                cnt = 1;
+            } else {
+                ++cnt;
+            }
+            ans += i >= n && cnt >= k ? 1 : 0;
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+public class Solution {
+
+    public int numberOfAlternatingGroups(int[] colors, int k) {
+        int[] extendedColors = new int[colors.length + k - 1];
+        // Extend the array to handle circular sequences
+        for (int i = 0; i < colors.length; i++) {
+            extendedColors[i] = colors[i];
+        }
+        for (int i = 0; i < k - 1; i++) {
+            extendedColors[colors.length + i] = colors[i];
+        }
+
+        int length = extendedColors.length;
+        int result = 0;
+        // Initialize the bounds of the sliding window
+        int left = 0;
+        int right = 1;
+
+        while (right < length) {
+            // Check if the current color is the same as the last one
+            if (extendedColors[right] == extendedColors[right - 1]) {
+                // Pattern breaks, reset window from the current position
+                left = right;
+                right++;
+                continue;
+            }
+
+            // Expand the window to the right
+            right++;
+
+            // Skip counting sequence if its length is less than k
+            if (right - left < k) continue;
+
+            // Record a valid sequence and shrink window from the left to search for more
+            result++;
+            left++;
+        }
+
+        return result;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public int numberOfAlternatingGroups(int[] colors, int k) {
+        int length = colors.length;
+        int result = 0;
+        // Tracks the length of the current alternating sequence
+        int alternatingElementsCount = 1;
+        int lastColor = colors[0];
+
+        for (int index = 1; index < length; index++) {
+            // Check if the current color is the same as the last one
+            if (colors[index] == lastColor) {
+                // Pattern breaks, reset sequence length
+                alternatingElementsCount = 1;
+                lastColor = colors[index];
+                continue;
+            }
+            // Sequence can be extended
+            alternatingElementsCount++;
+
+            // Record a new alternating sequence
+            if (alternatingElementsCount >= k) {
+                result++;
+            }
+
+            lastColor = colors[index];
+        }
+
+        // Wrap around to the first k - 1 elements
+        for (int index = 0; index < k - 1; index++) {
+            // Pattern breaks. Since there are less than k elements remaining,
+            // no more sequences can be formed
+            if (colors[index] == lastColor) break;
+
+            // Extend the pattern
+            alternatingElementsCount++;
+
+            // Record a new alternating sequence
+            if (alternatingElementsCount >= k) {
+                result++;
+            }
+
+            lastColor = colors[index];
+        }
+        return result;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public int numberOfAlternatingGroups(int[] colors, int k) {
+        int length = colors.length;
+        int result = 0;
+        // Length of current alternating sequence
+        int alternatingElementsCount = 1;
+        int lastColor = colors[0];
+
+        // Loop through array with circular traversal
+        for (int i = 1; i < length + k - 1; i++) {
+            int index = i % length; // Wrap around using modulo
+
+            // Check if current color is the same as last color
+            if (colors[index] == lastColor) {
+                // Pattern breaks, reset sequence length
+                alternatingElementsCount = 1;
+                lastColor = colors[index];
+                continue;
+            }
+
+            // Extend alternating sequence
+            alternatingElementsCount += 1;
+
+            // If sequence length reaches at least k, count it
+            if (alternatingElementsCount >= k) {
+                result++;
+            }
+
+            lastColor = colors[index];
+        }
+
+        return result;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int numberOfAlternatingGroups(int[] colors, int k) {
+        int n = colors.length;
+        int[] temp = new int[n + k - 1];
+        System.arraycopy(colors, 0, temp, 0, n);
+        System.arraycopy(colors, 0, temp, n, k - 1); 
+
+        int count = 0;
+        int left = 0;
+        
+        for (int right = 0; right < temp.length; right++) {
+            if (right > 0 && temp[right] == temp[right - 1]) {
+                left = right;  
+            }
+            
+            if (right - left + 1 >= k) {
+                count++;  
+            }
+        }
+        
+        return count;
+    }
+}
+
+
+or
+
+
+// best
+
+class Solution {
+    public int numberOfAlternatingGroups(int[] colors, int k) {
+        int n = colors.length;
+        int count = 0;
+        int left = 0;
+        
+        for (int right = 0; right < n + k - 1; right++) {
+            if (right > 0 && colors[right % n] == colors[(right - 1) % n]) {
+                left = right;  
+            }
+            
+            if (right - left + 1 >= k) {
+                count++;  
+            }
+        }
+        
+        return count;
+    }
+}
+
+or
+
+
+class Solution {
+    public int numberOfAlternatingGroups(int[] colors, int k) {
+        int n = colors.length;
+        int[] extendedColors = new int[n + k - 1];
+        System.arraycopy(colors, 0, extendedColors, 0, n);
+        System.arraycopy(colors, 0, extendedColors, n, k - 1);
+        int res = 0;
+        int cnt = 1;
+        for (int i = 1; i < extendedColors.length; ++i) {
+            if (extendedColors[i] != extendedColors[i - 1]) ++cnt;
+            else cnt = 1;
+            if (cnt >= k) ++res;
+        }     
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int numberOfAlternatingGroups(int[] colors, int k) {
+        int w = 1, ans = 0, n = colors.length; 
+        for (int i = 1; i <= n+k-2; i++) {
+            if (colors[i % n] != colors[(i - 1 + n) % n]) {
+                w++;
+            } else {
+                w = 1;
+            }
+            if (w >= k) {
+                ans++;
+            }
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int numberOfAlternatingGroups(int[] colors, int k) {
+        int n = colors.length;
+        int count = 0;
+        int left = 0;
+
+        for (int right = 1; right < n + k - 1; right++) {
+            if (colors[right % n] == colors[(right - 1) % n]) {
+                left = right;
+            }
+            if (right - left + 1 >= k) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int numberOfAlternatingGroups(int[] colors, int k) {
+        int l = 1;
+        int r = 0;
+        int n = colors.length;
+        int a = colors[n - 1];  // Last element to handle the circular nature
+
+        // Traverse the array from the second element
+        for (int i = 1; i < n; ++i) {
+            if (colors[i] != colors[i - 1]) {
+                l++;
+                if (l >= k) {
+                    r++;
+                }
+            } else {
+                l = 1;
+            }
+        }
+
+        // Traverse the first k-1 elements to handle circular nature
+        for (int i = 0; i < k - 1; ++i) {
+            if (colors[i] != a) {
+                l++;
+                if (l >= k) {
+                    r++;
+                }
+                a = colors[i];
+            } else {
+                l = 1;
+            }
+        }
+
+        return r;
+    }
+}
+
+
+or
+
+
+
+
