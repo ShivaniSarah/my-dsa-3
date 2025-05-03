@@ -1,0 +1,557 @@
+https://leetcode.com/problems/split-array-into-consecutive-subsequences/description/
+
+659. Split Array into Consecutive Subsequences
+Medium
+Topics
+Companies
+You are given an integer array nums that is sorted in non-decreasing order.
+
+Determine if it is possible to split nums into one or more subsequences such that both of the following conditions are true:
+
+Each subsequence is a consecutive increasing sequence (i.e. each integer is exactly one more than the previous integer).
+All subsequences have a length of 3 or more.
+Return true if you can split nums according to the above conditions, or false otherwise.
+
+A subsequence of an array is a new array that is formed from the original array by deleting some (can be none) of the elements without disturbing the relative positions of the remaining elements. (i.e., [1,3,5] is a subsequence of [1,2,3,4,5] while [1,3,2] is not).
+
+ 
+
+Example 1:
+
+Input: nums = [1,2,3,3,4,5]
+Output: true
+Explanation: nums can be split into the following subsequences:
+[1,2,3,3,4,5] --> 1, 2, 3
+[1,2,3,3,4,5] --> 3, 4, 5
+Example 2:
+
+Input: nums = [1,2,3,3,4,4,5,5]
+Output: true
+Explanation: nums can be split into the following subsequences:
+[1,2,3,3,4,4,5,5] --> 1, 2, 3, 4, 5
+[1,2,3,3,4,4,5,5] --> 3, 4, 5
+Example 3:
+
+Input: nums = [1,2,3,4,4,5]
+Output: false
+Explanation: It is impossible to split nums into consecutive increasing subsequences of length 3 or more.
+ 
+
+Constraints:
+
+1 <= nums.length <= 104
+-1000 <= nums[i] <= 1000
+nums is sorted in non-decreasing order.
+
+
+# JAVA
+
+
+
+class Solution {
+    public boolean isPossible(int[] nums) {
+        // greedy algorithm
+        if (nums == null || nums.length < 3)
+            return false;
+        
+        // map to save the frequency of each number
+        Map<Integer, Integer> freq = new HashMap<>();
+        
+        // map to save that the number of subsequences that are
+        // ended with number i
+        Map<Integer, Integer> tail = new HashMap<>();
+        
+        // first pass, fill teh freq map
+        for (int i : nums) {
+            freq.put(i, freq.getOrDefault(i, 0) + 1);
+        }
+        
+        // second pass:
+        for (int i : nums) {
+            // there is no such number available
+            if (freq.get(i) == 0) {
+                continue;
+            }
+            // if there is some subsequence that is ended with i - 1:
+            // then we can put the number i in the subsequence
+            if (tail.get(i-1) != null && tail.get(i-1) > 0) {
+                // the number of sequence ended with i-1 decreases
+                tail.put(i-1, tail.get(i-1) - 1);
+                // the number of sequences ended with i increases
+                tail.put(i, tail.getOrDefault(i, 0) + 1);
+                // we used one number i, decrease the freq
+                freq.put(i, freq.get(i) - 1);
+            } else {
+                // there is no such subsequence that is ended with i-1
+                // we build a new subsequence start with i,
+                // we then need i + 1 and i + 2 to make a valid subsequence
+                if (freq.get(i+1) != null && freq.get(i+1) > 0 && 
+                    freq.get(i+2) != null && freq.get(i+2) > 0) {
+                    // if we have available i + 1 and i + 2
+                    // we now have one more subsequence ended with i+2
+                    tail.put(i+2, tail.getOrDefault(i+2, 0) + 1);
+                    // decrease the frequency
+                    freq.put(i, freq.get(i) - 1);
+                    freq.put(i + 1, freq.get(i + 1) - 1);
+                    freq.put(i + 2, freq.get(i + 2) - 1);
+                } else {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public boolean isPossible(int[] nums) {
+        Map<Integer, PriorityQueue<Integer>>lastElements = new HashMap<>();
+        for (int element: nums){
+            int subseqCount = 0;
+            if (lastElements.containsKey(element-1)){
+                subseqCount = lastElements.get(element-1).poll();
+                if (lastElements.get(element-1).isEmpty()) lastElements.remove(element-1);
+            }
+            lastElements.putIfAbsent(element, new PriorityQueue<>());
+            lastElements.get(element).add(subseqCount+1);
+        }
+        for (Map.Entry<Integer,PriorityQueue<Integer>>entry: lastElements.entrySet()){
+            while (!entry.getValue().isEmpty()){
+                if (entry.getValue().poll()<3)return false;
+            }
+        }
+        return true;
+    }
+}
+
+
+or
+
+
+// best
+class Solution {
+    public boolean isPossible(int[] nums) {
+        int[] count = new int[2003];
+        int[] end = new int[2003];
+        for (int n : nums){
+            count[n+1000]++;
+        }
+        for (int i = 0; i <= 2002; i++){
+            if (count[i] < 0){ // can't be less than 0, return false
+                return false;
+            }else if (i <= 2000){
+                int cont = Math.min(count[i], i==0?0:end[i-1]); // extend the subsequences
+                count[i] -= cont;
+                end[i] += cont;
+                count[i+1] -= count[i]; // start some new subsequences and we must take those
+                count[i+2] -= count[i]; // take those 
+                end[i+2] += count[i];   // update end to include the new subsequences.
+            }
+        }
+        return true;
+    }
+}
+
+
+or
+
+
+record SubSeq(int start, int end) {};
+
+class Solution {
+    public boolean isPossible(int[] nums) {
+        PriorityQueue<SubSeq> subsequences = new PriorityQueue<>((SubSeq subseq1, SubSeq subseq2) -> {
+            return (subseq1.end() == subseq2.end()) 
+                ?
+                (subseq1.end() - subseq1.start()) - (subseq2.end() - subseq2.start()) 
+                :
+                (subseq1.end() - subseq2.end());
+        });
+
+        for (int num : nums) {
+            // remove non-qualifying subsequences 
+            while (!subsequences.isEmpty() && subsequences.peek().end() + 1 < num) {
+                if(!isValid(subsequences)) {
+                    return false;
+                }
+            }
+            // create a new subsequence
+            if (subsequences.isEmpty() || subsequences.peek().end() == num) {
+                subsequences.add(new SubSeq(num, num));
+            } else {
+                // add num to an existing subsequence
+                SubSeq currentSubsequence = subsequences.poll();
+                subsequences.add(new SubSeq(currentSubsequence.start(), num));
+            }
+        }
+
+        // If any subsequence is of length less than 3, return false
+        while (!subsequences.isEmpty()) {
+            if(!isValid(subsequences)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    int getSequenceLength(SubSeq seq) {
+        // seq: [6,7,8] => start: 6, end: 8 => length: 8-6+1 = 3
+        return seq.end() - seq.start() + 1;
+    }
+
+    boolean isValid(Queue<SubSeq> subsequences) {
+        SubSeq currentSubsequence = subsequences.poll();
+        int subsequenceLength = getSequenceLength(currentSubsequence);
+        return subsequenceLength > 2;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public boolean isPossible(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return false;
+        
+        Map<Integer, Integer> map = new HashMap<>();
+        for (int num : nums) {
+            map.put(num, map.getOrDefault(num, 0) + 1);
+        }
+        
+        PriorityQueue<Map.Entry<Integer, Integer>> pq = new PriorityQueue<>((o1, o2) -> o1.getKey() - o2.getKey());
+        
+        for (Map.Entry<Integer, Integer> e : map.entrySet())
+            pq.offer(e);
+        
+        while (!pq.isEmpty()) {
+            int len = 1;
+            List<Map.Entry<Integer, Integer>> list = new ArrayList<>();
+            Map.Entry<Integer, Integer> prev = pq.poll();
+            prev.setValue(prev.getValue() - 1);
+            list.add(prev);
+            
+                
+            while (!pq.isEmpty() && pq.peek().getKey() - prev.getKey() == 1 && 
+                   pq.peek().getValue() > prev.getValue()) {            
+                
+                Map.Entry<Integer, Integer> curr = pq.poll();
+                prev = curr;
+                prev.setValue(prev.getValue() - 1);
+                list.add(prev);
+                len++;
+            }
+            
+            if (len < 3)
+                return false;
+            
+            for (Map.Entry<Integer, Integer> e : list) 
+                if (e.getValue() > 0)
+                    pq.offer(e);
+        }
+        
+        return true;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public boolean isPossible(int[] nums) {
+     int max=0;
+     HashMap<Integer,Integer>avail=new HashMap<>();
+    HashMap<Integer,Integer>need=new HashMap<>();
+
+     for(int num:nums){
+        avail.put(num,avail.getOrDefault(num,0)+1);
+     }
+     for(int num:nums){
+        if(avail.get(num)==0) continue;
+
+        if(need.getOrDefault(num,0)>0){
+        avail.put(num,avail.get(num)-1);
+        need.put(num,need.get(num)-1);
+        need.put(num + 1, need.getOrDefault(num + 1, 0) + 1);
+        }
+        else{
+            if(avail.getOrDefault(num+1,0)>0&&avail.getOrDefault(num+2,0)>0)
+            {
+            avail.put(num,avail.get(num)-1);
+            avail.put(num+1,avail.get(num+1)-1);
+            avail.put(num+2,avail.get(num+2)-1);
+            need.put(num+3,need.getOrDefault(num+3,0)+1);
+            }
+            else{
+                return false;
+            }
+
+        }
+     }
+     return true;
+     }   
+    }
+
+
+or
+
+class Solution {
+  class Node {
+    int end;
+    int count;
+    public Node(int num) {
+      this.end = num;
+      this.count = 1;
+    }
+  }
+  public boolean isPossible(int[] arr) {
+
+    // Prioritize elements that have highest ending sequence
+    // break ties on sequences with smaller count
+    Queue<Node> queue = new PriorityQueue<>((a, b) -> {
+      if (a.end == b.end)
+        return a.count - b.count;
+      return a.end - b.end;
+    });
+
+    for (int num : arr) {
+      // "rinse" queue, make sure all sequences are >= 3 if
+      // last number in the sequence cannot satisfy consecutive next increasing number
+      while (!queue.isEmpty() && queue.peek().end + 1 < num)
+        if (queue.poll().count < 3) 
+          return false;
+      
+      if (queue.isEmpty()) {
+        queue.offer(new Node(num));
+      } else {
+        Node sequence = queue.poll();
+        if ((sequence.end + 1) == num) {
+          sequence.end = num;
+          sequence.count++;
+        } else if (sequence.end == num) {
+          queue.offer(new Node(num));
+        }
+
+        queue.offer(sequence);
+      }
+    }
+
+    for (Node seq : queue)
+      if (seq.count < 3)
+        return false;
+    return true;
+  }
+
+}
+
+
+or
+
+
+
+import java.util.PriorityQueue;
+
+public class Solution {
+
+    private record ConsecutiveSubsequence(int startValue, int endValue) {}
+
+    public boolean isPossible(int[] inputValues) {
+
+        PriorityQueue<ConsecutiveSubsequence> minHeap = new PriorityQueue<>((first, second) -> comparator(first, second));
+
+        for (int value : inputValues) {
+
+            while (!minHeap.isEmpty() && (minHeap.peek().endValue + 1 < value)) {
+                if (minHeap.peek().endValue - minHeap.peek().startValue + 1 < 3) {
+                    return false;
+                }
+                minHeap.poll();
+            }
+
+            if (minHeap.isEmpty() || minHeap.peek().endValue == value) {
+                minHeap.add(new ConsecutiveSubsequence(value, value));
+            } else if (!minHeap.isEmpty() && minHeap.peek().endValue + 1 == value) {
+                minHeap.add(new ConsecutiveSubsequence(minHeap.poll().startValue, value));
+            }
+        }
+
+        while (!minHeap.isEmpty() && (minHeap.peek().endValue - minHeap.peek().startValue + 1 >= 3)) {
+            minHeap.poll();
+        }
+        return minHeap.isEmpty();
+    }
+
+    private int comparator(ConsecutiveSubsequence first, ConsecutiveSubsequence second) {
+        int lengthFirst = first.endValue - first.startValue;
+        int lengthSecond = second.endValue - second.startValue;
+        return (first.endValue == second.endValue) ? lengthFirst - lengthSecond : (first.endValue - second.endValue);
+    }
+}
+
+or
+
+
+class Solution {
+    public boolean isPossible(int[] nums) {
+        PriorityQueue<int[]> q = new PriorityQueue<>((a, b) -> 
+                                                     a[1] == b[1] ? (a[1] - a[0]) - (b[1] - b[0]) :
+                                                     a[1] - b[1]);
+        
+        for(int num : nums){
+            while(!q.isEmpty() && q.peek()[1] + 1 < num){
+                if(validSequence(q))
+                    continue;
+                else
+                    return false;
+            }
+            
+            if(q.isEmpty() || q.peek()[1] == num){
+                q.add(new int[]{num, num});
+            }
+            else{
+                int[] current = q.poll();
+                q.add(new int[]{current[0], num});
+            }
+        }
+        
+        while(!q.isEmpty()){
+            if(validSequence(q))
+                continue;
+            else
+                return false;
+        }
+        
+        return true;
+    }
+    
+    public boolean validSequence(PriorityQueue<int[]> q){
+        int[] current = q.poll();
+            int len = current[1] - current[0] + 1;
+            if(len < 3)
+                return false;
+        return true;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public boolean isPossible(int[] nums) {
+        PriorityQueue<int[]> q = new PriorityQueue<>((a, b) -> 
+                                                     a[1] == b[1] ? (a[1] - a[0]) - (b[1] - b[0]) :
+                                                     a[1] - b[1]);
+        
+        for(int num : nums){
+            while(!q.isEmpty() && q.peek()[1] + 1 < num){
+                if(validSequence(q))
+                    continue;
+                else
+                    return false;
+            }
+            
+            if(q.isEmpty() || q.peek()[1] == num){
+                q.add(new int[]{num, num});
+            }
+            else{
+                int[] current = q.poll();
+                q.add(new int[]{current[0], num});
+            }
+        }
+        
+        while(!q.isEmpty()){
+            if(validSequence(q))
+                continue;
+            else
+                return false;
+        }
+        
+        return true;
+    }
+    
+    public boolean validSequence(PriorityQueue<int[]> q){
+        int[] current = q.poll();
+            int len = current[1] - current[0] + 1;
+            if(len < 3)
+                return false;
+        return true;
+    }
+}
+
+or
+
+
+class Pair {
+    int num;
+    int freq;
+    
+    public Pair(int num, int freq) {
+        this.num = num;
+        this.freq = freq;
+    }
+}
+
+class Solution {
+    public boolean isPossible(int[] nums) {
+        if (nums == null || nums.length < 3) {
+            return false;
+        }
+        
+        int n = nums.length;
+        List<Pair> sequence = new ArrayList<>();
+        sequence.add(new Pair(nums[0], 1));
+        
+        for (int i=1; i < n; i++) {
+            int size = sequence.size();
+            
+            // if current number is consecutive greater element
+            if (nums[i] == sequence.get(size - 1).num + 1) {
+                sequence.get(size - 1).num++;;
+                sequence.get(size - 1).freq++;
+                continue;
+            } else if (nums[i] == sequence.get(size - 1).num) {
+                // if current number is a duplicate
+                
+                boolean found = false;
+                for (int j=size-2; j >= 0; j--) {
+                    if (nums[i] == sequence.get(j).num + 1) {
+                        found = true;
+                        sequence.get(j).num++;
+                        sequence.get(j).freq++;
+                        break;
+                    }
+                }
+                
+                if (!found) {
+                    sequence.add(new Pair(nums[i], 1));
+                }
+            } else {
+                // if current number is neither consecutive nor duplicate
+                // like in {1, 2, 3, 6, 7, 8} -> sequence starting from 6
+                sequence.add(new Pair(nums[i], 1));
+            }
+        }
+        
+        for (Pair ele : sequence) {
+            if (ele.freq < 3) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+}
+
+
+or
+
+
