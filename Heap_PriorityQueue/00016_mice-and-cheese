@@ -1,0 +1,223 @@
+https://leetcode.com/problems/mice-and-cheese/
+
+2611. Mice and Cheese
+Medium
+Topics
+Companies
+Hint
+There are two mice and n different types of cheese, each type of cheese should be eaten by exactly one mouse.
+
+A point of the cheese with index i (0-indexed) is:
+
+reward1[i] if the first mouse eats it.
+reward2[i] if the second mouse eats it.
+You are given a positive integer array reward1, a positive integer array reward2, and a non-negative integer k.
+
+Return the maximum points the mice can achieve if the first mouse eats exactly k types of cheese.
+
+ 
+
+Example 1:
+
+Input: reward1 = [1,1,3,4], reward2 = [4,4,1,1], k = 2
+Output: 15
+Explanation: In this example, the first mouse eats the 2nd (0-indexed) and the 3rd types of cheese, and the second mouse eats the 0th and the 1st types of cheese.
+The total points are 4 + 4 + 3 + 4 = 15.
+It can be proven that 15 is the maximum total points that the mice can achieve.
+Example 2:
+
+Input: reward1 = [1,1], reward2 = [1,1], k = 2
+Output: 2
+Explanation: In this example, the first mouse eats the 0th (0-indexed) and 1st types of cheese, and the second mouse does not eat any cheese.
+The total points are 1 + 1 = 2.
+It can be proven that 2 is the maximum total points that the mice can achieve.
+ 
+
+Constraints:
+
+1 <= n == reward1.length == reward2.length <= 105
+1 <= reward1[i], reward2[i] <= 1000
+0 <= k <= n
+
+
+# java
+
+
+
+class Solution {
+  public int miceAndCheese(int[] reward1, int[] reward2, int k) {
+    Queue<Integer> minHeap = new PriorityQueue<>();
+
+    for (int i = 0; i < reward1.length; ++i) {
+      minHeap.offer(reward1[i] - reward2[i]);
+      if (minHeap.size() == k + 1)
+        minHeap.poll();
+    }
+
+    return Arrays.stream(reward2).sum() + minHeap.stream().mapToInt(Integer::intValue).sum();
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int miceAndCheese(int[] reward1, int[] reward2, int k) {
+        int n = reward1.length;
+        Integer[] idx = new Integer[n];
+        for (int i = 0; i < n; ++i) {
+            idx[i] = i;
+        }
+        Arrays.sort(idx, (i, j) -> reward1[j] - reward2[j] - (reward1[i] - reward2[i]));
+        int ans = 0;
+        for (int i = 0; i < k; ++i) {
+            ans += reward1[idx[i]];
+        }
+        for (int i = k; i < n; ++i) {
+            ans += reward2[idx[i]];
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+        public int miceAndCheese(int[] A, int[] B, int k) {
+        int res = 0, n = A.length, diff[] = new int[n];
+        for (int i = 0; i < n; i++) {
+            diff[i] = A[i] - B[i];
+            res += B[i];
+        }
+        Arrays.sort(diff);
+        for (int i = 0; i < k; i++)
+            res += diff[n - 1 - i];
+        return res;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+  public int miceAndCheese(int[] reward1, int[] reward2, int k) {
+    final int n = reward1.length;
+    int points = 0;
+    for (int i = 0; i < n; i++) {
+      reward1[i] -= reward2[i];
+      points += reward2[i];
+    }
+
+    // pick top k
+    Arrays.sort(reward1);
+    for (int i = 0; i < k; i++) {
+      points += reward1[n - 1 - i];
+    }
+
+    return points;
+  }
+}
+
+or
+
+
+class Solution {
+    public int miceAndCheese(int[] reward1, int[] reward2, int k) {
+        int ans = 0;
+        for(int i : reward2) ans+=i;
+
+        PriorityQueue<Integer> minHeap = new PriorityQueue();
+        for(int i=0; i<reward1.length; i++) {
+            minHeap.offer(reward1[i] - reward2[i]);
+            if(minHeap.size()>k) minHeap.poll();
+        }
+        while(!minHeap.isEmpty()) ans += minHeap.poll();
+
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+        public int miceAndCheese(int[] reward1, int[] reward2, int k) {
+        int n = reward1.length;
+        int ans = 0;
+        int[] ar = new int[n];
+        for(int i = 0; i < n; i++){
+            ar[i] = reward1[i]-reward2[i];
+            ans += reward2[i];  // adding all of reward2 to ans
+        }
+        
+		// sorting the array
+        Arrays.sort(ar);
+        System.out.println(Arrays.toString(ar));
+		
+		// Adding the last k because it's sorted in asc order & we need largest elements
+		// so k elements from reward2 will be converted to reward1's element
+        for(int i = 0; i < k; i++){
+			ans += ar[n-1-i];    
+        }
+		
+        return ans;
+    }
+}
+
+
+or
+
+
+
+public class Solution {
+    public Set<Integer> getIndex(List<Integer> reward1, int k) {
+        PriorityQueue<Map.Entry<Integer, Integer>> minHeap = new PriorityQueue<>(Map.Entry.comparingByKey());
+        for (int i = 0; i < reward1.size(); i++) {
+            int num = reward1.get(i);
+            minHeap.offer(new AbstractMap.SimpleEntry<>(num, i));
+            if (minHeap.size() > k) {
+                minHeap.poll();
+            }
+        }
+        Set<Integer> idx = new HashSet<>();
+        while (!minHeap.isEmpty()) {
+            idx.add(minHeap.poll().getValue());
+        }
+        return idx;
+    }
+
+    public int miceAndCheese(List<Integer> reward1, List<Integer> reward2, int k) {
+        int n = reward1.size(), ans = 0;
+        List<Integer> diff = new ArrayList<>(n);
+        for (int i = 0; i < n; i++) {
+            diff.add(reward1.get(i) - reward2.get(i));
+        }
+        Set<Integer> index = getIndex(diff, k);
+        for (int i = 0; i < n; i++) {
+            if (index.contains(i)) {
+                ans += reward1.get(i);
+            } else {
+                ans += reward2.get(i);
+            }
+        }
+        if (k >= n) {
+            ans = reward1.stream().mapToInt(Integer::intValue).sum();
+            return ans;
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+
+
