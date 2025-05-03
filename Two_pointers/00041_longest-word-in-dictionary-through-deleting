@@ -1,0 +1,305 @@
+https://leetcode.com/problems/longest-word-in-dictionary-through-deleting/description/
+
+
+524. Longest Word in Dictionary through Deleting
+Medium
+Topics
+Companies
+Given a string s and a string array dictionary, return the longest string in the dictionary that can be formed by deleting some of the given string characters. If there is more than one possible result, return the longest word with the smallest lexicographical order. If there is no possible result, return the empty string.
+
+ 
+
+Example 1:
+
+Input: s = "abpcplea", dictionary = ["ale","apple","monkey","plea"]
+Output: "apple"
+Example 2:
+
+Input: s = "abpcplea", dictionary = ["a","b","c"]
+Output: "a"
+ 
+
+Constraints:
+
+1 <= s.length <= 1000
+1 <= dictionary.length <= 1000
+1 <= dictionary[i].length <= 1000
+s and dictionary[i] consist of lowercase English letters.
+
+
+
+# java
+
+
+
+class Solution {
+  public String findLongestWord(String s, List<String> d) {
+    String ans = "";
+
+    for (final String word : d)
+      if (isSubsequence(word, s))
+        if (word.length() > ans.length() ||
+            word.length() == ans.length() && word.compareTo(ans) < 0)
+          ans = word;
+
+    return ans;
+  }
+
+  // Returns true if a is a subsequence of b.
+  private boolean isSubsequence(final String a, final String b) {
+    int i = 0;
+    for (final char c : b.toCharArray())
+      if (i < a.length() && c == a.charAt(i))
+        ++i;
+    return i == a.length();
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public String findLongestWord(String s, List<String> dictionary) {
+        String ans = "";
+        for (String a : dictionary) {
+            if (check(s, a)
+                && (ans.length() < a.length()
+                    || (ans.length() == a.length() && a.compareTo(ans) < 0))) {
+                ans = a;
+            }
+        }
+        return ans;
+    }
+
+    private boolean check(String a, String b) {
+        int m = a.length(), n = b.length();
+        int i = 0, j = 0;
+        while (i < m && j < n) {
+            if (a.charAt(i) == b.charAt(j)) {
+                ++j;
+            }
+            ++i;
+        }
+        return j == n;
+    }
+}
+
+
+
+or
+
+
+
+// bf
+
+
+
+public class Solution {
+    public String findLongestWord(String s, List < String > d) {
+        HashSet < String > set = new HashSet < > (d);
+        List < String > l = new ArrayList < > ();
+        generate(s, "", 0, l);
+        String max_str = "";
+        for (String str: l) {
+            if (set.contains(str))
+                if (str.length() > max_str.length() || (str.length() == max_str.length() && str.compareTo(max_str) < 0))
+                    max_str = str;
+        }
+        return max_str;
+    }
+    public void generate(String s, String str, int i, List < String > l) {
+        if (i == s.length())
+            l.add(str);
+        else {
+            generate(s, str + s.charAt(i), i + 1, l);
+            generate(s, str, i + 1, l);
+        }
+    }
+}
+
+
+
+or
+
+
+
+// bf
+
+
+public class Solution {
+    public String findLongestWord(String s, List < String > d) {
+        HashSet < String > set = new HashSet < > (d);
+        List < String > l = new ArrayList < > ();
+        for (int i = 0; i < (1 << s.length()); i++) {
+            String t = "";
+            for (int j = 0; j < s.length(); j++) {
+                if (((i >> j) & 1) != 0)
+                    t += s.charAt(j);
+            }
+            l.add(t);
+        }
+        String max_str = "";
+        for (String str: l) {
+            if (set.contains(str))
+                if (str.length() > max_str.length() || (str.length() == max_str.length() && str.compareTo(max_str) < 0))
+                    max_str = str;
+        }
+        return max_str;
+    }
+}
+
+
+
+
+or
+
+
+
+public class Solution {
+    public boolean isSubsequence(String x, String y) {
+        int j = 0;
+        for (int i = 0; i < y.length() && j < x.length(); i++)
+            if (x.charAt(j) == y.charAt(i))
+                j++;
+        return j == x.length();
+    }
+    public String findLongestWord(String s, List < String > d) {
+        Collections.sort(d, new Comparator < String > () {
+            public int compare(String s1, String s2) {
+                return s2.length() != s1.length() ? s2.length() - s1.length() : s1.compareTo(s2);
+            }
+        });
+        for (String str: d) {
+            if (isSubsequence(str, s))
+                return str;
+        }
+        return "";
+    }
+}
+
+
+or
+
+
+
+public class Solution {
+    public boolean isSubsequence(String x, String y) {
+        int j = 0;
+        for (int i = 0; i < y.length() && j < x.length(); i++)
+            if (x.charAt(j) == y.charAt(i))
+                j++;
+        return j == x.length();
+    }
+    public String findLongestWord(String s, List < String > d) {
+        String max_str = "";
+        for (String str: d) {
+            if (isSubsequence(str, s)) {
+                if (str.length() > max_str.length() || (str.length() == max_str.length() && str.compareTo(max_str) < 0))
+                    max_str = str;
+            }
+        }
+        return max_str;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public String findLongestWord(String S, List<String> D) {
+        String ans = "";
+        for (String word : D) {
+            int a = word.length(), b = ans.length();
+            if (a < b || (a == b && word.compareTo(ans) > 0)) continue;
+            int pos = -1;
+            for (int i = 0; i < a; i++) {
+                pos = S.indexOf(word.charAt(i), pos + 1);
+                if (pos == -1) break;
+            }
+            if (pos != -1) ans = word;
+        }
+        return ans;
+    }
+}
+
+or
+
+
+class Solution {
+    public String findLongestWord(String s, List<String> dictionary) {
+        
+        int maxLength = 0;
+        String maxWord = "";
+
+        for(String word : dictionary) {
+            int length = checkIfWordPresentInString(s, word);
+
+            if(length > maxLength || (length == maxLength && maxWord.compareTo(word) > 0)) {
+                maxLength = length;
+                maxWord = word;
+            }
+        }
+
+        return maxWord;
+    }
+
+    public int checkIfWordPresentInString(String s, String word) {
+
+        for(int i = 0, j = 0; i <= s.length() - 1; i++) {
+            if(s.charAt(i) == word.charAt(j)) {
+                j++;
+
+                if(j == word.length()) {
+                    return j;
+                }
+            }
+        }
+        return 0;
+    }
+}
+
+
+or
+
+
+class Solution {
+	public String findLongestWord(String s, List<String> dictionary) {
+
+		String answer = "";
+		String temAnwer = "";
+		Collections.sort(dictionary);
+
+		for (String vocabulary : dictionary) {
+			int pointer = 0;
+			int vocabularyLength = vocabulary.length();
+			vocabulary.charAt(pointer);
+
+			for (int i = 0; i < s.length(); i++) {
+
+				if (vocabulary.charAt(pointer) == s.charAt(i)) {
+
+					pointer++;
+
+				}
+
+				if (pointer == vocabularyLength) {
+					temAnwer = vocabulary;
+					break;
+				}
+
+			}
+
+			if (temAnwer.length() > answer.length()) {
+				answer = temAnwer;
+			}
+
+		}
+
+		return answer;
+	}
+}
+
+
