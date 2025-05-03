@@ -1,0 +1,271 @@
+https://leetcode.com/problems/maximum-sum-with-at-most-k-elements/description/
+
+3462. Maximum Sum With at Most K Elements
+Medium
+Topics
+Companies
+Hint
+You are given a 2D integer matrix grid of size n x m, an integer array limits of length n, and an integer k. The task is to find the maximum sum of at most k elements from the matrix grid such that:
+
+The number of elements taken from the ith row of grid does not exceed limits[i].
+
+Return the maximum sum.
+
+ 
+
+Example 1:
+
+Input: grid = [[1,2],[3,4]], limits = [1,2], k = 2
+
+Output: 7
+
+Explanation:
+
+From the second row, we can take at most 2 elements. The elements taken are 4 and 3.
+The maximum possible sum of at most 2 selected elements is 4 + 3 = 7.
+Example 2:
+
+Input: grid = [[5,3,7],[8,2,6]], limits = [2,2], k = 3
+
+Output: 21
+
+Explanation:
+
+From the first row, we can take at most 2 elements. The element taken is 7.
+From the second row, we can take at most 2 elements. The elements taken are 8 and 6.
+The maximum possible sum of at most 3 selected elements is 7 + 8 + 6 = 21.
+ 
+
+Constraints:
+
+n == grid.length == limits.length
+m == grid[i].length
+1 <= n, m <= 500
+0 <= grid[i][j] <= 105
+0 <= limits[i] <= m
+0 <= k <= min(n * m, sum(limits))
+
+
+
+# java
+
+
+class Solution {
+  public long maxSum(int[][] grid, int[] limits, int k) {
+    long ans = 0;
+    Queue<Integer> minHeap = new PriorityQueue<>();
+
+    for (int i = 0; i < grid.length; ++i) {
+      Arrays.sort(grid[i]);
+      for (int j = grid[i].length - 1; j >= grid[i].length - limits[i]; --j) {
+        minHeap.offer(grid[i][j]);
+        if (minHeap.size() == k + 1)
+          minHeap.poll();
+      }
+    }
+
+    while (!minHeap.isEmpty())
+      ans += minHeap.poll();
+
+    return ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public long maxSum(int[][] grid, int[] limits, int k) {
+        PriorityQueue<Integer> pq = new PriorityQueue<>();
+        int n = grid.length;
+        for (int i = 0; i < n; ++i) {
+            int[] nums = grid[i];
+            int limit = limits[i];
+            Arrays.sort(nums);
+            for (int j = 0; j < limit; ++j) {
+                pq.offer(nums[nums.length - j - 1]);
+                if (pq.size() > k) {
+                    pq.poll();
+                }
+            }
+        }
+        long ans = 0;
+        for (int x : pq) {
+            ans += x;
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution
+{
+    public long maxSum(int[][] grid, int[] limits, int k)
+    {
+        int n = grid.length, m = grid[0].length;
+        long sum = 0;
+
+        // Step 1: Use a max heap to store elements in descending order
+        PriorityQueue<int[]> result = new PriorityQueue<>((a, b) -> b[0] - a[0]);
+
+        // Step 2: Push all grid elements into the heap with their row indices
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = 0; j < m; j++)
+            {
+                result.add(new int[]{grid[i][j], i});
+            }
+        }
+
+        // Step 3: Track elements taken from each row
+        int[] caught = new int[n]; 
+
+        // Step 4: Extract the largest element from the heap while respecting constraints
+        while (k > 0 && !result.isEmpty())
+        {
+            int[] limited = result.poll();
+            int value = limited[0], row = limited[1];
+
+            if (caught[row] < limits[row])
+            {
+                sum += value;
+                caught[row]++;
+                k--;
+            }
+        }
+
+        return sum;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public long maxSum(int[][] grid, int[] limits, int k) {
+        if(grid.length == 0) return 0;
+        PriorityQueue<Integer> pq = new PriorityQueue<>(Collections.reverseOrder());
+        PriorityQueue<Integer> temp;
+        for(int i = 0; i< grid.length; i++) {
+            temp = new PriorityQueue<>(Collections.reverseOrder());
+            for(int j = 0; j < grid[i].length; j++) {
+                temp.add(grid[i][j]);
+            }
+            int cnt = 0;
+            while(!temp.isEmpty() && cnt < limits[i]) {
+                pq.add(temp.poll());
+                cnt+=1;
+            } 
+        }
+        long result = 0, count = 0;
+        while(!pq.isEmpty() && count < k) {
+            result+=pq.poll();
+            count+=1;
+        }
+        return result;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public long maxSum(int[][] grid, int[] limits, int k) {
+
+        long answer = 0, count = 0;
+
+        PriorityQueue<Integer> maxpq = new PriorityQueue<>(Collections.reverseOrder());
+        PriorityQueue<Integer> pq;
+
+        for(int i = 0; i < grid.length; i++) {
+
+            pq = new PriorityQueue<>(Collections.reverseOrder());
+
+            for(int j = 0; j < grid[i].length; j++) pq.add(grid[i][j]);
+
+            count = 0;
+            while(!pq.isEmpty() && count < limits[i]) {
+                maxpq.add(pq.poll());
+                count++;
+            }
+        }
+        count = 0;
+        while(!maxpq.isEmpty() && count < k) {
+            answer += maxpq.poll();
+            count++;
+        }
+
+        return answer;
+    }
+}
+
+or
+
+class Solution {
+    public long maxSum(int[][] grid, int[] limits, int k) {
+        long sum = 0;
+        int rows = grid.length;
+        int cols = grid[0].length;
+        PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Comparator.reverseOrder());
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+
+        for(int i=0; i<rows; i++){
+            for(int j=0; j<cols; j++){
+                minHeap.offer(grid[i][j]);
+
+                if(minHeap.size() > limits[i]){
+                    minHeap.poll();
+                }
+            }
+            
+            while(!minHeap.isEmpty()){
+                maxHeap.offer(minHeap.poll());
+            }
+        }
+
+        for(int i=0; i<k; i++){
+            sum += maxHeap.poll();
+        }
+
+        return sum;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public long maxSum(int[][] grid, int[] limits, int k) {
+        List<Integer> al = new ArrayList<>();
+        for (int i = 0; i < grid.length; i++) {
+            PriorityQueue<Integer> pq = new PriorityQueue<>();
+            for (int num : grid[i]) {
+                pq.offer(num); 
+                if (pq.size() > limits[i]) {
+                    pq.poll();  
+                }
+            }
+            while (!pq.isEmpty()) {
+                al.add(pq.poll());
+            }
+        }
+        Collections.sort(al, Collections.reverseOrder());
+        long result = 0;
+        for (int i = 0; i < Math.min(k, al.size()); i++) {
+            result += al.get(i);
+        }
+        return result;
+    }
+}
