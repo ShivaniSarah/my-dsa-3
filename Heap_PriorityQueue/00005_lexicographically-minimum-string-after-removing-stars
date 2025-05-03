@@ -1,0 +1,574 @@
+https://leetcode.com/problems/lexicographically-minimum-string-after-removing-stars/description/
+
+
+3170. Lexicographically Minimum String After Removing Stars
+Solved
+Medium
+Topics
+Companies
+You are given a string s. It may contain any number of '*' characters. Your task is to remove all '*' characters.
+
+While there is a '*', do the following operation:
+
+Delete the leftmost '*' and the smallest non-'*' character to its left. If there are several smallest characters, you can delete any of them.
+Return the lexicographically smallest resulting string after removing all '*' characters.
+
+ 
+
+Example 1:
+
+Input: s = "aaba*"
+
+Output: "aab"
+
+Explanation:
+
+We should delete one of the 'a' characters with '*'. If we choose s[3], s becomes the lexicographically smallest.
+
+Example 2:
+
+Input: s = "abc"
+
+Output: "abc"
+
+Explanation:
+
+There is no '*' in the string.
+
+ 
+
+Constraints:
+
+1 <= s.length <= 105
+s consists only of lowercase English letters and '*'.
+The input is generated such that it is possible to delete all '*' characters.
+
+
+
+
+
+# jaa
+
+class Solution {
+  public String clearStars(String s) {
+    StringBuilder sb = new StringBuilder(s);
+    List<Integer>[] buckets = new List[26];
+
+    for (int i = 0; i < 26; ++i)
+      buckets[i] = new ArrayList<>();
+
+    for (int i = 0; i < s.length(); ++i)
+      if (s.charAt(i) == '*') {
+        sb.setCharAt(i, ' ');
+        int j = 0;
+        while (buckets[j].isEmpty())
+          ++j;
+        sb.setCharAt(buckets[j].remove(buckets[j].size() - 1), ' ');
+      } else {
+        buckets[s.charAt(i) - 'a'].add(i);
+      }
+
+    return sb.toString().replaceAll(" ", "");
+  }
+}
+
+
+
+
+
+or
+
+
+
+class Solution {
+    public String clearStars(String s) {
+        Deque<Integer>[] g = new Deque[26];
+        Arrays.setAll(g, k -> new ArrayDeque<>());
+        int n = s.length();
+        boolean[] rem = new boolean[n];
+        for (int i = 0; i < n; ++i) {
+            if (s.charAt(i) == '*') {
+                rem[i] = true;
+                for (int j = 0; j < 26; ++j) {
+                    if (!g[j].isEmpty()) {
+                        rem[g[j].pop()] = true;
+                        break;
+                    }
+                }
+            } else {
+                g[s.charAt(i) - 'a'].push(i);
+            }
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < n; ++i) {
+            if (!rem[i]) {
+                sb.append(s.charAt(i));
+            }
+        }
+        return sb.toString();
+    }
+}
+
+
+
+or
+
+
+/*
+Note:
+In the Java version, to save time on building new S, I add the removing indices to a HashSet.
+In C++, this can be done in-place and no need to make a HashSet.
+*/
+class Solution {
+    public String clearStars(String s) {
+        HashSet<Integer> removeSet = new HashSet<>(); 
+        PriorityQueue<Character> pq = new PriorityQueue<>();
+        ArrayList<ArrayList<Integer> > indices =  
+                  new ArrayList<ArrayList<Integer>>();
+        for (int i = 0;i<26;i++){
+            indices.add(new ArrayList<Integer>());
+        }
+        char ch;
+        for (int i = 0;i<s.length();i++){
+            if (s.charAt(i) == '*'){
+                removeSet.add(i);
+                ch = pq.peek();
+                removeSet.add(indices.get((int)(ch - 'a')).get(indices.get((int)(ch - 'a')).size()-1));
+                indices.get((int)(ch - 'a')).remove(indices.get((int)(ch - 'a')).size()-1);
+                if (indices.get((int)(ch - 'a')).size()==0){
+                    pq.poll();
+                }
+                continue;
+            }
+            if (indices.get((int)(s.charAt(i) - 'a')).size() == 0){
+                pq.add(s.charAt(i));
+            }
+            indices.get((int)(s.charAt(i) - 'a')).add(i);
+        } 
+
+        StringBuilder res = new StringBuilder();
+        for (int i = 0;i<s.length();i++){
+            if (!removeSet.contains(i)){
+                res.append(s.charAt(i));
+            }
+        }
+        return res.toString();
+    }
+}
+
+
+
+or
+
+
+/*
+Note:
+In the Java version, to save time on building new S, I add the removing indices to a HashSet.
+In C++, this can be done in-place and no need to make a HashSet.
+*/
+class Solution {
+    public String clearStars(String s) {
+        HashSet<Integer> removeSet = new HashSet<>(); 
+        PriorityQueue<Character> pq = new PriorityQueue<>();
+        ArrayList<ArrayList<Integer> > indices =  
+                  new ArrayList<ArrayList<Integer>>();
+        for (int i = 0;i<26;i++){
+            indices.add(new ArrayList<Integer>());
+        }
+        char ch;
+        for (int i = 0;i<s.length();i++){
+            if (s.charAt(i) == '*'){
+                removeSet.add(i);
+                ch = pq.peek();
+                removeSet.add(indices.get((int)(ch - 'a')).get(indices.get((int)(ch - 'a')).size()-1));
+                indices.get((int)(ch - 'a')).remove(indices.get((int)(ch - 'a')).size()-1);
+                if (indices.get((int)(ch - 'a')).size()==0){
+                    pq.poll();
+                }
+                continue;
+            }
+            if (indices.get((int)(s.charAt(i) - 'a')).size() == 0){
+                pq.add(s.charAt(i));
+            }
+            indices.get((int)(s.charAt(i) - 'a')).add(i);
+        } 
+
+        StringBuilder res = new StringBuilder();
+        for (int i = 0;i<s.length();i++){
+            if (!removeSet.contains(i)){
+                res.append(s.charAt(i));
+            }
+        }
+        return res.toString();
+    }
+}
+
+
+
+or
+
+
+
+
+class Solution {
+    public String clearStars(String s){
+        int n = s.length();
+        
+        List<List<Integer>> buckets = new ArrayList<>();
+        
+        for(int i = 0; i < 26; i++){
+            buckets.add(new ArrayList<>());
+        }
+        
+        boolean[] removed = new boolean[n];
+        
+        for (int i = 0 ; i < n ; i++){
+            if(s.charAt(i) == '*'){
+                removed[i] = true;
+                for (int j = 0; j < 26; j++){
+                    if (!buckets.get(j).isEmpty()){
+                        removed[buckets.get(j).get(buckets.get(j).size() - 1)] = true;
+                        buckets.get(j).remove(buckets.get(j).size() - 1);
+                        break;
+                    }
+                }
+            } 
+            else{
+                buckets.get(s.charAt(i) - 'a').add(i);
+            }
+        }
+        
+        StringBuilder ans = new StringBuilder();
+        for(int i = 0 ; i < n ; i++){
+            if(!removed[i]) ans.append(s.charAt(i));
+        }
+        return ans.toString();
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public String clearStars(String s) {
+        StringBuilder str = new StringBuilder(s);
+        PriorityQueue<int[]> q = new PriorityQueue<>((int[] a, int[] b) -> {
+            int charComparison = Integer.compare(a[0], b[0]);
+            if (charComparison != 0) {
+                return charComparison;
+            }
+            return Integer.compare(b[1], a[1]); 
+        });
+        for(int i = 0; i < str.length(); i++){
+            if(str.charAt(i) == '*'){
+                str.setCharAt(i, '.'); //removing *
+                int left = i-1;
+                int smallestLeftCharIndex = (q.poll())[1]; //logn operation
+                str.setCharAt(smallestLeftCharIndex, '.');
+                left--;
+                
+            }else{
+                q.add(new int[]{s.charAt(i), i});
+            }
+        }
+        StringBuilder ans = new StringBuilder();
+        for(int i = 0; i < str.length(); i++){
+            if(str.charAt(i) != '.'){
+                ans.append(str.charAt(i));
+            }
+        }
+        return ans.toString();
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public String clearStars(String s) {
+        PriorityQueue<int[]> pq = new PriorityQueue<int[]>((a, b) -> {
+            if (a[0] == b[0]) {
+                return b[1] - a[1];
+            }
+            
+            return a[0] - b[0];
+        });
+        char items[] = s.toCharArray();
+        
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == '*') {
+                int item[] = pq.poll();
+                
+                items[item[1]] = 'A';
+                
+            } else {
+                pq.offer(new int[] {s.charAt(i), i});
+            }
+        }
+        
+        StringBuilder sb = new StringBuilder("");
+        
+        for (int i = 0; i < items.length; i++) {
+            if (items[i] != 'A' && items[i] != '*') {
+                sb.append(items[i]);
+            }
+        }
+        
+        return sb.toString();
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public String clearStars(String s) {
+        int n = s.length();
+        char[] sc = s.toCharArray();
+        int start = 0;
+        int asteriskCount = 0;
+        for (int i = 0; i < n; i++) {
+            if (sc[i] == '*') {
+                asteriskCount++;
+                if (asteriskCount == ((i + 2) >> 1)) 
+                    start = i + 1;
+            }
+        }
+        if (asteriskCount == 0)  return s;
+        if (start == n)  return "";
+        int[] linkedLists = new int[n];
+        int[] heads = new int[128];
+        for (int i = 'a'; i <= 'z'; i++)  heads[i] = -1;
+        for (int idx = start; idx < n; idx++) {
+            int c = sc[idx];
+            if (c == '*') {
+                if (idx >= n)  break;
+                sc[idx] = 0;
+                for (int i = 'a'; i <= 'z'; i++) {
+                    if (heads[i] >= 0) {
+                        sc[heads[i]] = 0;
+                        heads[i] = linkedLists[heads[i]];
+                        break;
+                    }
+                }
+            } else {
+                linkedLists[idx] = heads[c]; 
+                heads[c] = idx;
+            }
+        }
+        int outIdx = 0;
+        for (int i = start; i < n; i++)
+            if (sc[i] != 0)
+                sc[outIdx++] = sc[i];
+        
+        return new String(sc, 0, outIdx);
+    }
+}
+
+
+or
+
+
+class Solution {
+    public String clearStars(String s) {
+        TreeMap<Character, List<Integer>> mp = new TreeMap<>();
+        int n = s.length();
+        int[] v = new int[n];
+        
+        for (int i = 0; i < n; i++) {
+            if (s.charAt(i) != '*') {
+                mp.computeIfAbsent(s.charAt(i), k -> new ArrayList<>()).add(i);
+            } else {
+                v[i] = 1;
+                for (Map.Entry<Character, List<Integer>> entry : mp.entrySet()) {
+                    List<Integer> indices = entry.getValue();
+                    int m = indices.size();
+                    v[indices.get(m - 1)] = 1;
+                    indices.remove(m - 1);
+                    if (indices.isEmpty()) {
+                        mp.remove(entry.getKey());
+                    }
+                    break;
+                }
+            }
+        }
+        
+        StringBuilder ans = new StringBuilder();
+        for (int i = 0; i < n; i++) {
+            if (v[i] != 1) {
+                ans.append(s.charAt(i));
+            }
+        }
+        return ans.toString();
+    }
+}
+
+
+or
+
+
+class Solution {
+    public String clearStars(String s) {
+        if(!s.contains("*"))
+        {
+            return s;
+        }
+        
+        StringBuilder result = new StringBuilder();
+        PriorityQueue<Character> pq= new PriorityQueue<>();
+        for (char c : s.toCharArray()) {
+            if (c != '*') {
+                result.append(c);
+                pq.offer(c); 
+            } else if (!pq.isEmpty()) {
+                char minChar =pq.poll();
+                result.deleteCharAt(result.lastIndexOf(String.valueOf(minChar)));
+            }
+        }
+        return result.toString();
+        
+    }
+}
+
+or
+
+
+
+class pri{
+	int pos;char let;
+	pri(int pos,char let){
+		this.pos=pos;
+		this.let=let;
+	}
+}
+
+
+class Solution {
+    public String clearStars(String s) {
+        int pos=-1;char cur;
+		  	StringBuilder sb=new StringBuilder();
+		    Set<Integer> lt=new HashSet<>();
+	        PriorityQueue<pri> q=new PriorityQueue<>(new Comparator<pri>() {
+	        	public int compare(pri a,pri b) {
+	        		if(Character.compare(a.let, b.let)!=0)
+	        			return Character.compare(a.let, b.let);
+	        		return Integer.compare(b.pos,a.pos);
+	        	}
+	        });
+	        
+	        for(int i=0;i<s.length();i++) {  
+	        	if(s.charAt(i)!='*') { 
+	        		q.add(new pri(i,s.charAt(i)));
+	        		pos=q.peek().pos;
+	        		}
+	        	else {
+	        		lt.add(pos);
+	        		q.poll();
+	        		if(!q.isEmpty()) pos=q.peek().pos;
+	        	}
+	        }
+	        
+	        for(int i=0;i<s.length();i++) {
+	        	if(s.charAt(i)!='*'&&!lt.contains(i))
+	        		sb.append(s.charAt(i));
+	        }
+	        
+	        return new String(sb);
+    }
+}
+
+
+or
+
+
+   class Pair{
+        char c;
+        int ind;
+       public Pair(char c,int ind){
+           this.c=c;
+           this.ind=ind;
+       }
+    }
+class Solution {
+    public String clearStars(String s) {
+         PriorityQueue<Pair>pq=new PriorityQueue<>((a,b)->{
+            if(a.c!=b.c){
+                return a.c-b.c;
+            }
+            else{
+                return b.ind-a.ind;
+            }
+        });
+        int i=0;
+        for(char ch:s.toCharArray()){
+            if(ch=='*'){
+              if(!pq.isEmpty()){
+                  pq.poll();
+              }
+            }else{
+                pq.offer(new Pair(ch,i));
+            }
+            i++;
+        }
+        ArrayList<Pair>list=new ArrayList<>();
+        while(!pq.isEmpty()){
+            list.add(pq.poll());
+        }
+        Collections.sort(list,(a,b)->a.ind-b.ind);
+        StringBuilder sb=new StringBuilder();
+        for(Pair num:list){
+          sb.append(num.c);
+        }
+        return sb.toString();
+    }
+}
+
+
+or
+
+
+class Solution {
+    public static String clearStars(String s) {
+        TreeSet<Character> set = new TreeSet<>();
+        StringBuilder str = new StringBuilder();
+        int[] freq = new int[26];
+
+        for (char c : s.toCharArray()) {
+            if (c == '*') {
+                remove(str, set, freq);
+            } else {
+                freq[c - 'a']++;
+                set.add(c);
+                str.append(c);
+            }
+        }
+        return str.toString();
+    }
+
+    public static void remove(StringBuilder sb, TreeSet<Character> set, int[] freq) {
+        if (sb.length() == 0) return;
+
+        char ch = set.first();
+        int lastIndex = sb.lastIndexOf(String.valueOf(ch));
+
+        if (lastIndex != -1) {
+            int remainingFrequency = --freq[ch - 'a'];
+
+            if (remainingFrequency == 0) {
+                set.pollFirst();
+            }
+            sb.deleteCharAt(lastIndex);
+        }
+    }
+}
+
+
