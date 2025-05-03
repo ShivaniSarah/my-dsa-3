@@ -1,0 +1,391 @@
+https://leetcode.com/problems/move-pieces-to-obtain-a-string/description/
+
+
+2337. Move Pieces to Obtain a String
+Medium
+Topics
+Companies
+Hint
+You are given two strings start and target, both of length n. Each string consists only of the characters 'L', 'R', and '_' where:
+
+The characters 'L' and 'R' represent pieces, where a piece 'L' can move to the left only if there is a blank space directly to its left, and a piece 'R' can move to the right only if there is a blank space directly to its right.
+The character '_' represents a blank space that can be occupied by any of the 'L' or 'R' pieces.
+Return true if it is possible to obtain the string target by moving the pieces of the string start any number of times. Otherwise, return false.
+
+ 
+
+Example 1:
+
+Input: start = "_L__R__R_", target = "L______RR"
+Output: true
+Explanation: We can obtain the string target from start by doing the following moves:
+- Move the first piece one step to the left, start becomes equal to "L___R__R_".
+- Move the last piece one step to the right, start becomes equal to "L___R___R".
+- Move the second piece three steps to the right, start becomes equal to "L______RR".
+Since it is possible to get the string target from start, we return true.
+Example 2:
+
+Input: start = "R_L_", target = "__LR"
+Output: false
+Explanation: The 'R' piece in the string start can move one step to the right to obtain "_RL_".
+After that, no pieces can move anymore, so it is impossible to obtain the string target from start.
+Example 3:
+
+Input: start = "_R", target = "R_"
+Output: false
+Explanation: The piece in the string start can move only to the right, so it is impossible to obtain the string target from start.
+ 
+
+Constraints:
+
+n == start.length == target.length
+1 <= n <= 105
+start and target consist of the characters 'L', 'R', and '_'.
+
+
+# java
+
+
+class Solution {
+  public boolean canChange(String start, String target) {
+    final int n = start.length();
+    int i = 0; // start's index
+    int j = 0; // target's index
+
+    while (i <= n && j <= n) {
+      while (i < n && start.charAt(i) == '_')
+        ++i;
+      while (j < n && target.charAt(j) == '_')
+        ++j;
+      if (i == n || j == n)
+        return i == n && j == n;
+      if (start.charAt(i) != target.charAt(j))
+        return false;
+      if (start.charAt(i) == 'R' && i > j)
+        return false;
+      if (start.charAt(i) == 'L' && i < j)
+        return false;
+      ++i;
+      ++j;
+    }
+
+    return true;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public boolean canChange(String start, String target) {
+        List<int[]> a = f(start);
+        List<int[]> b = f(target);
+        if (a.size() != b.size()) {
+            return false;
+        }
+        for (int i = 0; i < a.size(); ++i) {
+            int[] x = a.get(i);
+            int[] y = b.get(i);
+            if (x[0] != y[0]) {
+                return false;
+            }
+            if (x[0] == 1 && x[1] < y[1]) {
+                return false;
+            }
+            if (x[0] == 2 && x[1] > y[1]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private List<int[]> f(String s) {
+        List<int[]> res = new ArrayList<>();
+        for (int i = 0; i < s.length(); ++i) {
+            if (s.charAt(i) == 'L') {
+                res.add(new int[] {1, i});
+            } else if (s.charAt(i) == 'R') {
+                res.add(new int[] {2, i});
+            }
+        }
+        return res;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+
+    public boolean canChange(String start, String target) {
+        // To keep track of visited states to avoid cycles
+        Set<String> visitedStates = new HashSet<>();
+        // Queue for current state
+        Queue<String> stateQueue = new LinkedList<>();
+        // Start with the initial state
+        stateQueue.add(start);
+
+        while (!stateQueue.isEmpty()) {
+            String currentState = stateQueue.poll();
+
+            // If we reach the target state, return true
+            if (currentState.equals(target)) return true;
+
+            for (
+                int position = 1;
+                position < currentState.length();
+                position++
+            ) {
+                // Try moving 'L' to the left
+                if (
+                    currentState.charAt(position) == 'L' &&
+                    currentState.charAt(position - 1) == '_'
+                ) {
+                    char[] stateArray = currentState.toCharArray();
+                    swap(stateArray, position, position - 1);
+                    String newState = new String(stateArray);
+                    if (!visitedStates.contains(newState)) {
+                        // Add the new state to the queue
+                        stateQueue.add(newState);
+                        // Mark the new state as visited
+                        visitedStates.add(newState);
+                    }
+                    // Restore the state
+                    swap(stateArray, position, position - 1);
+                }
+                // Try moving 'R' to the right
+                if (
+                    currentState.charAt(position - 1) == 'R' &&
+                    currentState.charAt(position) == '_'
+                ) {
+                    char[] stateArray = currentState.toCharArray();
+                    swap(stateArray, position, position - 1);
+                    String newState = new String(stateArray);
+                    if (!visitedStates.contains(newState)) {
+                        // Add the new state to the queue
+                        stateQueue.add(newState);
+                        // Mark the new state as visited
+                        visitedStates.add(newState);
+                    }
+                    // Restore the state
+                    swap(stateArray, position, position - 1);
+                }
+            }
+        }
+
+        // If no valid transformation sequence is found, return false
+        return false;
+    }
+
+    private void swap(char[] array, int i, int j) {
+        char temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public boolean canChange(String start, String target) {
+        // Queue to store characters and indices from both strings
+        Queue<Pair<Character, Integer>> startQueue =
+            new LinkedList<>(), targetQueue = new LinkedList<>();
+
+        // Record non-underscore characters and their indices
+        for (int i = 0; i < start.length(); i++) {
+            if (start.charAt(i) != '_') {
+                startQueue.add(new Pair<>(start.charAt(i), i));
+            }
+            if (target.charAt(i) != '_') {
+                targetQueue.add(new Pair<>(target.charAt(i), i));
+            }
+        }
+
+        // If number of pieces don't match, return false
+        if (startQueue.size() != targetQueue.size()) return false;
+
+        // Compare each piece's type and position
+        while (!startQueue.isEmpty()) {
+            Pair<Character, Integer> startPair = startQueue.poll();
+            Pair<Character, Integer> targetPair = targetQueue.poll();
+
+            char startChar = startPair.getKey();
+            int startIndex = startPair.getValue();
+            char targetChar = targetPair.getKey();
+            int targetIndex = targetPair.getValue();
+
+            // Check character match and movement rules
+            if (
+                startChar != targetChar ||
+                (startChar == 'L' && startIndex < targetIndex) ||
+                (startChar == 'R' && startIndex > targetIndex)
+            ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
+
+or
+
+
+public class Solution {
+
+    public boolean canChange(String start, String target) {
+        int startLength = start.length();
+        // Pointers for start string and target string
+        int startIndex = 0, targetIndex = 0;
+
+        while (startIndex < startLength || targetIndex < startLength) {
+            // Skip underscores in start
+            while (
+                startIndex < startLength && start.charAt(startIndex) == '_'
+            ) {
+                startIndex++;
+            }
+            // Skip underscores in target
+            while (
+                targetIndex < startLength && target.charAt(targetIndex) == '_'
+            ) {
+                targetIndex++;
+            }
+            // If one string is exhausted, both should be exhausted
+            if (startIndex == startLength || targetIndex == startLength) {
+                return startIndex == startLength && targetIndex == startLength;
+            }
+
+            // Check if the pieces match and follow movement rules
+            if (
+                start.charAt(startIndex) != target.charAt(targetIndex) ||
+                (start.charAt(startIndex) == 'L' && startIndex < targetIndex) ||
+                (start.charAt(startIndex) == 'R' && startIndex > targetIndex)
+            ) return false;
+
+            startIndex++;
+            targetIndex++;
+        }
+
+        // If all conditions are satisfied, return true
+        return true;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+      public boolean canChange(String start, String target) {
+        int balanceL = 0, balanceR = 0;
+        for (int i = 0, n = start.length(); i < n; ++i) {
+            char s = start.charAt(i), t = target.charAt(i);
+            balanceL += t == 'L' ? 1 : 0;
+            balanceR += s == 'R' ? 1 : 0;
+            // If both balancers > 0, there must be different 
+            // 'L...R...' subsequence between start and target.
+            if (balanceL * balanceR != 0) {
+                return false;
+            }
+            balanceL -= s == 'L' ? 1 : 0;
+            balanceR -= t == 'R' ? 1 : 0;
+            if (balanceL < 0 || balanceR < 0) {
+                return false;
+            }
+        }
+        return balanceL == 0 && balanceR == 0;
+    }
+
+}
+
+
+or
+
+
+
+class Solution {
+    public boolean canChange(String start, String target) {
+        if (start.equals(target)) {
+            return true;
+        }
+        int waitL = 0;
+        int waitR = 0;
+        
+        for (int i = 0; i < start.length(); i++) {
+            char curr = start.charAt(i);
+            char goal = target.charAt(i);
+            
+            if (curr == 'R') {
+                if (waitL > 0) {
+                    return false;
+                }
+                waitR++;
+            }
+            if (goal == 'L') {
+                if (waitR > 0) {
+                    return false;
+                }
+                waitL++;
+            }
+            if (goal == 'R') {
+                if (waitR == 0) {
+                    return false;
+                }
+                waitR--;
+            }
+            if (curr == 'L') {
+                if (waitL == 0) {
+                    return false;
+                }
+                waitL--;
+            }
+        }
+        
+        return waitL == 0 && waitR == 0;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public boolean canChange(String start, String target) {
+        int i = 0, j = 0, n = start.length();
+        
+        while (i < n || j < n) {
+            while (i < n && start.charAt(i) == '_')
+                i++;
+            while (j < n && target.charAt(j) == '_')
+                j++;
+            
+            if (i == n || j == n)
+                break;
+            if (start.charAt(i) != target.charAt(j))
+                return false;
+            if (start.charAt(i) == 'L' && i < j)
+                return false;
+            if (start.charAt(i) == 'R' && i > j)
+                return false;
+            
+            i++;
+            j++;
+        }
+        
+        return i == n && j == n;
+    }
+}
+
