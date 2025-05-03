@@ -1,0 +1,365 @@
+https://leetcode.com/problems/maximum-width-ramp/description/
+
+
+962. Maximum Width Ramp
+Medium
+Topics
+Companies
+A ramp in an integer array nums is a pair (i, j) for which i < j and nums[i] <= nums[j]. The width of such a ramp is j - i.
+
+Given an integer array nums, return the maximum width of a ramp in nums. If there is no ramp in nums, return 0.
+
+ 
+
+Example 1:
+
+Input: nums = [6,0,8,2,1,5]
+Output: 4
+Explanation: The maximum width ramp is achieved at (i, j) = (1, 5): nums[1] = 0 and nums[5] = 5.
+Example 2:
+
+Input: nums = [9,8,1,0,1,9,4,0,4,1]
+Output: 7
+Explanation: The maximum width ramp is achieved at (i, j) = (2, 9): nums[2] = 1 and nums[9] = 1.
+ 
+
+Constraints:
+
+2 <= nums.length <= 5 * 104
+0 <= nums[i] <= 5 * 104
+
+
+# java
+
+
+
+class Solution {
+
+    public int maxWidthRamp(int[] nums) {
+        int n = nums.length;
+        int maxWidth = 0;
+        for (int i = 0; i < n; ++i) {
+            for (int j = i + 1; j < n; ++j) {
+                if (nums[i] <= nums[j]) {
+                    maxWidth = Math.max(maxWidth, j - i);
+                }
+            }
+        }
+        return maxWidth;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+
+    public int maxWidthRamp(int[] nums) {
+        int n = nums.length;
+        Integer[] indices = new Integer[n];
+
+        // Initialize the array with indices
+        for (int i = 0; i < n; i++) {
+            indices[i] = i;
+        }
+
+        // Sort indices based on corresponding values in nums and ensure stability
+        Arrays.sort(indices, (i, j) ->
+            nums[i] != nums[j] ? nums[i] - nums[j] : i - j
+        );
+
+        int minIndex = n; // Minimum index encountered so far
+        int maxWidth = 0;
+
+        // Calculate maximum width ramp
+        for (int i : indices) {
+            maxWidth = Math.max(maxWidth, i - minIndex);
+            minIndex = Math.min(minIndex, i);
+        }
+
+        return maxWidth;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+
+    public int maxWidthRamp(int[] nums) {
+        int n = nums.length;
+        int[] rightMax = new int[n];
+
+        // Fill rightMax array with the maximum values from the right
+        rightMax[n - 1] = nums[n - 1];
+        for (int i = n - 2; i >= 0; i--) {
+            rightMax[i] = Math.max(rightMax[i + 1], nums[i]);
+        }
+
+        int left = 0, right = 0;
+        int maxWidth = 0;
+
+        // Traverse the array using left and right pointers
+        while (right < n) {
+            // Move left pointer forward if current left exceeds rightMax
+            while (left < right && nums[left] > rightMax[right]) {
+                left++;
+            }
+            maxWidth = Math.max(maxWidth, right - left);
+            right++;
+        }
+
+        return maxWidth;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+
+    public int maxWidthRamp(int[] nums) {
+        int n = nums.length;
+        Stack<Integer> indicesStack = new Stack<>();
+
+        // Fill the stack with indices in increasing order of their values
+        for (int i = 0; i < n; i++) {
+            if (indicesStack.isEmpty() || nums[indicesStack.peek()] > nums[i]) {
+                indicesStack.push(i);
+            }
+        }
+
+        int maxWidth = 0;
+
+        // Traverse the array from the end to the start
+        for (int j = n - 1; j >= 0; j--) {
+            while (
+                !indicesStack.isEmpty() && nums[indicesStack.peek()] <= nums[j]
+            ) {
+                maxWidth = Math.max(maxWidth, j - indicesStack.peek());
+                // Pop the index since it's already processed
+                indicesStack.pop();
+            }
+        }
+
+        return maxWidth;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+  public int maxWidthRamp(int[] nums) {
+    int ans = 0;
+    Deque<Integer> stack = new ArrayDeque<>();
+
+    for (int i = 0; i < nums.length; ++i)
+      if (stack.isEmpty() || nums[i] < nums[stack.peek()])
+        stack.push(i);
+
+    for (int i = nums.length - 1; i > ans; --i)
+      while (!stack.isEmpty() && nums[i] >= nums[stack.peek()])
+        ans = Math.max(ans, i - stack.pop());
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int maxWidthRamp(int[] nums) {
+        int n = nums.length;
+        Deque<Integer> stk = new ArrayDeque<>();
+        for (int i = 0; i < n; ++i) {
+            if (stk.isEmpty() || nums[stk.peek()] > nums[i]) {
+                stk.push(i);
+            }
+        }
+        int ans = 0;
+        for (int i = n - 1; i >= 0; --i) {
+            while (!stk.isEmpty() && nums[stk.peek()] <= nums[i]) {
+                ans = Math.max(ans, i - stk.pop());
+            }
+            if (stk.isEmpty()) {
+                break;
+            }
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int maxWidthRamp(int[] nums) {
+        int n = nums.length;
+        Stack<Integer> stack = new Stack<>();
+        
+        // Step 1: Build a decreasing stack of indices
+        for (int i = 0; i < n; ++i) {
+            if (stack.isEmpty() || nums[stack.peek()] > nums[i]) {
+                stack.push(i);
+            }
+        }
+        
+        int maxWidth = 0;
+        
+        // Step 2: Traverse from the end and find maximum width ramp
+        for (int j = n - 1; j >= 0; --j) {
+            while (!stack.isEmpty() && nums[stack.peek()] <= nums[j]) {
+                maxWidth = Math.max(maxWidth, j - stack.pop());
+            }
+        }
+        
+        return maxWidth;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int maxWidthRamp(int[] nums) {
+        int ans = 0;
+        int n = nums.length;
+
+        // Create a list of pairs (element, index)
+        List<int[]> vp = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            vp.add(new int[]{nums[i], i});
+        }
+
+        // Sort the list based on the element values
+        vp.sort((a, b) -> a[0] - b[0]);
+
+        // Keep track of the minimum index seen so far
+        int minIndex = vp.get(0)[1];
+
+        // Traverse the sorted list to calculate the maximum width ramp
+        for (int i = 1; i < n; i++) {
+            int currentIndex = vp.get(i)[1];
+            ans = Math.max(ans, currentIndex - minIndex);
+            minIndex = Math.min(minIndex, currentIndex);
+        }
+
+        return ans;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int maxWidthRamp(int[] nums) {
+        int ans = 0;
+        int n = nums.length;
+
+        // Stack to store the pairs of (value, index) in decreasing order
+        Stack<int[]> st = new Stack<>();
+        
+        // First pass: store elements in decreasing order
+        for (int i = 0; i < n; i++) {
+            if (st.isEmpty() || st.peek()[0] > nums[i]) {
+                st.push(new int[]{nums[i], i});
+            }
+        }
+
+        // Second pass: start from the last index to find the largest ramp
+        for (int i = n - 1; i >= 0; i--) {
+            while (!st.isEmpty() && nums[i] >= st.peek()[0]) {
+                int index = st.peek()[1];
+                ans = Math.max(ans, i - index);
+                st.pop();
+            }
+        }
+
+        return ans;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+
+    public int maxWidthRamp(int[] nums) {
+        int n = nums.length;
+        int[] rightMax = new int[n];
+        rightMax[n - 1] = nums[n - 1];
+
+        for (int i = n - 2; i >= 0; i--) 
+        rightMax[i] = Math.max(rightMax[i + 1], nums[i]);
+        
+        int left = 0, right = 0, maxVal = 0;
+
+        while (right < n) {
+            while (right<n && nums[left]<=rightMax[right])
+            right++;           
+            maxVal = Math.max(maxVal, right - left-1);
+            left++;
+            right = left + maxVal + 1; 
+        }
+
+        return maxVal;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int maxWidthRamp(int[] nums) {
+        int n = nums.length;
+        int[] rightMax = new int[n];
+        rightMax[n - 1] = nums[n - 1];
+
+        for (int i = n - 2; i >= 0; i--) {
+            rightMax[i] = Math.max(rightMax[i + 1], nums[i]);
+        }
+
+        int l = 0, r = 0, rslt = 0;
+
+        while (r < n) {
+            while (l < r && nums[l] > rightMax[r]) {
+                l++;
+            }
+            rslt = Math.max(rslt, r - l);
+            r++;
+        }
+
+        return rslt;
+    }
+}
+
+
+
+or
+
+
