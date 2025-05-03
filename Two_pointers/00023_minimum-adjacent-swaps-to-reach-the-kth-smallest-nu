@@ -1,0 +1,505 @@
+https://leetcode.com/problems/minimum-adjacent-swaps-to-reach-the-kth-smallest-number/description/
+
+
+1850. Minimum Adjacent Swaps to Reach the Kth Smallest Number
+Medium
+Topics
+Companies
+Hint
+You are given a string num, representing a large integer, and an integer k.
+
+We call some integer wonderful if it is a permutation of the digits in num and is greater in value than num. There can be many wonderful integers. However, we only care about the smallest-valued ones.
+
+For example, when num = "5489355142":
+The 1st smallest wonderful integer is "5489355214".
+The 2nd smallest wonderful integer is "5489355241".
+The 3rd smallest wonderful integer is "5489355412".
+The 4th smallest wonderful integer is "5489355421".
+Return the minimum number of adjacent digit swaps that needs to be applied to num to reach the kth smallest wonderful integer.
+
+The tests are generated in such a way that kth smallest wonderful integer exists.
+
+ 
+
+Example 1:
+
+Input: num = "5489355142", k = 4
+Output: 2
+Explanation: The 4th smallest wonderful number is "5489355421". To get this number:
+- Swap index 7 with index 8: "5489355142" -> "5489355412"
+- Swap index 8 with index 9: "5489355412" -> "5489355421"
+Example 2:
+
+Input: num = "11112", k = 4
+Output: 4
+Explanation: The 4th smallest wonderful number is "21111". To get this number:
+- Swap index 3 with index 4: "11112" -> "11121"
+- Swap index 2 with index 3: "11121" -> "11211"
+- Swap index 1 with index 2: "11211" -> "12111"
+- Swap index 0 with index 1: "12111" -> "21111"
+Example 3:
+
+Input: num = "00123", k = 1
+Output: 1
+Explanation: The 1st smallest wonderful number is "00132". To get this number:
+- Swap index 3 with index 4: "00123" -> "00132"
+ 
+
+Constraints:
+
+2 <= num.length <= 1000
+1 <= k <= 1000
+num only consists of digits.
+
+
+# java
+
+
+class Solution {
+  public int getMinSwaps(String num, int k) {
+    int[] original = new int[num.length()];
+
+    for (int i = 0; i < original.length; ++i)
+      original[i] = num.charAt(i) - '0';
+
+    int[] permutated = original.clone();
+
+    for (int i = 0; i < k; ++i)
+      nextPermutation(permutated);
+
+    return countSteps(original, permutated);
+  }
+
+  public void nextPermutation(int[] nums) {
+    final int n = nums.length;
+
+    // From the back to the front, find the first num < nums[i + 1].
+    int i;
+    for (i = n - 2; i >= 0; --i)
+      if (nums[i] < nums[i + 1])
+        break;
+
+    // From the back to the front, find the first num > nums[i] and swap it with nums[i].
+    if (i >= 0)
+      for (int j = n - 1; j > i; --j)
+        if (nums[j] > nums[i]) {
+          swap(nums, i, j);
+          break;
+        }
+
+    // Reverse nums[i + 1..n - 1].
+    reverse(nums, i + 1, n - 1);
+  }
+
+  private void reverse(int[] nums, int l, int r) {
+    while (l < r)
+      swap(nums, l++, r--);
+  }
+
+  private void swap(int[] nums, int i, int j) {
+    final int temp = nums[i];
+    nums[i] = nums[j];
+    nums[j] = temp;
+  }
+
+  private int countSteps(int[] A, int[] B) {
+    int count = 0;
+
+    for (int i = 0, j = 0; i < A.length; ++i) {
+      j = i;
+      while (A[i] != B[j])
+        ++j;
+      while (i < j) {
+        swap(B, j, j - 1);
+        --j;
+        ++count;
+      }
+    }
+
+    return count;
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    public int getMinSwaps(String num, int k) {
+        char[] s = num.toCharArray();
+        for (int i = 0; i < k; ++i) {
+            nextPermutation(s);
+        }
+        List<Integer>[] d = new List[10];
+        Arrays.setAll(d, i -> new ArrayList<>());
+        int n = s.length;
+        for (int i = 0; i < n; ++i) {
+            d[num.charAt(i) - '0'].add(i);
+        }
+        int[] idx = new int[10];
+        int[] arr = new int[n];
+        for (int i = 0; i < n; ++i) {
+            arr[i] = d[s[i] - '0'].get(idx[s[i] - '0']++);
+        }
+        int ans = 0;
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < i; ++j) {
+                if (arr[j] > arr[i]) {
+                    ++ans;
+                }
+            }
+        }
+        return ans;
+    }
+
+    private boolean nextPermutation(char[] nums) {
+        int n = nums.length;
+        int i = n - 2;
+        while (i >= 0 && nums[i] >= nums[i + 1]) {
+            --i;
+        }
+        if (i < 0) {
+            return false;
+        }
+        int j = n - 1;
+        while (j >= 0 && nums[i] >= nums[j]) {
+            --j;
+        }
+        swap(nums, i++, j);
+        for (j = n - 1; i < j; ++i, --j) {
+            swap(nums, i, j);
+        }
+        return true;
+    }
+
+    private void swap(char[] nums, int i, int j) {
+        char t = nums[i];
+        nums[i] = nums[j];
+        nums[j] = t;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int getMinSwaps(String num, int k) {
+        int n = num.length();
+        
+        //store index 
+        int[] number = new int[n];
+        for(int i = 0; i < n; i++){
+            int digit = num.charAt(i) - '0';
+            number[i] = digit;
+        }
+        
+        //compute kth smallest number
+        int[] kthSmallestNumber = getKthSmallestNumber(number.clone(), k);
+        
+        return getMinSwaps(number, kthSmallestNumber);
+    }
+    
+    private int[] getKthSmallestNumber(int[] nums, int k){
+        while(k --> 0){
+            computeNextPermutation(nums);
+        }
+        return nums;
+    }
+    
+    private void computeNextPermutation(int[] nums){
+        int n = nums.length;
+        int i = n - 2;
+        
+        //find first index from last which value smaller than next element 
+        while(i >= 0 && nums[i] >= nums[i + 1]){
+            i--;
+        }
+        
+
+        if(i >= 0){
+            //find index which is just greater than that index value (e.g i)
+            int j = n - 1;
+            while(j > i && nums[j] <= nums[i]){
+                j--;
+            }
+            swap(nums, i, j);
+        }
+        
+        //sort all element which index greater than <i>
+        Arrays.sort(nums, i + 1, n);
+    }
+    
+    private void swap(int[] arr, int i, int j){
+        int temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
+    }
+    
+    private int getMinSwaps(int[] number, int[] kthSmallestNumber){
+        int swapCount = 0;
+        int n = number.length;
+        
+        for(int i = 0; i < n; i++){
+            //ignore, as it already in correct position, no need for swap
+            if(number[i] == kthSmallestNumber[i]) continue;
+            
+            //find the coorect position
+            int j = i + 1;
+            while(j < n && number[i] != kthSmallestNumber[j]){
+                j++;
+            }
+            
+            //swift to correct position
+            while(j > i){
+                swap(kthSmallestNumber, j - 1, j);
+                swapCount++;
+                j--;
+            }
+            
+        }
+        
+        return swapCount;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int getMinSwaps(String num, int k) {
+        int n=num.length(),answer=0;
+        char[] arr1=num.toCharArray(),arr2=new char[n];
+        for(int i=0;i<n;i++)
+            arr2[i]=arr1[i];
+        for(int i=n-2;i>=0&&k!=0;i--) {
+            if (arr2[i]<arr2[i+1]) {
+                int j=i+1;
+                for(;j<n&&arr2[j]>arr2[i];j++);
+                swap(--j,i,arr2);
+                for(int l=i+1,r=n-1;l<r;l++,r--)
+                    swap(l,r,arr2);
+                i=n-1;
+                k--;
+            }
+        }
+        for(int i=0;i<n;i++){
+            if(arr2[i]!=arr1[i]){
+                int j=i+1;
+                for(;j<n&&arr2[j]!=arr1[i];j++);
+                for(;j>i;j--,answer++)
+                    swap(j, j - 1, arr2);
+            }
+        }
+        return answer;
+    }
+    void swap(int l,int r,char[] buf){
+        char c=buf[l];
+        buf[l]=buf[r];
+        buf[r]=c;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int getMinSwaps(String num, int k) {
+
+
+
+        //Kth next permutation
+
+        char arr [] = num.toCharArray();
+
+        while(k > 0){
+
+            int i = arr.length-2;
+
+
+            while(i>=0 && arr[i] >= arr[i+1]){
+                i--;
+            }
+
+            if(i>=0){
+
+                int j = arr.length-1;
+
+
+                while(j>=0 && arr[i] >= arr[j])j--;
+
+                swap(i,j,arr);
+            }
+
+            reverse(i+1,arr.length-1,arr);
+
+            k--;
+        }
+
+        //steps
+
+        // 11112
+        // 12111
+
+        
+
+    
+
+
+       
+       int step = 0;
+
+       for(int i = 0 ; i< num.length() ; i++){
+
+          if(arr[i] != num.charAt(i)){
+            int j = 0;
+            for(j = i+1 ; j < num.length() ; j++){
+
+                if(arr[j] == num.charAt(i)) break;
+            }
+
+            while(j>0 && j!=i){
+                swap(j,j-1,arr);
+                step++;
+                j--;
+            }
+          }
+       }
+
+        return step;
+
+
+
+
+        
+    }
+
+    void reverse(int i, int j, char[] nums){
+        while(i<= j){
+            swap(i,j,nums);
+            i++;
+            j--;
+        }
+    }
+
+
+    void swap (int i, int j , char [] nums){
+        if(i!= j){
+        char temp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = temp;
+        }
+    }
+}
+
+
+
+
+or
+
+
+
+class Solution {
+    public int getMinSwaps(String num, int k) {
+        int n=num.length(),answer=0;
+        char[] arr1=num.toCharArray(),arr2=new char[n];
+        for(int i=0;i<n;i++)
+            arr2[i]=arr1[i];
+        for(int i=n-2;i>=0&&k!=0;i--) {
+            if (arr2[i]<arr2[i+1]) {
+                int j=i+1;
+                for(;j<n&&arr2[j]>arr2[i];j++);
+                swap(--j,i,arr2);
+                for(int l=i+1,r=n-1;l<r;l++,r--)
+                    swap(l,r,arr2);
+                i=n-1;
+                k--;
+            }
+        }
+        for(int i=0;i<n;i++){
+            if(arr2[i]!=arr1[i]){
+                int j=i+1;
+                for(;j<n&&arr2[j]!=arr1[i];j++);
+                for(;j>i;j--,answer++)
+                    swap(j, j - 1, arr2);
+            }
+        }
+        return answer;
+    }
+    void swap(int l,int r,char[] buf){
+        char c=buf[l];
+        buf[l]=buf[r];
+        buf[r]=c;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int getMinSwaps(String num, int k) {
+        char[] target = num.toCharArray();
+        for (int i = 0; i < k; i++) {
+            target = nextPermutation(target);
+        }
+        return countMinSwaps(num.toCharArray(), target);
+    }
+
+    private char[] nextPermutation(char[] arr) {
+        int n = arr.length;
+        int i = n - 2;
+        while (i >= 0 && arr[i] >= arr[i + 1]) {
+            i--;
+        }
+        if (i >= 0) {
+            int j = n - 1;
+            while (arr[j] <= arr[i]) {
+                j--;
+            }
+            swap(arr, i, j);
+        }
+        reverse(arr, i + 1, n - 1);
+        return arr;
+    }
+
+    private void swap(char[] arr, int i, int j) {
+        char temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
+    }
+
+    private void reverse(char[] arr, int start, int end) {
+        while (start < end) {
+            swap(arr, start, end);
+            start++;
+            end--;
+        }
+    }
+
+    private int countMinSwaps(char[] arr1, char[] arr2) {
+        int swaps = 0;
+        for (int i = 0; i < arr1.length; i++) {
+            if (arr1[i] != arr2[i]) {
+                int j = i;
+                while (arr1[j] != arr2[i]) {
+                    j++;
+                }
+                while (j > i) {
+                    swap(arr1, j, j - 1);
+                    swaps++;
+                    j--;
+                }
+            }
+        }
+        return swaps;
+    }
+}
+
+
