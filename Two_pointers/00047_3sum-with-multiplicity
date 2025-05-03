@@ -1,0 +1,223 @@
+https://leetcode.com/problems/3sum-with-multiplicity/description/
+
+
+923. 3Sum With Multiplicity
+Medium
+Topics
+Companies
+Given an integer array arr, and an integer target, return the number of tuples i, j, k such that i < j < k and arr[i] + arr[j] + arr[k] == target.
+
+As the answer can be very large, return it modulo 109 + 7.
+
+ 
+
+Example 1:
+
+Input: arr = [1,1,2,2,3,3,4,4,5,5], target = 8
+Output: 20
+Explanation: 
+Enumerating by the values (arr[i], arr[j], arr[k]):
+(1, 2, 5) occurs 8 times;
+(1, 3, 4) occurs 8 times;
+(2, 2, 4) occurs 2 times;
+(2, 3, 3) occurs 2 times.
+Example 2:
+
+Input: arr = [1,1,2,2,2,2], target = 5
+Output: 12
+Explanation: 
+arr[i] = 1, arr[j] = arr[k] = 2 occurs 12 times:
+We choose one 1 from [1,1] in 2 ways,
+and two 2s from [2,2,2,2] in 6 ways.
+Example 3:
+
+Input: arr = [2,1,3], target = 6
+Output: 1
+Explanation: (1, 2, 3) occured one time in the array so we return 1.
+ 
+
+Constraints:
+
+3 <= arr.length <= 3000
+0 <= arr[i] <= 100
+0 <= target <= 300
+
+# java
+
+
+class Solution {
+  public int threeSumMulti(int[] arr, int target) {
+    final int MOD = 1_000_000_007;
+    int ans = 0;
+    Map<Integer, Integer> count = new HashMap<>();
+
+    for (final int a : arr)
+      count.merge(a, 1, Integer::sum);
+
+    for (Map.Entry<Integer, Integer> entry : count.entrySet()) {
+      final int i = entry.getKey();
+      final int x = entry.getValue();
+      for (Map.Entry<Integer, Integer> entry2 : count.entrySet()) {
+        final int j = entry2.getKey();
+        final int y = entry2.getValue();
+        final int k = target - i - j;
+        if (!count.containsKey(k))
+          continue;
+        if (i == j && j == k)
+          ans = (int) ((ans + (long) x * (x - 1) * (x - 2) / 6) % MOD);
+        else if (i == j && j != k)
+          ans = (int) ((ans + (long) x * (x - 1) / 2 * count.get(k)) % MOD);
+        else if (i < j && j < k)
+          ans = (int) ((ans + (long) x * y * count.get(k)) % MOD);
+      }
+    }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    private static final int MOD = (int) 1e9 + 7;
+
+    public int threeSumMulti(int[] arr, int target) {
+        int[] cnt = new int[101];
+        for (int v : arr) {
+            ++cnt[v];
+        }
+        long ans = 0;
+        for (int j = 0; j < arr.length; ++j) {
+            int b = arr[j];
+            --cnt[b];
+            for (int i = 0; i < j; ++i) {
+                int a = arr[i];
+                int c = target - a - b;
+                if (c >= 0 && c <= 100) {
+                    ans = (ans + cnt[c]) % MOD;
+                }
+            }
+        }
+        return (int) ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int threeSumMulti(int[] arr, int target) {
+        long result = 0;
+        long count[] = new long[101];
+        long mod = 1000000007;
+		
+		//Couting the occurrence of each number
+        for(int i: arr) count[i]++;
+        
+        for(int i=0;i<101;i++){
+            for(int j=i;j<101;j++){
+                int k = target - i -j;
+                if(k<0 || k>100)
+                    continue;
+				// if all number are same than use nC3
+                if(i==j && j==k){
+                    result += (count[i]*(count[i]-1)*(count[i]-2))/6;
+                }
+				
+				//if first two are same than use nC2 * occurence of k
+                else if(i==j && j!=k){
+                    result += ((count[i]*(count[i]-1))/2)*count[k];
+                }
+				//Last condition if all number ar different
+				else if(i<j && j<k){
+                    result += (count[i]*count[j]*count[k]);
+                }
+                result %= mod;
+            }
+        }
+        return (int)result;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int threeSumMulti(int[] A, int T) {
+        long[] nmap = new long[101];
+        long ans = 0;
+        for (int num : A) nmap[num]++;
+        for (int k = 100; k >= 0; k--)
+            for (int j = k; j >= 0; j--) {
+                int i = T - k - j;
+                if (i > j || i < 0) continue;
+                long x = nmap[i], y = nmap[j], z = nmap[k], res = x * y * z;
+                if (res == 0) continue;
+                if (i == k) res = x * (x-1) * (x-2) / 6;
+                else if (i == j) res = x * (x-1) / 2 * z;
+                else if (j == k) res = x * y * (y-1) / 2;
+                ans += res;
+            }
+        return (int)(ans % 1000000007);
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int threeSumMulti(int[] arr, int target) {
+        int n = arr.length;
+        Arrays.sort(arr);
+        long ans = 0;
+
+        for (int i = 0; i < n - 2; i++) {
+            int sum = target - arr[i];
+            int l = i + 1, r = n - 1;
+
+            while (l < r) {
+                if (arr[l] + arr[r] < sum) l++;
+                else if (arr[l] + arr[r] > sum) r--;
+                else {
+                    int count1 = 1, count2 = 1;
+
+                    if (arr[l] == arr[r]) {
+                        int len = r - l + 1;
+                        ans += (len * (len - 1) / 2);
+                        break;
+                    }
+
+                    while (l < r && arr[l] == arr[l + 1]) {
+                        count1++;
+                        l++;
+                    }
+
+                    while (r > l && arr[r] == arr[r - 1]) {
+                        count2++;
+                        r--;
+                    }
+
+                    ans += (count1 * count2);
+                    l++; r--;
+                }
+            }
+        }
+
+        return (int) (ans % 1000000007);
+    }
+}
+
+// TC: O(n * logn) + O(n ^ 2) ~ O(n ^ 2)
+// SC: O(1)
+
+
