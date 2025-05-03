@@ -1,0 +1,291 @@
+https://leetcode.com/problems/choose-k-elements-with-maximum-sum/description/
+
+
+3478. Choose K Elements With Maximum Sum
+Medium
+Topics
+Companies
+Hint
+You are given two integer arrays, nums1 and nums2, both of length n, along with a positive integer k.
+
+For each index i from 0 to n - 1, perform the following:
+
+Find all indices j where nums1[j] is less than nums1[i].
+Choose at most k values of nums2[j] at these indices to maximize the total sum.
+Return an array answer of size n, where answer[i] represents the result for the corresponding index i.
+
+ 
+
+Example 1:
+
+Input: nums1 = [4,2,1,5,3], nums2 = [10,20,30,40,50], k = 2
+
+Output: [80,30,0,80,50]
+
+Explanation:
+
+For i = 0: Select the 2 largest values from nums2 at indices [1, 2, 4] where nums1[j] < nums1[0], resulting in 50 + 30 = 80.
+For i = 1: Select the 2 largest values from nums2 at index [2] where nums1[j] < nums1[1], resulting in 30.
+For i = 2: No indices satisfy nums1[j] < nums1[2], resulting in 0.
+For i = 3: Select the 2 largest values from nums2 at indices [0, 1, 2, 4] where nums1[j] < nums1[3], resulting in 50 + 30 = 80.
+For i = 4: Select the 2 largest values from nums2 at indices [1, 2] where nums1[j] < nums1[4], resulting in 30 + 20 = 50.
+Example 2:
+
+Input: nums1 = [2,2,2,2], nums2 = [3,1,2,3], k = 1
+
+Output: [0,0,0,0]
+
+Explanation:
+
+Since all elements in nums1 are equal, no indices satisfy the condition nums1[j] < nums1[i] for any i, resulting in 0 for all positions.
+
+ 
+
+Constraints:
+
+n == nums1.length == nums2.length
+1 <= n <= 105
+1 <= nums1[i], nums2[i] <= 106
+1 <= k <= n
+
+
+# java
+
+
+class Solution {
+  public long[] findMaxSum(int[] nums1, int[] nums2, int k) {
+    final int n = nums1.length;
+    long[] ans = new long[n];
+    Pair<Integer, Integer>[] numAndIndexes = new Pair[n];
+    Queue<Long> minHeap = new PriorityQueue<>();
+
+    for (int i = 0; i < n; ++i)
+      numAndIndexes[i] = new Pair<>(nums1[i], i);
+
+    Arrays.sort(numAndIndexes, Comparator.comparingInt(Pair::getKey));
+
+    final int firstIndex = numAndIndexes[0].getValue();
+    minHeap.offer((long) nums2[firstIndex]);
+    long sum = nums2[firstIndex];
+
+    for (int i = 1; i < n; ++i) {
+      final int currNum = numAndIndexes[i].getKey();
+      final int currIndex = numAndIndexes[i].getValue();
+      final int prevNum = numAndIndexes[i - 1].getKey();
+      final int prevIndex = numAndIndexes[i - 1].getValue();
+      if (currNum == prevNum)
+        ans[currIndex] = ans[prevIndex];
+      else
+        ans[currIndex] = sum;
+      minHeap.offer((long) nums2[currIndex]);
+      sum += nums2[currIndex];
+      if (minHeap.size() == k + 1)
+        sum -= minHeap.poll();
+    }
+
+    return ans;
+  }
+}
+
+or
+
+
+class Solution {
+    public long[] findMaxSum(int[] nums1, int[] nums2, int k) {
+        int n = nums1.length;
+        int[][] arr = new int[n][0];
+        for (int i = 0; i < n; ++i) {
+            arr[i] = new int[] {nums1[i], i};
+        }
+        Arrays.sort(arr, (a, b) -> a[0] - b[0]);
+        PriorityQueue<Integer> pq = new PriorityQueue<>();
+        long s = 0;
+        long[] ans = new long[n];
+        int j = 0;
+        for (int h = 0; h < n; ++h) {
+            int x = arr[h][0], i = arr[h][1];
+            while (j < h && arr[j][0] < x) {
+                int y = nums2[arr[j][1]];
+                pq.offer(y);
+                s += y;
+                if (pq.size() > k) {
+                    s -= pq.poll();
+                }
+                ++j;
+            }
+            ans[i] = s;
+        }
+        return ans;
+    }
+}
+
+or
+
+
+import java.util.*;
+
+class Solution {
+    public long[] findMaxSum(int[] nums1, int[] nums2, int k) {
+        int n = nums1.length;
+        long[] ans = new long[n];
+        int[][] idx = new int[n][2];
+
+        for (int i = 0; i < n; i++)
+            idx[i] = new int[]{nums1[i], i};
+
+        Arrays.sort(idx, Comparator.comparingInt(a -> a[0]));
+
+        PriorityQueue<Integer> pq = new PriorityQueue<>();
+        Map<Integer, Long> map = new HashMap<>();
+        long sum = 0;
+        int j = 0;
+
+        for (int i = 0; i < n; i++) {
+            int index = idx[i][1];
+
+            while (j < i) {
+                int prevIndex = idx[j][1];
+                if (idx[j][0] >= idx[i][0]) break;
+
+                pq.add(nums2[prevIndex]);
+                sum += nums2[prevIndex];
+
+                if (pq.size() > k) {
+                    sum -= pq.poll();
+                }
+                j++;
+            }
+
+            map.put(index, sum);
+        }
+
+        for (int i = 0; i < n; i++)
+            ans[i] = map.getOrDefault(i, 0L);
+
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public long[] findMaxSum(int[] nums1, int[] nums2, int k) {
+        int n = nums1.length;
+        int[][] arr = new int[n][3];
+        for(int i = 0; i < n; i++) {
+            arr[i][0] = nums1[i];
+            arr[i][1] = nums2[i];
+            arr[i][2] = i;
+        }
+        Arrays.sort(arr, (a,b) -> a[0] - b[0]);
+        long[] ans = new long[n];
+        PriorityQueue<Integer> pq = new PriorityQueue<>();
+        long sum = 0;
+        for(int i = 0; i < n; i++) {
+            if(i > 0 && arr[i - 1][0] == arr[i][0]) {
+               ans[arr[i][2]] = ans[arr[i-1][2]];
+            } else {
+                 ans[arr[i][2]] = sum;
+            }
+            pq.add(arr[i][1]);
+            sum += arr[i][1];
+            if(pq.size() > k) {
+                sum -= pq.remove();
+            }
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public long[] findMaxSum(int[] nums1, int[] nums2, int k) {
+        int n = nums1.length, arr[] = new int[n], temp;
+        long ans[] = new long[n], sum = 0, prevSum;
+        Map<Integer, List<Integer>> indMap = new HashMap<>();
+        PriorityQueue<Integer> pq = new PriorityQueue<>();
+
+        for(int i=0; i<n; i++) {
+            arr[i] = nums1[i];
+            if(indMap.containsKey(nums1[i])) {
+                indMap.get(nums1[i]).add(i);
+            } else {
+                indMap.put(nums1[i], new ArrayList<>(Arrays.asList(i)));
+            }
+        }
+
+        Arrays.sort(arr);
+        // System.out.println(Arrays.toString(arr));
+        // System.out.println(indMap);
+        for(int i=0; i<n; i++) {
+            if(i>0 && arr[i] == arr[i-1]) {
+                continue;
+            }
+
+            prevSum = sum;
+            for(Integer j: indMap.get(arr[i])) {
+                ans[j] = prevSum;
+
+                pq.add(nums2[j]);
+                sum += nums2[j];
+                if(pq.size() > k) {
+                    sum -= pq.poll();
+                }
+            }
+        }
+
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public long[] findMaxSum(int[] nums1, int[] nums2, int k) {
+        //1. create array and sort it
+        int n = nums1.length;
+        int arr[][] = new int[n][3];
+        // arr -> nums1[i], nums2[i], i;
+        for (int i = 0; i < n; i++) {
+            arr[i][0] = nums1[i];
+            arr[i][1] = nums2[i];
+            arr[i][2] = i;
+        }
+        Arrays.sort(arr, (a, b) -> Integer.compare(a[0],b[0]));
+        //2. iterate with creating pq
+        PriorityQueue<Integer> pq = new PriorityQueue<>();
+        long res[] = new long[n];
+
+        long sum = 0;
+        
+        for (int i = 0; i < n; i++) {
+            int idx = arr[i][2];
+            //3. in pq maintain sum;
+            if (i > 0 && arr[i][0] == arr[i-1][0]) {
+                res[idx] = res[arr[i-1][2]];
+            } else {
+                res[idx] = sum;
+            }
+                pq.offer(arr[i][1]);
+                sum += arr[i][1];
+                if (pq.size() > k) {
+                    sum -= pq.poll();
+                }
+        }
+        return res;
+    }
+}
+
+
+
