@@ -56,3 +56,192 @@ creators[i] and ids[i] consist only of lowercase English letters.
 
 # java
 
+
+class Solution {
+    public List<List<String>> mostPopularCreator(String[] creators, String[] ids, int[] views) {
+        int n = ids.length;
+        Map<String, Long> cnt = new HashMap<>(n);
+        Map<String, Integer> d = new HashMap<>(n);
+        for (int k = 0; k < n; ++k) {
+            String c = creators[k], i = ids[k];
+            long v = views[k];
+            cnt.merge(c, v, Long::sum);
+            if (!d.containsKey(c) || views[d.get(c)] < v
+                || (views[d.get(c)] == v && ids[d.get(c)].compareTo(i) > 0)) {
+                d.put(c, k);
+            }
+        }
+        long mx = 0;
+        for (long x : cnt.values()) {
+            mx = Math.max(mx, x);
+        }
+        List<List<String>> ans = new ArrayList<>();
+        for (var e : cnt.entrySet()) {
+            if (e.getValue() == mx) {
+                String c = e.getKey();
+                ans.add(List.of(c, ids[d.get(c)]));
+            }
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Creator {
+  public long popularity; // the popularity sum
+  public String videoId;  // the video id that has the maximum view
+  public int maxView;     // the maximum view of the creator
+  public Creator(long popularity, String videoId, int maxView) {
+    this.popularity = popularity;
+    this.videoId = videoId;
+    this.maxView = maxView;
+  }
+}
+
+class Solution {
+  public List<List<String>> mostPopularCreator(String[] creators, String[] ids, int[] views) {
+    List<List<String>> ans = new ArrayList<>();
+    Map<String, Creator> nameToCreator = new HashMap<>();
+    long maxPopularity = 0;
+
+    for (int i = 0; i < creators.length; ++i) {
+      if (!nameToCreator.containsKey(creators[i])) {
+        nameToCreator.put(creators[i], new Creator(views[i], ids[i], views[i]));
+        maxPopularity = Math.max(maxPopularity, (long) views[i]);
+        continue;
+      }
+      Creator creator = nameToCreator.get(creators[i]);
+      creator.popularity += views[i];
+      maxPopularity = Math.max(maxPopularity, (long) creator.popularity);
+      if (creator.maxView < views[i] ||
+          creator.maxView == views[i] && creator.videoId.compareTo(ids[i]) > 0) {
+        creator.videoId = ids[i];
+        creator.maxView = views[i];
+      }
+    }
+
+    for (Map.Entry<String, Creator> entry : nameToCreator.entrySet())
+      if (entry.getValue().popularity == maxPopularity)
+        ans.add(Arrays.asList(entry.getKey(), entry.getValue().videoId));
+
+    return ans;
+  }
+}
+
+
+or
+
+
+import java.util.*;
+
+class Solution {
+    public List<List<String>> mostPopularCreator(String[] creators, String[] ids, int[] views) {
+        Map<String, long[]> mappedData = new HashMap<>();
+        Map<String, String> popularVideoMap = new HashMap<>();
+        long highestPopularity = 0;
+
+        for (int i = 0; i < creators.length; i++) {
+            String creator = creators[i];
+            String id = ids[i];
+            int view = views[i];
+
+            if (!mappedData.containsKey(creator)) {
+                mappedData.put(creator, new long[]{view, view});
+                popularVideoMap.put(creator, id);
+            } else {
+                long[] prev = mappedData.get(creator);
+                prev[0] += view;
+
+                String currentPopularId = popularVideoMap.get(creator);
+                if (view > prev[1] || (view == prev[1] && id.compareTo(currentPopularId) < 0)) {
+                    prev[1] = view;
+                    popularVideoMap.put(creator, id);
+                }
+            }
+            highestPopularity = Math.max(highestPopularity, mappedData.get(creator)[0]);
+        }
+
+        List<List<String>> result = new ArrayList<>();
+        for (Map.Entry<String, long[]> entry : mappedData.entrySet()) {
+            if (entry.getValue()[0] == highestPopularity) {
+                String creator = entry.getKey();
+                result.add(Arrays.asList(creator, popularVideoMap.get(creator)));
+            }
+        }
+        return result;
+    }
+}
+
+
+or
+
+
+
+
+class view{
+String idname;
+int views;
+view(String idname,int views){
+    this.idname=idname;
+    this.views=views;
+}
+}
+
+class Solution {
+    public List<List<String>> mostPopularCreator(String[] creators, String[] ids, int[] views) {
+    
+    ArrayList<List<String>>ans=new ArrayList<>();
+
+    HashMap<String,Long>mp=new HashMap<>();
+
+    HashMap<String,PriorityQueue<view>>hp=new HashMap<>();
+
+    long maxi=(long)-1;
+
+    for(int i=0;i<creators.length;i++){
+    
+    mp.put(creators[i],mp.getOrDefault(creators[i],(long)0)+(long)views[i]);
+
+    maxi=Math.max(mp.get(creators[i]),maxi);
+
+    if(!hp.containsKey(creators[i])){
+        hp.put(creators[i],new PriorityQueue<view>((view a,view b)->
+        a.views==b.views?a.idname.compareTo(b.idname):b.views-a.views));
+    }
+    
+
+    view curr=new view(ids[i],views[i]);
+
+    hp.get(creators[i]).add(curr);
+
+    }
+
+    for(String a:mp.keySet()){
+
+    ArrayList<String>arr=new ArrayList<>();
+
+    if(mp.get(a)==maxi){
+
+    arr.add(a);
+
+    arr.add(hp.get(a).peek().idname);
+
+    }
+    if(arr.size()>0)
+    ans.add(arr);
+
+    }
+
+    return ans;
+        
+    }
+}
+
+
+or
+
+
+
