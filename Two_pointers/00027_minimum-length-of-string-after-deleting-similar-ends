@@ -1,0 +1,249 @@
+https://leetcode.com/problems/minimum-length-of-string-after-deleting-similar-ends/description/
+
+1750. Minimum Length of String After Deleting Similar Ends
+Medium
+Topics
+Companies
+Hint
+Given a string s consisting only of characters 'a', 'b', and 'c'. You are asked to apply the following algorithm on the string any number of times:
+
+Pick a non-empty prefix from the string s where all the characters in the prefix are equal.
+Pick a non-empty suffix from the string s where all the characters in this suffix are equal.
+The prefix and the suffix should not intersect at any index.
+The characters from the prefix and suffix must be the same.
+Delete both the prefix and the suffix.
+Return the minimum length of s after performing the above operation any number of times (possibly zero times).
+
+ 
+
+Example 1:
+
+Input: s = "ca"
+Output: 2
+Explanation: You can't remove any characters, so the string stays as is.
+Example 2:
+
+Input: s = "cabaabac"
+Output: 0
+Explanation: An optimal sequence of operations is:
+- Take prefix = "c" and suffix = "c" and remove them, s = "abaaba".
+- Take prefix = "a" and suffix = "a" and remove them, s = "baab".
+- Take prefix = "b" and suffix = "b" and remove them, s = "aa".
+- Take prefix = "a" and suffix = "a" and remove them, s = "".
+Example 3:
+
+Input: s = "aabccabba"
+Output: 3
+Explanation: An optimal sequence of operations is:
+- Take prefix = "aa" and suffix = "a" and remove them, s = "bccabb".
+- Take prefix = "b" and suffix = "bb" and remove them, s = "cca".
+ 
+
+Constraints:
+
+1 <= s.length <= 105
+s only consists of characters 'a', 'b', and 'c'.
+
+
+# java
+
+
+class Solution {
+  public int minimumLength(String s) {
+    int i = 0;
+    int j = s.length() - 1;
+
+    while (i < j && s.charAt(i) == s.charAt(j)) {
+      final char c = s.charAt(i);
+      while (i <= j && s.charAt(i) == c)
+        ++i;
+      while (i <= j && s.charAt(j) == c)
+        --j;
+    }
+
+    return j - i + 1;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int minimumLength(String s) {
+        int i = 0, j = s.length() - 1;
+        while (i < j && s.charAt(i) == s.charAt(j)) {
+            while (i + 1 < j && s.charAt(i) == s.charAt(i + 1)) {
+                ++i;
+            }
+            while (i < j - 1 && s.charAt(j) == s.charAt(j - 1)) {
+                --j;
+            }
+            ++i;
+            --j;
+        }
+        return Math.max(0, j - i + 1);
+    }
+}
+
+
+or
+
+
+public class Solution {
+    public int minimumLength(String s) {
+        int begin = 0;
+        int end = s.length() - 1;
+
+        // Delete similar ends until the ends differ or they meet in the middle
+        while (begin < end && s.charAt(begin) == s.charAt(end)) {
+            char c = s.charAt(begin);
+
+            // Delete consecutive occurrences of c from prefix
+            while (begin <= end && s.charAt(begin) == c) {
+                begin++;
+            }
+
+            // Delete consecutive occurrences of c from suffix
+            while (end > begin && s.charAt(end) == c) {
+                end--;
+            }
+        }
+
+        // Return the number of remaining characters
+        return end - begin + 1;
+    }
+}
+
+
+or
+
+
+public class Solution {
+    public int minimumLength(String s) {
+        return deleteSimilarEnds(s, 0, s.length() - 1);
+    }
+
+    // Deletes similar ends and returns remaining length
+    private int deleteSimilarEnds(String s, int begin, int end) {
+        // The ends differ or meet in the middle
+        if (begin >= end || s.charAt(begin) != s.charAt(end)) {
+            return end - begin + 1;
+        } else {
+            char c = s.charAt(begin);
+
+            // Delete consecutive occurrences of c from prefix
+            while (begin <= end && s.charAt(begin) == c) {
+                begin++;
+            }
+
+            // Delete consecutive occurrences of c from suffix
+            while (end > begin && s.charAt(end) == c) {
+                end--;
+            }
+
+            return deleteSimilarEnds(s, begin, end);
+        }
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minimumLength(String s) {
+        int l = 0, r = s.length() - 1;
+        while (l < r && s.charAt(l) == s.charAt(r)) {
+            char ch = s.charAt(l);
+            while (l <= r && s.charAt(l) == ch) l++;
+            while (l <= r && s.charAt(r) == ch) r--;
+        }
+        return r - l + 1;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minimumLength(String s) {
+        int left = 0;
+        int right = s.length() - 1;
+        
+        while (left < right && s.charAt(left) == s.charAt(right)) {
+            char current = s.charAt(left);
+            while (left <= right && s.charAt(left) == current) {
+                left++;
+            }
+            while (right >= left && s.charAt(right) == current) {
+                right--;
+            }
+        }
+        
+        return right - left + 1;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minimumLength(String s) {
+        int length = s.length();
+        char[] chars = s.toCharArray();
+        for(int left = 0,right = chars.length-1;left < right;){
+            if(chars[left] == chars[right]){
+                char c = chars[left];
+             while(left < right && chars[left] == c ){
+                    left++;
+                    length--;
+
+                }
+
+                while (right >= left && chars[right] == c){
+                    right--;
+                    length--;
+
+                }
+            }else {
+                break;
+            }
+        }
+        return length;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int minimumLength(String s) {
+        int left = 0, right = s.length() - 1;
+        
+        while (left < right) {
+            if (s.charAt(left) != s.charAt(right)) {
+                break;
+            } else {
+                while (left < right && s.charAt(left) == s.charAt(left + 1)) {
+                    left++;
+                }
+                
+                while (left < right && s.charAt(right) == s.charAt(right - 1)) {
+                    right--;
+                }
+                
+                left++;
+                right--;
+            }
+        }
+        
+        return right < left ? 0 : (right - left + 1);
+    }
+}
+
+
