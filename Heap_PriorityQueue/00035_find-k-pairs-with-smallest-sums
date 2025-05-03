@@ -1,0 +1,307 @@
+https://leetcode.com/problems/find-k-pairs-with-smallest-sums/description/
+
+373. Find K Pairs with Smallest Sums
+Medium
+Topics
+Companies
+You are given two integer arrays nums1 and nums2 sorted in non-decreasing order and an integer k.
+
+Define a pair (u, v) which consists of one element from the first array and one element from the second array.
+
+Return the k pairs (u1, v1), (u2, v2), ..., (uk, vk) with the smallest sums.
+
+ 
+
+Example 1:
+
+Input: nums1 = [1,7,11], nums2 = [2,4,6], k = 3
+Output: [[1,2],[1,4],[1,6]]
+Explanation: The first 3 pairs are returned from the sequence: [1,2],[1,4],[1,6],[7,2],[7,4],[11,2],[7,6],[11,4],[11,6]
+Example 2:
+
+Input: nums1 = [1,1,2], nums2 = [1,2,3], k = 2
+Output: [[1,1],[1,1]]
+Explanation: The first 2 pairs are returned from the sequence: [1,1],[1,1],[1,2],[2,1],[1,2],[2,2],[1,3],[1,3],[2,3]
+ 
+
+Constraints:
+
+1 <= nums1.length, nums2.length <= 105
+-109 <= nums1[i], nums2[i] <= 109
+nums1 and nums2 both are sorted in non-decreasing order.
+1 <= k <= 104
+k <= nums1.length * nums2.length
+
+
+# java
+
+
+class Solution {
+  public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {
+    record T(int i, int j, int sum) {}
+    List<List<Integer>> ans = new ArrayList<>();
+    Queue<T> minHeap = new PriorityQueue<>(Comparator.comparingInt(T::sum));
+
+    for (int i = 0; i < Math.min(k, nums1.length); ++i)
+      minHeap.offer(new T(i, 0, nums1[i] + nums2[0]));
+
+    while (!minHeap.isEmpty() && ans.size() < k) {
+      final int i = minHeap.peek().i;
+      final int j = minHeap.poll().j;
+      ans.add(Arrays.asList(nums1[i], nums2[j]));
+      if (j + 1 < nums2.length)
+        minHeap.offer(new T(i, j + 1, nums1[i] + nums2[j + 1]));
+    }
+
+    return ans;
+  }
+}
+
+or
+
+
+class Solution {
+    public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {
+        PriorityQueue<int[]> q = new PriorityQueue<>(Comparator.comparingInt(a -> a[0]));
+        for (int i = 0; i < Math.min(nums1.length, k); ++i) {
+            q.offer(new int[] {nums1[i] + nums2[0], i, 0});
+        }
+        List<List<Integer>> ans = new ArrayList<>();
+        while (!q.isEmpty() && k > 0) {
+            int[] e = q.poll();
+            ans.add(Arrays.asList(nums1[e[1]], nums2[e[2]]));
+            --k;
+            if (e[2] + 1 < nums2.length) {
+                q.offer(new int[] {nums1[e[1]] + nums2[e[2] + 1], e[1], e[2] + 1});
+            }
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {
+        int m = nums1.length;
+        int n = nums2.length;
+
+        List<List<Integer>> ans = new ArrayList<>();
+        Set<Pair<Integer, Integer>> visited = new HashSet<>();
+
+        PriorityQueue<int[]> minHeap = new PriorityQueue<>((a, b)->(a[0] - b[0]));
+        minHeap.offer(new int[]{nums1[0] + nums2[0], 0, 0});
+        visited.add(new Pair<Integer, Integer>(0, 0));
+
+        while (k-- > 0 && !minHeap.isEmpty()) {
+            int[] top = minHeap.poll();
+            int i = top[1];
+            int j = top[2];
+
+            ans.add(List.of(nums1[i], nums2[j]));
+
+            if (i + 1 < m && !visited.contains(new Pair<Integer, Integer>(i + 1, j))) {
+                minHeap.offer(new int[]{nums1[i + 1] + nums2[j], i + 1, j});
+                visited.add(new Pair<Integer, Integer>(i + 1, j));
+            }
+
+            if (j + 1 < n && !visited.contains(new Pair<Integer, Integer>(i, j + 1))) {
+                minHeap.offer(new int[]{nums1[i] + nums2[j + 1], i, j + 1});
+                visited.add(new Pair<Integer, Integer>(i, j + 1));
+            }
+        }
+
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {
+        List<List<Integer>> resV = new ArrayList<>(); // Result list to store the pairs
+        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] - b[0]);
+        // Priority queue to store pairs with smallest sums, sorted by the sum
+
+        // Push the initial pairs into the priority queue
+        for (int x : nums1) {
+            pq.offer(new int[]{x + nums2[0], 0}); // The sum and the index of the second element in nums2
+        }
+
+        // Pop the k smallest pairs from the priority queue
+        while (k > 0 && !pq.isEmpty()) {
+            int[] pair = pq.poll();
+            int sum = pair[0]; // Get the smallest sum
+            int pos = pair[1]; // Get the index of the second element in nums2
+
+            List<Integer> currentPair = new ArrayList<>();
+            currentPair.add(sum - nums2[pos]);
+            currentPair.add(nums2[pos]);
+            resV.add(currentPair); // Add the pair to the result list
+
+            // If there are more elements in nums2, push the next pair into the priority queue
+            if (pos + 1 < nums2.length) {
+                pq.offer(new int[]{sum - nums2[pos] + nums2[pos + 1], pos + 1});
+            }
+
+            k--; // Decrement k
+        }
+
+        return resV; // Return the k smallest pairs
+    }
+}
+
+
+or
+
+
+// bets
+class Solution {
+    public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {
+        
+		//In the minHeap array, 0th element refers to the curr element in nums1 and 1st element refers to curr element in nums2 
+        PriorityQueue<int[]> minHeap = new PriorityQueue<>((a,b) -> (a[0] + a[1]) - (b[0] + b[1]));
+        
+		// The 2nd element in the minHeap is the index of nums2, the corresponding element of nums2 is in index1 of minHeap
+        for(int i=0; i < nums1.length && i < k; i++)
+            minHeap.add(new int[]{nums1[i], nums2[0], 0});
+        
+        List<List<Integer>> result = new ArrayList<>();
+        
+        for(int i=0; i < k && !minHeap.isEmpty(); i++){
+            int[] curr = minHeap.poll();
+            result.add(List.of(curr[0], curr[1]));
+            int nums2Idx = curr[2];
+            if(nums2Idx < nums2.length - 1)
+                minHeap.add(new int[]{curr[0], nums2[nums2Idx + 1], nums2Idx + 1});
+        }
+        return result;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {
+        
+        List<List<Integer>> pairs = new ArrayList<> ();
+        if (nums1.length == 0 || nums2.length == 0 || k == 0) {
+            return pairs;
+        }
+        
+        PriorityQueue<int[]> minHeap = new PriorityQueue<> ((arr1, arr2) -> arr1[0] + arr1[1] - arr2[0] - arr2[1]);
+        
+        for (int i = 0; i < nums1.length && i < k; i++) {
+            minHeap.offer (new int[] {nums1[i], nums2[0], 0});
+        }
+        
+        while (k-- != 0 && !minHeap.isEmpty ()) {
+            int[] curr = minHeap.poll ();
+            pairs.add (List.of (curr[0], curr[1]));
+            if (curr[2] + 1 < nums2.length) {
+                minHeap.offer (new int[] {curr[0], nums2[curr[2] + 1], curr[2] + 1});
+            }
+        }
+        
+        return pairs;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {
+        int n = nums1.length;
+        int m = nums2.length;
+        
+        PriorityQueue<int[]> pq = new PriorityQueue(new Comparator<int[]>() {
+            @Override
+            public int compare(int[] o1, int[] o2) {
+                return (o1[1] + o1[0]) - (o2[1] + o2[0]);
+            }
+        });
+        
+        for (int num1 : nums1) {
+            for (int num2 : nums2) {
+                pq.add(new int[]{num1, num2});
+            }
+        }
+        int size = pq.size();
+        
+        List<List<Integer>> ans = new ArrayList();
+        for (int i = 0; i < Math.min(k, size); i++) {
+            int[] pair = pq.remove();
+            List<Integer> subsolution = new ArrayList();
+            subsolution.add(pair[0]);
+            subsolution.add(pair[1]);
+            ans.add(subsolution);
+        }
+        
+        return ans;
+    }
+}
+
+or
+
+
+class Solution {
+    
+    int[][] dirs = {{0,1},{1,0},{1,1}};
+    public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {
+        
+        List<List<Integer>> result = new ArrayList<>();
+        
+        // EDGE CASE
+        if(nums1==null || nums2==null || nums1.length==0 || nums2.length==0) return result;
+        
+        // visited array
+        boolean[][] visited = new boolean[nums1.length][nums2.length];
+        
+        // Min Heap
+        PriorityQueue<int[]> pq = new PriorityQueue<>((a,b)->{
+            return  ( a[0]+a[1] ) - ( b[0]+b[1] ) ;
+        });
+        
+        
+        int[] temp = new int[]{nums1[0],nums2[0],0,0};
+        pq.add(temp);
+        visited[0][0]= true;
+        
+        while(!pq.isEmpty()){
+            int[] arr = pq.poll();
+            List<Integer> ls = new ArrayList<>();
+            ls.add(arr[0]);ls.add(arr[1]);
+            result.add(ls);
+            
+            if(result.size()==k) break;
+            int i=arr[2],j=arr[3];
+            
+            for(int[] dir : dirs){
+                int dx=i+dir[0],dy=j+dir[1];
+                if(dx<0 || dx>=nums1.length || dy<0 || dy>=nums2.length || visited[dx][dy]) continue;
+                pq.add(new int[]{nums1[dx],nums2[dy],dx,dy});   
+                visited[dx][dy] = true;
+            }
+        }
+        
+        return result;
+        
+        
+    }
+}
+
+
+
+
+or
+
