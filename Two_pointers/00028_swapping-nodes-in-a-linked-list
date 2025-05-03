@@ -1,0 +1,148 @@
+https://leetcode.com/problems/swapping-nodes-in-a-linked-list/description/
+
+
+1721. Swapping Nodes in a Linked List
+Medium
+Topics
+Companies
+Hint
+You are given the head of a linked list, and an integer k.
+
+Return the head of the linked list after swapping the values of the kth node from the beginning and the kth node from the end (the list is 1-indexed).
+
+ 
+
+Example 1:
+
+
+Input: head = [1,2,3,4,5], k = 2
+Output: [1,4,3,2,5]
+Example 2:
+
+Input: head = [7,9,6,6,7,8,3,0,9,5], k = 5
+Output: [7,9,6,6,8,7,3,0,9,5]
+ 
+
+Constraints:
+
+The number of nodes in the list is n.
+1 <= k <= n <= 105
+0 <= Node.val <= 100
+
+
+# java
+
+
+
+class Solution {
+  public ListNode swapNodes(ListNode head, int k) {
+    ListNode p = null; // Points the k-th node from the beginning.
+    ListNode q = null; // Points the k-th node from the end.
+
+    for (ListNode curr = head; curr != null; curr = curr.next) {
+      if (q != null)
+        q = q.next;
+      if (--k == 0) {
+        p = curr;
+        q = head;
+      }
+    }
+
+    final int temp = p.val;
+    p.val = q.val;
+    q.val = temp;
+    return head;
+  }
+}
+
+
+
+
+
+or
+
+
+
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    public ListNode swapNodes(ListNode head, int k) {
+        ListNode fast = head;
+        while (--k > 0) {
+            fast = fast.next;
+        }
+        ListNode p = fast;
+        ListNode slow = head;
+        while (fast.next != null) {
+            fast = fast.next;
+            slow = slow.next;
+        }
+        ListNode q = slow;
+        int t = p.val;
+        p.val = q.val;
+        q.val = t;
+        return head;
+    }
+}
+
+
+or
+
+
+
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    public ListNode swapNodes(ListNode head, int k) {		
+        ListNode fast = head;
+        ListNode slow = head;
+        ListNode first = head, second = head;
+        
+		// Put fast (k-1) nodes after slow
+        for(int i = 0; i < k - 1; ++i)
+            fast = fast.next;
+            
+		// Save the node for swapping
+        first = fast;
+
+		// Move until the end of the list
+        while(fast.next != null) {
+			slow = slow.next;
+            fast = fast.next;
+        }
+        
+        // Save the second node for swapping
+		// Note that the pointer second isn't necessary: we could use slow for swapping as well
+		// However, having second improves readability
+        second = slow;
+		
+		// Swap values
+        int temp = first.val;
+        first.val = second.val;
+        second.val = temp;
+        
+        return head;
+    }
+}
+
+
+
+or
+
+
