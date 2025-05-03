@@ -1,0 +1,296 @@
+https://leetcode.com/problems/swap-adjacent-in-lr-string/description/
+
+777. Swap Adjacent in LR String
+Medium
+Topics
+Companies
+Hint
+In a string composed of 'L', 'R', and 'X' characters, like "RXXLRXRXL", a move consists of either replacing one occurrence of "XL" with "LX", or replacing one occurrence of "RX" with "XR". Given the starting string start and the ending string result, return True if and only if there exists a sequence of moves to transform start to result.
+
+ 
+
+Example 1:
+
+Input: start = "RXXLRXRXL", result = "XRLXXRRLX"
+Output: true
+Explanation: We can transform start to result following these steps:
+RXXLRXRXL ->
+XRXLRXRXL ->
+XRLXRXRXL ->
+XRLXXRRXL ->
+XRLXXRRLX
+Example 2:
+
+Input: start = "X", result = "L"
+Output: false
+ 
+
+Constraints:
+
+1 <= start.length <= 104
+start.length == result.length
+Both start and result will only consist of characters in 'L', 'R', and 'X'.
+
+
+# java
+
+
+class Solution {
+  public boolean canTransform(String start, String end) {
+    if (!start.replace("X", "").equals(end.replace("X", "")))
+      return false;
+
+    int i = 0; // start's index
+    int j = 0; // end's index
+
+    while (i < start.length() && j < end.length()) {
+      while (i < start.length() && start.charAt(i) == 'X')
+        ++i;
+      while (j < end.length() && end.charAt(j) == 'X')
+        ++j;
+      if (i == start.length() && j == end.length())
+        return true;
+      if (i == start.length() || j == end.length())
+        return false;
+      // L can only move to left.
+      if (start.charAt(i) == 'L' && i < j)
+        return false;
+      // R can only move to right.
+      if (start.charAt(i) == 'R' && i > j)
+        return false;
+      ++i;
+      ++j;
+    }
+
+    return true;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public boolean canTransform(String start, String end) {
+        int n = start.length();
+        int i = 0, j = 0;
+        while (true) {
+            while (i < n && start.charAt(i) == 'X') {
+                ++i;
+            }
+            while (j < n && end.charAt(j) == 'X') {
+                ++j;
+            }
+            if (i == n && j == n) {
+                return true;
+            }
+            if (i == n || j == n || start.charAt(i) != end.charAt(j)) {
+                return false;
+            }
+            if (start.charAt(i) == 'L' && i < j || start.charAt(i) == 'R' && i > j) {
+                return false;
+            }
+            ++i;
+            ++j;
+        }
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+   public boolean canTransform(String start, String end) {
+	// First, remove all 'X', and compare if they equal.
+	StringBuffer s = new StringBuffer();
+	StringBuffer e = new StringBuffer();
+	for (char c : start.toCharArray()) {
+		if (c != 'X') {
+			s.append(c);
+		}
+	}
+	for (char c : end.toCharArray()) {
+		if (c != 'X') {
+			e.append(c);
+		}
+	}
+	if (!s.toString().equals(e.toString()))
+		return false;
+	// check R
+	// form i to start.length(), 
+	// if R found in start count++, 
+	// if R found in end count--, 
+	// if count comes to negative, that means 'R' is in more left position in end, so 'R' can't move from start to end.
+	int count = 0;
+	for (int i = 0; i < start.length(); i++) {
+		if (start.charAt(i) == 'R') {
+			count++;
+		}
+		else if (end.charAt(i) == 'R') {
+			count--;
+		}
+		if (count < 0) {
+			return false;
+		}
+	}
+	// check L
+	// same with checking 'R', only difference is: 
+	// to ensure every 'L' comes first in end.
+	count = 0;
+	for (int i = 0; i < start.length(); i++) {
+		if (end.charAt(i) == 'L') {
+			count++;
+		}
+		else if (start.charAt(i) == 'L') {
+			count--;
+		}
+		if (count < 0) {
+			return false;
+		}
+	}
+	return true;
+}
+}
+
+
+or
+
+
+class Solution {
+  
+  public boolean canTransform(String start, String end) {
+    
+    if (start.replace("X", "").length() != end.replace("X", "").length()) {
+      return false;
+    }
+    
+    int len = start.length();
+    int j = 0;
+    for (int i = 0; i < len; i++) {
+      
+      if (start.charAt(i) == 'L') {
+        // find the next 'L' position in "end"
+        while (j < len && end.charAt(j) != 'L') j += 1;
+                
+        // index of next 'L' in "end" > index of 'L' in "start", it's impossible to convert start to end.
+        // For example:
+        // start = "..L...."
+        // end   = "....L.."
+        if (j > i) return false;
+        
+        j += 1;
+      }       
+      
+      if (start.charAt(i) == 'R') {
+        // find the next 'R' position in "end"
+        while (j < len && end.charAt(j) != 'R') j += 1;
+        
+        // index of next 'R' in "end" < index of 'R' in "start", it's impossible to convert start to end.
+        // For example:
+        // start = "....R..."
+        // end   = "..R....."
+        if (j < i) return false;
+        
+        j += 1;
+      }      
+    }
+    
+    return true;
+  }
+}
+
+
+or
+
+
+class Solution {
+  
+  public boolean canTransform(String start, String end) {
+    
+    if (start.replace("X", "").length() != end.replace("X", "").length()) {
+      return false;
+    }
+    
+    int len = start.length();
+    int j = 0;
+    for (int i = 0; i < len; i++) {
+      
+      if (start.charAt(i) == 'L') {
+        // find the next 'L' position in "end"
+        while (j < len && end.charAt(j) != 'L') j += 1;
+                
+        // index of next 'L' in "end" > index of 'L' in "start", it's impossible to convert start to end.
+        // For example:
+        // start = "..L...."
+        // end   = "....L.."
+        if (j > i) return false;
+        
+        j += 1;
+      }       
+      
+      if (start.charAt(i) == 'R') {
+        // find the next 'R' position in "end"
+        while (j < len && end.charAt(j) != 'R') j += 1;
+        
+        // index of next 'R' in "end" < index of 'R' in "start", it's impossible to convert start to end.
+        // For example:
+        // start = "....R..."
+        // end   = "..R....."
+        if (j < i) return false;
+        
+        j += 1;
+      }      
+    }
+    
+    return true;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public boolean canTransform(String start, String end) {
+        
+        int p1=0, p2=0;
+        
+        while(p1 < start.length() || p2 < end.length()) {
+            while(p1 < start.length() && start.charAt(p1) == 'X')
+                p1++;
+            while(p2 < end.length() && end.charAt(p2) == 'X')
+                p2++;
+            
+            if(p1 >= start.length() && p2 >= end.length())
+                return true;
+            
+            if(p1 >= start.length() || p2 >= end.length())
+                return false;
+            
+            if(start.charAt(p1) != end.charAt(p2)) 
+                return false;
+            
+            if(start.charAt(p1) == 'R' && p1 > p2) {
+                return false;
+            }
+            
+            if(start.charAt(p1) == 'L' && p1 < p2) {
+                return false;
+            }
+            
+            p1++;
+            p2++;
+        }
+        
+        return true;
+    }
+}
+
+
+
+
