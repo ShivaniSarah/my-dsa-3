@@ -1,0 +1,233 @@
+https://leetcode.com/problems/reduce-array-size-to-the-half/description/
+
+1338. Reduce Array Size to The Half
+Medium
+Topics
+Companies
+Hint
+You are given an integer array arr. You can choose a set of integers and remove all the occurrences of these integers in the array.
+
+Return the minimum size of the set so that at least half of the integers of the array are removed.
+
+ 
+
+Example 1:
+
+Input: arr = [3,3,3,3,5,5,5,2,2,7]
+Output: 2
+Explanation: Choosing {3,7} will make the new array [5,5,5,2,2] which has size 5 (i.e equal to half of the size of the old array).
+Possible sets of size 2 are {3,5},{3,2},{5,2}.
+Choosing set {2,7} is not possible as it will make the new array [3,3,3,3,5,5,5] which has a size greater than half of the size of the old array.
+Example 2:
+
+Input: arr = [7,7,7,7,7,7]
+Output: 1
+Explanation: The only possible set you can choose is {7}. This will make the new array empty.
+ 
+
+Constraints:
+
+2 <= arr.length <= 105
+arr.length is even.
+1 <= arr[i] <= 105
+
+
+# java
+
+class Solution {
+  public int minSetSize(int[] arr) {
+    final int n = arr.length;
+    int sum = 0;
+    Map<Integer, Integer> count = new HashMap<>();
+    List<Map.Entry<Integer, Integer>> numAndFreqs = new ArrayList<>();
+
+    for (final int a : arr)
+      count.merge(a, 1, Integer::sum);
+
+    for (Map.Entry<Integer, Integer> entry : count.entrySet())
+      numAndFreqs.add(entry);
+
+    numAndFreqs.sort(Comparator.comparingInt(Map.Entry<Integer, Integer>::getValue).reversed());
+
+    for (int i = 0; i < numAndFreqs.size(); ++i) {
+      sum += numAndFreqs.get(i).getValue();
+      if (sum >= n / 2)
+        return i + 1;
+    }
+
+    throw new IllegalArgumentException();
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int minSetSize(int[] arr) {
+        int mx = 0;
+        for (int x : arr) {
+            mx = Math.max(mx, x);
+        }
+        int[] cnt = new int[mx + 1];
+        for (int x : arr) {
+            ++cnt[x];
+        }
+        Arrays.sort(cnt);
+        int ans = 0;
+        int m = 0;
+        for (int i = mx;; --i) {
+            if (cnt[i] > 0) {
+                m += cnt[i];
+                ++ans;
+                if (m * 2 >= arr.length) {
+                    return ans;
+                }
+            }
+        }
+    }
+}
+
+or
+
+
+class Solution {
+    public int minSetSize(int[] arr) {
+        Map<Integer, Integer> map = new HashMap<>();
+        ArrayList<Integer>[] list = new ArrayList[arr.length + 1];
+
+        for (int num : arr) {
+            map.put(num, map.getOrDefault(num, 0) + 1);
+        }
+
+        for (int num : map.keySet()) {
+            int count = map.get(num);
+            if (list[count] == null) {
+                list[count] = new ArrayList<Integer>();
+            }
+            list[count].add(num);
+        }
+
+        int steps = 0, res = 0;
+        for (int i = arr.length; i > 0; i--) {
+            List<Integer> cur = list[i];
+            if (cur == null || cur.size() == 0)
+                continue;
+            for (int num : cur) {
+                steps += i;
+                res++;
+                if (steps >= arr.length / 2)
+                    return res;
+            }
+        }
+        return arr.length;
+    }
+}
+
+
+or
+
+
+class Solution {
+   public int minSetSize(int[] arr) {
+        Map<Integer, Integer> countMap = new HashMap<>();
+        PriorityQueue<Integer> countValues = new PriorityQueue<>(Comparator.reverseOrder());
+        for (int num : arr) countMap.put(num, countMap.getOrDefault(num, 0) + 1);
+        for (int value : countMap.values()) countValues.offer(value);
+
+        int size = arr.length; int result = 0;
+        while (size > arr.length / 2) {
+            size -= countValues.poll();
+            result++;
+        }
+
+        return result;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minSetSize(int[] arr) {
+        
+        int n = arr.length;
+        if(n==1 || n==2) return 1;
+        
+        PriorityQueue<Integer> pq = new PriorityQueue<>(Collections.reverseOrder());
+        
+        HashMap<Integer, Integer> map = new HashMap<>();
+        
+        for(Integer x: arr){
+            map.put(x,map.getOrDefault(x, 0) + 1);
+        }
+        for(Integer x: map.values()){
+            pq.offer(x);
+        }
+        int res = 0;
+        int cnt = 0;
+        while(res < n/2 && pq.size() > 0) {
+            res += pq.poll();
+            cnt++;
+        }
+        return cnt;
+    }
+}
+
+
+or
+
+
+class Solution {
+	public int minSetSize(int[] arr) {
+		HashMap<Integer,Integer> map=new HashMap<>(); // arr[i] vs freq
+		for(int i=0;i<arr.length;i++){
+			map.put(arr[i],map.getOrDefault(arr[i],0)+1);
+		}
+		PriorityQueue<Integer> pq=new PriorityQueue<>(Collections.reverseOrder());
+		for(int key: map.keySet()){
+			pq.add(map.get(key));
+		}
+		int size=arr.length;int count=0;
+		while(size>arr.length/2){
+			size-=pq.remove();
+			count++;
+		}
+		return count;
+	}
+}
+
+or
+
+
+// O(N)
+class Solution {
+	public int minSetSize(int[] arr) {
+		HashMap<Integer,Integer> map=new HashMap<>();
+		for(int i=0;i<arr.length;i++){
+			map.put(arr[i],map.getOrDefault(arr[i],0)+1);
+		}
+
+		// Create a Freq Arr. Eg : [7,7,7,3,3,3] so freq[3] will store 2 , so I will make a freq arr where each index represents frequency to a no and freq[i] -> how many times that freq is encountered.
+		int [] freqarr=new int[100001];
+		for(int key: map.keySet()){
+			freqarr[map.get(key)]++; 
+		}
+		int size=arr.length;int count=0;
+		for(int i=freqarr.length-1;i>=0 && size>arr.length/2;){ // traverse array in rev order to greedily choose the max frequency
+			if(freqarr[i]==0){
+				i--;
+			}else{ // keep reducing the size till freq[i]==0 -> use up all high freq elements
+				while(freqarr[i]!=0 && size>arr.length/2){
+					size-=i;
+					freqarr[i]--; 
+					count++;
+				}
+				if(size<=arr.length/2) return count;
+				i--;
+			}
+		}
+		return count;
+	}
+}
