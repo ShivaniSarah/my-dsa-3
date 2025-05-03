@@ -1,0 +1,195 @@
+https://leetcode.com/problems/next-greater-element-iii/description/
+
+
+556. Next Greater Element III
+Medium
+Topics
+Companies
+Given a positive integer n, find the smallest integer which has exactly the same digits existing in the integer n and is greater in value than n. If no such positive integer exists, return -1.
+
+Note that the returned integer should fit in 32-bit integer, if there is a valid answer but it does not fit in 32-bit integer, return -1.
+
+ 
+
+Example 1:
+
+Input: n = 12
+Output: 21
+Example 2:
+
+Input: n = 21
+Output: -1
+ 
+
+Constraints:
+
+1 <= n <= 231 - 1
+
+
+# java
+
+
+class Solution {
+  public int nextGreaterElement(int n) {
+    final String s = nextPermutation(String.valueOf(n).toCharArray());
+    final long ans = Long.parseLong(s);
+    return ans > Integer.MAX_VALUE || ans <= (long) n ? -1 : (int) ans;
+  }
+
+  // Similar to 31. Next Permutation
+  private String nextPermutation(char[] s) {
+    final int n = s.length;
+
+    int i;
+    for (i = n - 2; i >= 0; --i)
+      if (s[i] < s[i + 1])
+        break;
+
+    if (i >= 0) {
+      for (int j = n - 1; j > i; --j)
+        if (s[j] > s[i]) {
+          swap(s, i, j);
+          break;
+        }
+    }
+
+    reverse(s, i + 1, n - 1);
+    return new String(s);
+  }
+
+  private void reverse(char[] s, int l, int r) {
+    while (l < r)
+      swap(s, l++, r--);
+  }
+
+  private void swap(char[] s, int i, int j) {
+    final char temp = s[i];
+    s[i] = s[j];
+    s[j] = temp;
+  }
+}
+
+
+
+
+or
+
+
+
+class Solution {
+    public int nextGreaterElement(int n) {
+        char[] cs = String.valueOf(n).toCharArray();
+        n = cs.length;
+        int i = n - 2, j = n - 1;
+        for (; i >= 0 && cs[i] >= cs[i + 1]; --i)
+            ;
+        if (i < 0) {
+            return -1;
+        }
+        for (; cs[i] >= cs[j]; --j)
+            ;
+        swap(cs, i, j);
+        reverse(cs, i + 1, n - 1);
+        long ans = Long.parseLong(String.valueOf(cs));
+        return ans > Integer.MAX_VALUE ? -1 : (int) ans;
+    }
+
+    private void swap(char[] cs, int i, int j) {
+        char t = cs[i];
+        cs[i] = cs[j];
+        cs[j] = t;
+    }
+
+    private void reverse(char[] cs, int i, int j) {
+        for (; i < j; ++i, --j) {
+            swap(cs, i, j);
+        }
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int nextGreaterElement(int n) {
+        char arr[] = (Integer.toString(n)).toCharArray();
+        
+        int i=arr.length-2;
+        StringBuilder ans = new StringBuilder();
+        while(i>=0 && arr[i] >= arr[i+1])
+            i--;
+        
+        if(i == -1)
+            return -1;
+        
+        int k = arr.length-1;
+        
+        while(arr[k] <= arr[i])
+            k--;
+        
+        swap(arr,i,k);
+        
+        for(int j=0;j<=i;j++)
+            ans.append(arr[j]);
+        
+        for(int j=arr.length-1;j>i;j--)
+            ans.append(arr[j]);
+        
+        long ans_ = Long.parseLong(ans.toString());
+        
+        return (ans_ > Integer.MAX_VALUE) ? -1 : (int)ans_;
+        
+        
+    }
+    void swap(char[] arr,int i,int j)
+    {
+        char temp = arr[j];
+        arr[j] = arr[i];
+        arr[i] = temp;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int nextGreaterElement(int n) {
+        String s = Integer.toString(n);
+        int[] arr = new int[s.length()];
+        for(int i = 0; i < s.length(); i++) {
+            arr[i] = (int) (s.charAt(i) - '0');
+        }
+        
+        int pivot = arr.length - 2;
+        while(pivot >= 0 && arr[pivot] >= arr[pivot + 1]) {
+            pivot --;
+        }
+        if(pivot == -1) return -1;
+        
+        for(int i = arr.length - 1; i >= 0; i--) {
+            if(arr[i] > arr[pivot]) {
+                int temp = arr[i];
+                arr[i] = arr[pivot];
+                arr[pivot] = temp;
+                break;
+            }
+        }
+        
+        Arrays.sort(arr, pivot + 1, arr.length);
+        long res = 0;
+        for(int i = 0; i < arr.length; i++) {
+            res *= 10;
+            res += arr[i];
+        }
+        return res > Integer.MAX_VALUE ? -1 : (int) res;
+    }
+}
+
+
+or
+
+
+
