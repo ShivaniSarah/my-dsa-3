@@ -1,0 +1,324 @@
+https://leetcode.com/problems/expressive-words/description/
+
+809. Expressive Words
+Medium
+Topics
+Companies
+Sometimes people repeat letters to represent extra feeling. For example:
+
+"hello" -> "heeellooo"
+"hi" -> "hiiii"
+In these strings like "heeellooo", we have groups of adjacent letters that are all the same: "h", "eee", "ll", "ooo".
+
+You are given a string s and an array of query strings words. A query word is stretchy if it can be made to be equal to s by any number of applications of the following extension operation: choose a group consisting of characters c, and add some number of characters c to the group so that the size of the group is three or more.
+
+For example, starting with "hello", we could do an extension on the group "o" to get "hellooo", but we cannot get "helloo" since the group "oo" has a size less than three. Also, we could do another extension like "ll" -> "lllll" to get "helllllooo". If s = "helllllooo", then the query word "hello" would be stretchy because of these two extension operations: query = "hello" -> "hellooo" -> "helllllooo" = s.
+Return the number of query strings that are stretchy.
+
+ 
+
+Example 1:
+
+Input: s = "heeellooo", words = ["hello", "hi", "helo"]
+Output: 1
+Explanation: 
+We can extend "e" and "o" in the word "hello" to get "heeellooo".
+We can't extend "helo" to get "heeellooo" because the group "ll" is not size 3 or more.
+Example 2:
+
+Input: s = "zzzzzyyyyy", words = ["zzyy","zy","zyy"]
+Output: 3
+ 
+
+Constraints:
+
+1 <= s.length, words.length <= 100
+1 <= words[i].length <= 100
+s and words[i] consist of lowercase letters.
+
+
+
+# java
+
+
+
+class Solution {
+  public int expressiveWords(String s, String[] words) {
+    int ans = 0;
+
+    for (final String word : words)
+      if (isStretchy(s, word))
+        ++ans;
+
+    return ans;
+  }
+
+  private boolean isStretchy(final String s, final String word) {
+    final int n = s.length();
+    final int m = word.length();
+
+    int j = 0;
+    for (int i = 0; i < n; ++i)
+      if (j < m && s.charAt(i) == word.charAt(j))
+        ++j;
+      else if (i > 1 && s.charAt(i) == s.charAt(i - 1) && s.charAt(i - 1) == s.charAt(i - 2))
+        continue;
+      else if (0 < i && i + 1 < n && s.charAt(i - 1) == s.charAt(i) &&
+               s.charAt(i) == s.charAt(i + 1))
+        continue;
+      else
+        return false;
+
+    return j == m;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public int expressiveWords(String s, String[] words) {
+        int ans = 0;
+        for (String t : words) {
+            if (check(s, t)) {
+                ++ans;
+            }
+        }
+        return ans;
+    }
+
+    private boolean check(String s, String t) {
+        int m = s.length(), n = t.length();
+        if (n > m) {
+            return false;
+        }
+        int i = 0, j = 0;
+        while (i < m && j < n) {
+            if (s.charAt(i) != t.charAt(j)) {
+                return false;
+            }
+            int k = i;
+            while (k < m && s.charAt(k) == s.charAt(i)) {
+                ++k;
+            }
+            int c1 = k - i;
+            i = k;
+            k = j;
+            while (k < n && t.charAt(k) == t.charAt(j)) {
+                ++k;
+            }
+            int c2 = k - j;
+            j = k;
+            if (c1 < c2 || (c1 < 3 && c1 != c2)) {
+                return false;
+            }
+        }
+        return i == m && j == n;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int expressiveWords(String S, String[] words) {
+        RLE R = new RLE(S);
+        int ans = 0;
+
+        search: for (String word: words) {
+            RLE R2 = new RLE(word);
+            if (!R.key.equals(R2.key)) continue;
+            for (int i = 0; i < R.counts.size(); ++i) {
+                int c1 = R.counts.get(i);
+                int c2 = R2.counts.get(i);
+                if (c1 < 3 && c1 != c2 || c1 < c2)
+                    continue search;
+            }
+            ans++;
+        }
+        return ans;
+    }
+}
+
+class RLE {
+    String key;
+    List<Integer> counts;
+
+    public RLE(String S) {
+        StringBuilder sb = new StringBuilder();
+        counts = new ArrayList();
+
+        char[] ca = S.toCharArray();
+        int N = ca.length;
+        int prev = -1;
+        for (int i = 0; i < N; ++i) {
+            if (i == N-1 || ca[i] != ca[i+1]) {
+                sb.append(ca[i]);
+                counts.add(i - prev);
+                prev = i;
+            }
+        }
+
+        key = sb.toString();
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    // O(N*M) O(1) N = number of words, M = maxlength of each word
+    public int expressiveWords(String s, String[] words) {
+        int count = 0;
+        for (String word: words) {
+            if (isStretchy(word, s)) count++;
+        }
+        return count;
+    }
+    
+    private boolean isStretchy(String word, String s) {
+        int sIndex = 0;
+        int wordIndex = 0;
+        while (sIndex < s.length() && wordIndex < word.length()) {
+            // get the group in word
+            char wordLetter = word.charAt(wordIndex);
+            // count number of wordLetters in this group
+            int wordLetterCount = 0;
+            while (wordIndex < word.length() && word.charAt(wordIndex) == wordLetter) {
+                wordIndex++;
+                wordLetterCount++;
+            } 
+
+            // get the group in s
+            char sLetter = s.charAt(sIndex);
+            // count number of sLetters in this group
+            int sLetterCount = 0;
+            while (sIndex < s.length() && s.charAt(sIndex) == sLetter) {
+                sIndex++;
+                sLetterCount++;
+            }
+
+            // compare the groups
+            // if the letters don't match it's simply not possible
+            if (wordLetter != sLetter) return false;
+            // if count of letters in word is greater than those in s, 
+            // then it's not possible, as we cannot delete letters from word
+            if (wordLetterCount > sLetterCount) return false;
+            // if the counts dont match and required count 
+            // ie sLetter count is less than 3 then its' not possible as the 
+            // stretched group should be of size 3 atleast
+            if (wordLetterCount != sLetterCount && sLetterCount < 3) return false;
+            // checking for this group is done, go for next group
+        }
+        // if we are here and we have reached the end of both s and word, it means it's stretchy
+        if (sIndex == s.length() && wordIndex == word.length()) return true;
+        else return false;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int expressiveWords(final String s, final String[] words) {
+        int count = 0;
+
+        for(final String word : words)
+            if(helper(s, word))
+                count++;
+
+        return count;
+    }
+
+    private boolean helper(final String s, final String word) {
+        if(s.length() < word.length())
+            return false;
+
+        int i = 0, j = 0;
+
+        while(i < s.length() && j < word.length()) {
+            if(s.charAt(i) != word.charAt(j))
+                return false;
+
+            final char curr = word.charAt(j);
+            int sCount = 0;
+
+            while(i < s.length() && s.charAt(i) == curr) {
+                sCount++;
+                i++;
+            }
+
+            int wordCount = 0;
+
+            while(j < word.length() && word.charAt(j) == curr) {
+                wordCount++;
+                j++;
+            }
+
+            if(sCount - wordCount < 0 || (sCount - wordCount != 0 && sCount < 3))
+                return false;
+        }
+
+        return i >= s.length() && j >= word.length();
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int expressiveWords(final String s, final String[] words) {
+        int count = 0;
+
+        for(final String word : words)
+            if(helper(s, word))
+                count++;
+
+        return count;
+    }
+
+    private boolean helper(final String s, final String word) {
+        if(s.length() < word.length())
+            return false;
+
+        int i = 0, j = 0;
+
+        while(i < s.length() && j < word.length()) {
+            if(s.charAt(i) != word.charAt(j))
+                return false;
+
+            final char curr = word.charAt(j);
+            int sCount = 0;
+
+            while(i < s.length() && s.charAt(i) == curr) {
+                sCount++;
+                i++;
+            }
+
+            int wordCount = 0;
+
+            while(j < word.length() && word.charAt(j) == curr) {
+                wordCount++;
+                j++;
+            }
+
+            if(sCount - wordCount < 0 || (sCount - wordCount != 0 && sCount < 3))
+                return false;
+        }
+
+        return i >= s.length() && j >= word.length();
+    }
+}
+
+
+
