@@ -1,0 +1,297 @@
+https://leetcode.com/problems/number-of-ways-where-square-of-number-is-equal-to-product-of-two-numbers/description/
+
+
+1577. Number of Ways Where Square of Number Is Equal to Product of Two Numbers
+Medium
+Topics
+Companies
+Hint
+Given two arrays of integers nums1 and nums2, return the number of triplets formed (type 1 and type 2) under the following rules:
+
+Type 1: Triplet (i, j, k) if nums1[i]2 == nums2[j] * nums2[k] where 0 <= i < nums1.length and 0 <= j < k < nums2.length.
+Type 2: Triplet (i, j, k) if nums2[i]2 == nums1[j] * nums1[k] where 0 <= i < nums2.length and 0 <= j < k < nums1.length.
+ 
+
+Example 1:
+
+Input: nums1 = [7,4], nums2 = [5,2,8,9]
+Output: 1
+Explanation: Type 1: (1, 1, 2), nums1[1]2 = nums2[1] * nums2[2]. (42 = 2 * 8). 
+Example 2:
+
+Input: nums1 = [1,1], nums2 = [1,1,1]
+Output: 9
+Explanation: All Triplets are valid, because 12 = 1 * 1.
+Type 1: (0,0,1), (0,0,2), (0,1,2), (1,0,1), (1,0,2), (1,1,2).  nums1[i]2 = nums2[j] * nums2[k].
+Type 2: (0,0,1), (1,0,1), (2,0,1). nums2[i]2 = nums1[j] * nums1[k].
+Example 3:
+
+Input: nums1 = [7,7,8,3], nums2 = [1,2,9,7]
+Output: 2
+Explanation: There are 2 valid triplets.
+Type 1: (3,0,2).  nums1[3]2 = nums2[0] * nums2[2].
+Type 2: (3,0,1).  nums2[3]2 = nums1[0] * nums1[1].
+ 
+
+Constraints:
+
+1 <= nums1.length, nums2.length <= 1000
+1 <= nums1[i], nums2[i] <= 105
+
+
+# java
+
+
+
+class Solution {
+  public int numTriplets(int[] nums1, int[] nums2) {
+    return countTriplets(nums1, nums2) + countTriplets(nums2, nums1);
+  }
+
+  // Returns the number of triplet (i, j, k) if A[i]^2 == B[j] * B[k].
+  private int countTriplets(int[] A, int[] B) {
+    int res = 0;
+    Map<Integer, Integer> count = new HashMap<>();
+
+    for (final int b : B)
+      count.merge(b, 1, Integer::sum);
+
+    for (final int a : A) {
+      long target = (long) a * a;
+      for (Map.Entry<Integer, Integer> entry : count.entrySet()) {
+        final int b = entry.getKey();
+        final int freq = entry.getValue();
+        if (target % b > 0 || !count.containsKey((int) (target / b)))
+          continue;
+        if (target / b == b)
+          res += freq * (freq - 1);
+        else
+          res += freq * count.get((int) (target / b));
+      }
+    }
+
+    return res / 2;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public int numTriplets(int[] nums1, int[] nums2) {
+        Map<Integer, Integer> cnt1 = new HashMap<>();
+        Map<Integer, Integer> cnt2 = new HashMap<>();
+        for (int v : nums1) {
+            cnt1.put(v, cnt1.getOrDefault(v, 0) + 1);
+        }
+        for (int v : nums2) {
+            cnt2.put(v, cnt2.getOrDefault(v, 0) + 1);
+        }
+        long ans = 0;
+        for (var e1 : cnt1.entrySet()) {
+            long a = e1.getKey(), x = e1.getValue();
+            for (var e2 : cnt2.entrySet()) {
+                long b = e2.getKey(), y = e2.getValue();
+                if ((a * a) % b == 0) {
+                    long c = a * a / b;
+                    if (b == c) {
+                        ans += x * y * (y - 1);
+                    } else {
+                        ans += x * y * cnt2.getOrDefault((int) c, 0);
+                    }
+                }
+                if ((b * b) % a == 0) {
+                    long c = b * b / a;
+                    if (a == c) {
+                        ans += x * (x - 1) * y;
+                    } else {
+                        ans += x * y * cnt1.getOrDefault((int) c, 0);
+                    }
+                }
+            }
+        }
+        return (int) (ans >> 1);
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int numTriplets(int[] nums1, int[] nums2) {
+        Arrays.sort(nums1);
+        Arrays.sort(nums2);
+        return count(nums1 , nums2) + count(nums2 , nums1);
+    }
+    
+    public int count(int a[] , int b[]){
+        int n = a.length;
+        int m = b.length;
+        int count = 0;
+        for(int i=0;i<n;i++){
+            long x = (long)a[i]*a[i];
+            int j = 0;
+            int k = m-1;
+            while(j<k){
+                long prod = (long)b[j]*b[k];
+                if(prod<x)
+                    j++;
+                else if(prod>x)
+                    k--;
+                else if(b[j] != b[k]){
+                    int jNew = j;
+                    int kNew = k;
+                    
+                    while(b[j] == b[jNew])
+                        jNew++;
+                    while(b[k] == b[kNew])
+                        kNew--;
+                    count += (jNew-j)*(k-kNew);
+                    j = jNew;
+                    k = kNew;
+                }
+                else{
+                    int q = k-j+1;
+                    count += (q)*(q-1)/2;
+                    break;
+                }
+            }
+        }
+        return count;
+    }
+    
+}
+
+
+
+or
+
+
+class Solution {
+    public int calculate(int[] num1, int[] num2) {
+        HashMap<Long, Integer> map = new HashMap<>();
+        long n = num1.length,  m = num2.length, ans = 0;
+        for(int i=0; i<n; i++) map.put((long)num1[i]*num1[i],map.getOrDefault((long)num1[i]*num1[i],0)+1);
+        for(int j=0; j<m; j++)  for(int k=j+1; k<m; k++)   ans += (long)map.getOrDefault((long)num2[j]*num2[k],0);
+        return (int)ans;
+    }
+    public int numTriplets(int[] nums1, int[] nums2) {
+        return calculate(nums1,nums2) + calculate(nums2,nums1);
+    } 
+}
+
+
+or
+
+
+
+class Solution {
+    public int numTriplets(int[] nums1, int[] nums2) {
+       return res(nums1,nums2)+res(nums2,nums1);
+    }
+    public static int res(int[] nums1,int[] nums2)
+    {
+        int count=0;
+		HashMap<Long,Integer> map=new HashMap<Long,Integer>();
+		for(long i:nums1)
+			map.put((i*i), map.getOrDefault(i*i,0)+1);
+		for(int i=0;i<nums2.length-1;i++)
+		{
+			for(int j=i+1;j<nums2.length;j++)
+			{
+				long prod=(long)nums2[i]*nums2[j];
+				if(map.containsKey(prod))
+				{
+					count=count+map.get(prod);
+				}
+			}
+		}
+		return count;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int numTriplets(int[] nums1, int[] nums2) {
+        Arrays.sort(nums1);
+        Arrays.sort(nums2);
+        return count(nums1 , nums2) + count(nums2 , nums1);
+    }
+    
+    public int count(int a[] , int b[]){
+        int n = a.length;
+        int m = b.length;
+        int count = 0;
+        for(int i=0;i<n;i++){
+            long x = (long)a[i]*a[i];
+            int j = 0;
+            int k = m-1;
+            while(j<k){
+                long prod = (long)b[j]*b[k];
+                if(prod<x)
+                    j++;
+                else if(prod>x)
+                    k--;
+                else if(b[j] != b[k]){
+                    int jNew = j;
+                    int kNew = k;
+                    
+                    while(b[j] == b[jNew])
+                        jNew++;
+                    while(b[k] == b[kNew])
+                        kNew--;
+                    count += (jNew-j)*(k-kNew);
+                    j = jNew;
+                    k = kNew;
+                }
+                else{
+                    int q = k-j+1;
+                    count += (q)*(q-1)/2;
+                    break;
+                }
+            }
+        }
+        return count;
+    }
+    
+}
+
+
+or
+
+
+class Solution {
+    private int countways(int[] nums1, int []nums2){
+        int count = 0;
+        Map<Long, Integer> map = new HashMap<>();
+        for (int n : nums2) {
+            map.put((long) n * n, map.getOrDefault((long) n * n, 0) + 1);
+        }
+
+        for (int i = 0; i < nums1.length; i++) {
+            for (int j = i + 1; j < nums1.length; j++) {
+                long prod = (long) nums1[i] * (long) nums1[j];
+                
+                if (map.containsKey(prod)) count += map.get(prod);
+            }
+        }
+        return count;
+    }
+
+
+    public int numTriplets(int[] nums1, int[] nums2) {
+        Arrays.sort(nums1);
+        Arrays.sort(nums2);
+        
+        return countways(nums1, nums2)+countways(nums2, nums1);
+    }
+}
+
+
