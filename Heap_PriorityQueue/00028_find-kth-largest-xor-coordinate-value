@@ -1,0 +1,173 @@
+https://leetcode.com/problems/find-kth-largest-xor-coordinate-value/description/
+
+1738. Find Kth Largest XOR Coordinate Value
+Medium
+Topics
+Companies
+Hint
+You are given a 2D matrix of size m x n, consisting of non-negative integers. You are also given an integer k.
+
+The value of coordinate (a, b) of the matrix is the XOR of all matrix[i][j] where 0 <= i <= a < m and 0 <= j <= b < n (0-indexed).
+
+Find the kth largest value (1-indexed) of all the coordinates of matrix.
+
+ 
+
+Example 1:
+
+Input: matrix = [[5,2],[1,6]], k = 1
+Output: 7
+Explanation: The value of coordinate (0,1) is 5 XOR 2 = 7, which is the largest value.
+Example 2:
+
+Input: matrix = [[5,2],[1,6]], k = 2
+Output: 5
+Explanation: The value of coordinate (0,0) is 5 = 5, which is the 2nd largest value.
+Example 3:
+
+Input: matrix = [[5,2],[1,6]], k = 3
+Output: 4
+Explanation: The value of coordinate (1,0) is 5 XOR 1 = 4, which is the 3rd largest value.
+ 
+
+Constraints:
+
+m == matrix.length
+n == matrix[i].length
+1 <= m, n <= 1000
+0 <= matrix[i][j] <= 106
+1 <= k <= m * n
+
+# java
+
+
+class Solution {
+  public int kthLargestValue(int[][] matrix, int k) {
+    final int m = matrix.length;
+    final int n = matrix[0].length;
+    int[][] xors = new int[m + 1][n + 1];
+    Queue<Integer> minHeap = new PriorityQueue<>();
+
+    for (int i = 1; i <= m; ++i)
+      for (int j = 1; j <= n; ++j) {
+        xors[i][j] = xors[i - 1][j] ^ xors[i][j - 1] ^ xors[i - 1][j - 1] ^ matrix[i - 1][j - 1];
+        minHeap.offer(xors[i][j]);
+        if (minHeap.size() > k)
+          minHeap.poll();
+      }
+
+    return minHeap.peek();
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int kthLargestValue(int[][] matrix, int k) {
+        int m = matrix.length, n = matrix[0].length;
+        int[][] s = new int[m + 1][n + 1];
+        List<Integer> ans = new ArrayList<>();
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                s[i + 1][j + 1] = s[i + 1][j] ^ s[i][j + 1] ^ s[i][j] ^ matrix[i][j];
+                ans.add(s[i + 1][j + 1]);
+            }
+        }
+        Collections.sort(ans);
+        return ans.get(ans.size() - k);
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int kthLargestValue(int[][] matrix, int k) {
+        int m = matrix.length;
+        int n = matrix[0].length;
+        int[][] dp = new int[m][n];
+        dp[0][0] = matrix[0][0];
+        for (int i = 1; i < m; i++) {
+            dp[i][0] = dp[i-1][0] ^ matrix[i][0];
+        }
+        for (int j = 1; j < n; j++) {
+            dp[0][j] = dp[0][j-1] ^ matrix[0][j];
+        }
+        for (int i = 1; i < m; i++) {
+            for (int j = 1; j < n; j++) {
+                dp[i][j] = dp[i-1][j] ^ dp[i][j-1] ^ dp[i-1][j-1] ^ matrix[i][j];
+            }
+        }
+        PriorityQueue<Integer> pq = new PriorityQueue<>((a, b) -> b - a);
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                pq.offer(dp[i][j]);
+            }
+        }
+        while (k != 1) {
+            pq.poll();
+            k--;
+        }
+        return pq.peek();
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int kthLargestValue(int[][] matrix, int k) {
+        PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());
+        maxHeap.offer(matrix[0][0]);
+        for(int i=0;i<matrix.length;i++) {
+            for(int j=0;j<matrix[0].length;j++) {
+                if(i == 0 && j == 0) {
+                    continue;
+                }
+                if(i == 0) {
+                    matrix[i][j] ^= matrix[i][j-1]; 
+                } else if(j == 0) {
+                    matrix[i][j] ^= matrix[i-1][j];
+                } else {
+                    matrix[i][j] ^= matrix[i][j-1] ^ matrix[i-1][j] ^ matrix[i-1][j-1];
+                }
+                maxHeap.offer(matrix[i][j]);
+            }
+        }
+        int answer = maxHeap.poll();
+        for(int i=1;i<k;i++) {
+            answer = maxHeap.poll();
+        }
+        return answer;
+    }
+}
+
+
+or
+
+class Solution {
+    public int kthLargestValue(int[][] matrix, int k) {
+         int m = matrix.length;
+        int n = matrix[0].length;
+        Queue<Integer> q = new PriorityQueue<>();   // it will be used to store xor values in decreasing order
+        int[][] xor = new int[m+1][n+1];            // make new matrix of increased dimension
+        for( int i = 1; i <= m; i++){
+            for( int j = 1; j <= n; j++){
+                xor[i][j] = xor[i][j-1] ^ xor[i-1][j-1] ^ xor[i-1][j] ^ matrix[i-1][j-1]; // find the xors of left-top region (visualise) and the corresponding matrix element
+                q.offer(xor[i][j]);
+                if( q.size() > k){       // if there are more than 'k' elements then remove last one so that now the last one will be k'th largest xor value
+                    q.poll();
+                }
+            }
+        }
+        return q.peek();
+    }
+}
+
+or
+
+
