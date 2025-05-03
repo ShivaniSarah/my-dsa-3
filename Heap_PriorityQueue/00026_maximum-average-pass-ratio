@@ -1,0 +1,306 @@
+https://leetcode.com/problems/maximum-average-pass-ratio/description/
+
+
+1792. Maximum Average Pass Ratio
+Medium
+Topics
+Companies
+Hint
+There is a school that has classes of students and each class will be having a final exam. You are given a 2D integer array classes, where classes[i] = [passi, totali]. You know beforehand that in the ith class, there are totali total students, but only passi number of students will pass the exam.
+
+You are also given an integer extraStudents. There are another extraStudents brilliant students that are guaranteed to pass the exam of any class they are assigned to. You want to assign each of the extraStudents students to a class in a way that maximizes the average pass ratio across all the classes.
+
+The pass ratio of a class is equal to the number of students of the class that will pass the exam divided by the total number of students of the class. The average pass ratio is the sum of pass ratios of all the classes divided by the number of the classes.
+
+Return the maximum possible average pass ratio after assigning the extraStudents students. Answers within 10-5 of the actual answer will be accepted.
+
+ 
+
+Example 1:
+
+Input: classes = [[1,2],[3,5],[2,2]], extraStudents = 2
+Output: 0.78333
+Explanation: You can assign the two extra students to the first class. The average pass ratio will be equal to (3/4 + 3/5 + 2/2) / 3 = 0.78333.
+Example 2:
+
+Input: classes = [[2,4],[3,9],[4,5],[2,10]], extraStudents = 4
+Output: 0.53485
+ 
+
+Constraints:
+
+1 <= classes.length <= 105
+classes[i].length == 2
+1 <= passi <= totali <= 105
+1 <= extraStudents <= 105
+
+
+# java
+
+
+class Solution {
+  public double maxAverageRatio(int[][] classes, int extraStudents) {
+    // (extra pass ratio, pass, total)
+    PriorityQueue<T> maxHeap =
+        new PriorityQueue<>((a, b) -> Double.compare(b.extraPassRatio, a.extraPassRatio));
+
+    for (int[] c : classes) {
+      final int pass = c[0];
+      final int total = c[1];
+      maxHeap.offer(new T(getExtraPassRatio(pass, total), pass, total));
+    }
+
+    for (int i = 0; i < extraStudents; ++i) {
+      final int pass = maxHeap.peek().pass;
+      final int total = maxHeap.poll().total;
+      maxHeap.offer(new T(getExtraPassRatio(pass + 1, total + 1), pass + 1, total + 1));
+    }
+
+    double ratioSum = 0;
+
+    while (!maxHeap.isEmpty())
+      ratioSum += maxHeap.peek().pass / (double) maxHeap.poll().total;
+
+    return ratioSum / classes.length;
+  }
+
+  // Returns the extra pass ratio if a brilliant student joins.
+  private double getExtraPassRatio(int pass, int total) {
+    return (pass + 1) / (double) (total + 1) - pass / (double) total;
+  }
+
+  private record T(double extraPassRatio, int pass, int total){};
+}
+
+
+or
+
+
+class Solution {
+    public double maxAverageRatio(int[][] classes, int extraStudents) {
+        PriorityQueue<double[]> pq = new PriorityQueue<>((a, b) -> {
+            double x = (a[0] + 1) / (a[1] + 1) - a[0] / a[1];
+            double y = (b[0] + 1) / (b[1] + 1) - b[0] / b[1];
+            return Double.compare(y, x);
+        });
+        for (var e : classes) {
+            pq.offer(new double[] {e[0], e[1]});
+        }
+        while (extraStudents-- > 0) {
+            var e = pq.poll();
+            double a = e[0] + 1, b = e[1] + 1;
+            pq.offer(new double[] {a, b});
+        }
+        double ans = 0;
+        while (!pq.isEmpty()) {
+            var e = pq.poll();
+            ans += e[0] / e[1];
+        }
+        return ans / classes.length;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public double maxAverageRatio(int[][] classes, int extraStudents) {
+        List<Double> passRatios = new ArrayList<>();
+
+        // Calculate initial pass ratios
+        for (int classIndex = 0; classIndex < classes.length; classIndex++) {
+            double initialRatio =
+                (double) classes[classIndex][0] / classes[classIndex][1];
+            passRatios.add(initialRatio);
+        }
+
+        while (extraStudents > 0) {
+            List<Double> updatedRatios = new ArrayList<>();
+
+            // Calculate updated pass ratios if an extra student is added
+            for (
+                int classIndex = 0;
+                classIndex < classes.length;
+                classIndex++
+            ) {
+                double newRatio =
+                    (double) (classes[classIndex][0] + 1) /
+                    (classes[classIndex][1] + 1);
+                updatedRatios.add(newRatio);
+            }
+
+            int bestClassIndex = 0;
+            double maximumGain = 0;
+
+            // Find the class that gains the most from an extra student
+            for (
+                int classIndex = 0;
+                classIndex < updatedRatios.size();
+                classIndex++
+            ) {
+                double gain =
+                    updatedRatios.get(classIndex) - passRatios.get(classIndex);
+                if (gain > maximumGain) {
+                    bestClassIndex = classIndex;
+                    maximumGain = gain;
+                }
+            }
+
+            // Update the selected class
+            passRatios.set(bestClassIndex, updatedRatios.get(bestClassIndex));
+            classes[bestClassIndex][0]++;
+            classes[bestClassIndex][1]++;
+
+            extraStudents--;
+        }
+
+        // Calculate the total average pass ratio
+        double totalPassRatio = 0;
+        for (double passRatio : passRatios) {
+            totalPassRatio += passRatio;
+        }
+
+        return totalPassRatio / classes.length;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+
+    public double maxAverageRatio(int[][] classes, int extraStudents) {
+        // Lambda to calculate the gain of adding an extra student
+        PriorityQueue<double[]> maxHeap = new PriorityQueue<>((a, b) ->
+            Double.compare(b[0], a[0])
+        );
+
+        for (int[] singleClass : classes) {
+            int passes = singleClass[0];
+            int totalStudents = singleClass[1];
+            double gain = calculateGain(passes, totalStudents);
+            maxHeap.offer(new double[] { gain, passes, totalStudents });
+        }
+
+        // Distribute extra students
+        while (extraStudents-- > 0) {
+            double[] current = maxHeap.poll();
+            double currentGain = current[0];
+            int passes = (int) current[1];
+            int totalStudents = (int) current[2];
+            maxHeap.offer(
+                new double[] {
+                    calculateGain(passes + 1, totalStudents + 1),
+                    passes + 1,
+                    totalStudents + 1,
+                }
+            );
+        }
+
+        // Calculate the final average pass ratio
+        double totalPassRatio = 0;
+        while (!maxHeap.isEmpty()) {
+            double[] current = maxHeap.poll();
+            int passes = (int) current[1];
+            int totalStudents = (int) current[2];
+            totalPassRatio += (double) passes / totalStudents;
+        }
+
+        return totalPassRatio / classes.length;
+    }
+
+    private double calculateGain(int passes, int totalStudents) {
+        return (
+            (double) (passes + 1) / (totalStudents + 1) -
+            (double) passes / totalStudents
+        );
+    }
+}
+
+
+or
+
+// betsz
+class Solution {
+    public double maxAverageRatio(int[][] classes, int extraStudents) {
+        // Lambda-like comparator for calculating gain in Java
+        PriorityQueue<double[]> maxHeap = new PriorityQueue<>((a, b) -> Double.compare(b[0], a[0]));
+        double sum = 0.0;
+
+        // Initialize the heap with gains and add the initial ratios to sum
+        for (int[] cls : classes) {
+            int pass = cls[0], total = cls[1];
+            double currentRatio = (double) pass / total;
+            double gain = ((double) (pass + 1) / (total + 1)) - currentRatio;
+            sum += currentRatio;
+            maxHeap.offer(new double[]{gain, pass, total});
+        }
+
+        // Distribute extra students to maximize the average ratio
+        for (int i = 0; i < extraStudents; i++) {
+            double[] top = maxHeap.poll();
+            double gain = top[0];
+            int pass = (int) top[1];
+            int total = (int) top[2];
+
+            // Update the sum by removing the old ratio and adding the new one
+            sum -= (double) pass / total;
+            pass++;
+            total++;
+            sum += (double) pass / total;
+
+            // Recalculate the gain and push back into the heap
+            double newGain = ((double) (pass + 1) / (total + 1)) - ((double) pass / total);
+            maxHeap.offer(new double[]{newGain, pass, total});
+        }
+
+        // Return the final average
+        return sum / classes.length;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public double maxAverageRatio(int[][] cls, int extra) {
+        // Gain calculation
+        PriorityQueue<double[]> pq = new PriorityQueue<>((a, b) -> Double.compare(b[0], a[0]));
+
+        for (int[] c : cls) {
+            int p = c[0], t = c[1];
+            pq.offer(new double[]{gain(p, t), p, t});
+        }
+
+        // Distribute extra students
+        while (extra-- > 0) {
+            double[] top = pq.poll();
+            double g = top[0];
+            int p = (int) top[1], t = (int) top[2];
+            pq.offer(new double[]{gain(p + 1, t + 1), p + 1, t + 1});
+        }
+
+        // Compute the final average pass ratio
+        double sum = 0;
+        for (double[] c : pq) {
+            sum += c[1] / c[2];
+        }
+
+        return sum / cls.length;
+    }
+
+    // Helper to calculate gain
+    private double gain(int p, int t) {
+        return (double) (p + 1) / (t + 1) - (double) p / t;
+    }
+}
+
+
+or
+
+
