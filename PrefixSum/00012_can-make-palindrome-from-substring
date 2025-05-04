@@ -1,0 +1,218 @@
+https://leetcode.com/problems/can-make-palindrome-from-substring/description/
+
+
+1177. Can Make Palindrome from Substring
+Medium
+Topics
+Companies
+Hint
+You are given a string s and array queries where queries[i] = [lefti, righti, ki]. We may rearrange the substring s[lefti...righti] for each query and then choose up to ki of them to replace with any lowercase English letter.
+
+If the substring is possible to be a palindrome string after the operations above, the result of the query is true. Otherwise, the result is false.
+
+Return a boolean array answer where answer[i] is the result of the ith query queries[i].
+
+Note that each letter is counted individually for replacement, so if, for example s[lefti...righti] = "aaa", and ki = 2, we can only replace two of the letters. Also, note that no query modifies the initial string s.
+
+ 
+
+Example :
+
+Input: s = "abcda", queries = [[3,3,0],[1,2,0],[0,3,1],[0,3,2],[0,4,1]]
+Output: [true,false,false,true,true]
+Explanation:
+queries[0]: substring = "d", is palidrome.
+queries[1]: substring = "bc", is not palidrome.
+queries[2]: substring = "abcd", is not palidrome after replacing only 1 character.
+queries[3]: substring = "abcd", could be changed to "abba" which is palidrome. Also this can be changed to "baab" first rearrange it "bacd" then replace "cd" with "ab".
+queries[4]: substring = "abcda", could be changed to "abcba" which is palidrome.
+Example 2:
+
+Input: s = "lyb", queries = [[0,1,0],[2,2,1]]
+Output: [false,true]
+ 
+
+Constraints:
+
+1 <= s.length, queries.length <= 105
+0 <= lefti <= righti < s.length
+0 <= ki <= s.length
+s consists of lowercase English letters.
+
+
+
+# java
+
+
+
+class Solution {
+  public List<Boolean> canMakePaliQueries(String s, int[][] queries) {
+    List<Boolean> ans = new ArrayList<>();
+    int[] dp = new int[s.length() + 1];
+
+    for (int i = 1; i <= s.length(); ++i)
+      dp[i] = dp[i - 1] ^ 1 << s.charAt(i - 1) - 'a';
+
+    for (int[] query : queries) {
+      int odds = Integer.bitCount(dp[query[1] + 1] ^ dp[query[0]]);
+      ans.add(odds / 2 <= query[2]);
+    }
+
+    return ans;
+  }
+}
+
+
+
+
+or
+
+
+
+class Solution {
+    public List<Boolean> canMakePaliQueries(String s, int[][] queries) {
+        int n = s.length();
+        int[][] ss = new int[n + 1][26];
+        for (int i = 1; i <= n; ++i) {
+            for (int j = 0; j < 26; ++j) {
+                ss[i][j] = ss[i - 1][j];
+            }
+            ss[i][s.charAt(i - 1) - 'a']++;
+        }
+        List<Boolean> ans = new ArrayList<>();
+        for (var q : queries) {
+            int l = q[0], r = q[1], k = q[2];
+            int x = 0;
+            for (int j = 0; j < 26; ++j) {
+                x += (ss[r + 1][j] - ss[l][j]) & 1;
+            }
+            ans.add(x / 2 <= k);
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+        public List<Boolean> canMakePaliQueries(String s, int[][] queries) {
+        List<Boolean> res = new ArrayList();
+        
+        if (queries.length == 0)
+            return res;
+        //create array of prefix counts for every next char in the string
+        //count number of odd times we met one character
+        int[] countArray = new int[s.length()];
+        for (int i = 0; i < s.length(); i++) {
+            //take count for previous charter, 0 if first character
+            int prev = (i == 0) ? 0 : countArray[i - 1];
+            //transfrom char into index
+            int idx = s.charAt(i) - 'a';
+            //calculate count for this charater in the string by doing XOR
+            //of this charater bit with the previous count
+            countArray[i]= (prev^(1<<idx));
+        }
+        
+        //now iterate over the query array
+        for (int[] q : queries) {
+            //simple case - query of 1 character is always a palindrome
+            if (q[0] == q[1]) {
+                res.add(true);
+                continue;
+            }
+            //take count of previous position in array of prefixes, 0 if it's first element
+            int p = q[0] == 0 ? 0 : countArray[q[0] - 1];
+            //by doing XOR take count of even number of chars between q[1] and q[0] - 1
+            int counts = (p^countArray[q[1]]);
+            //check the number of even chars, if / 2 is less then a q[2] - we can satisfy the
+            //condition of the query
+            res.add((Integer.bitCount(counts) / 2)<= q[2]);
+        } 
+        
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution 
+{
+    public List<Boolean> canMakePaliQueries(String s, int[][] queries) 
+    {
+        List<Boolean> list = new ArrayList<>();
+        
+        int n = s.length();
+        int[][] map = new int[n+1][26];
+        
+        for(int i=0;i<s.length();i++)
+        {
+            for(int j=0;j<26;j++)
+                map[i+1][j] = map[i][j];
+            
+            map[i+1][s.charAt(i) - 'a']++;
+        }
+        
+        for(int[] q : queries)
+        {
+            int l = q[0];
+            int r = q[1];
+            int k = q[2];
+            int count = 0;
+            
+            for(int i=0;i<26;i++)
+                count += (map[r+1][i] - map[l][i]) % 2;
+            
+            list.add(count/2 <= k);
+        }
+        
+        return list;
+    }
+}
+
+
+or
+
+
+
+class Solution 
+{
+    public List<Boolean> canMakePaliQueries(String s, int[][] queries) {
+    List<Boolean> res = new ArrayList<>();
+    
+    int n = s.length();
+    int[][] prefixArr = new int[n + 1][26];
+    
+    for(int i = 1 ; i <= n ; i++){
+		// each index contains all elements from previous indices along with element at current index
+        prefixArr[i] = Arrays.copyOf(prefixArr[i-1],26); //add all elements from previous indices
+        prefixArr[i][s.charAt(i-1) - 'a']++; // add current element
+    }
+    
+    for(int[] query : queries){
+        int l = query[0] , 
+            r = query[1] , 
+            k = ((r - l + 1) % 2) == 0 ? 2*query[2] : 2*query[2]+1 ,  //if(length of substring is even then each character has one or more duplicates but if length is odd then there exist a single element in the middle with no duplicates.
+            o = 0;
+        
+        for(int i = 0 ; i < 26 ; i++)
+            if((prefixArr[r + 1][i] - prefixArr[l][i]) % 2 != 0) //count number of elements appearing odd number of times
+                o++; 
+        
+        res.add(o <= k);//if count is less than k add true else false
+    }
+    
+    return res;
+  }
+}
+
+
+or
+
+
+
