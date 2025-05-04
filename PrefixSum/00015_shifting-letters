@@ -1,0 +1,195 @@
+https://leetcode.com/problems/shifting-letters/description/
+
+
+848. Shifting Letters
+Medium
+Topics
+Companies
+You are given a string s of lowercase English letters and an integer array shifts of the same length.
+
+Call the shift() of a letter, the next letter in the alphabet, (wrapping around so that 'z' becomes 'a').
+
+For example, shift('a') = 'b', shift('t') = 'u', and shift('z') = 'a'.
+Now for each shifts[i] = x, we want to shift the first i + 1 letters of s, x times.
+
+Return the final string after all such shifts to s are applied.
+
+ 
+
+Example 1:
+
+Input: s = "abc", shifts = [3,5,9]
+Output: "rpl"
+Explanation: We start with "abc".
+After shifting the first 1 letters of s by 3, we have "dbc".
+After shifting the first 2 letters of s by 5, we have "igc".
+After shifting the first 3 letters of s by 9, we have "rpl", the answer.
+Example 2:
+
+Input: s = "aaa", shifts = [1,2,3]
+Output: "gfd"
+ 
+
+Constraints:
+
+1 <= s.length <= 105
+s consists of lowercase English letters.
+shifts.length == s.length
+0 <= shifts[i] <= 109
+
+
+
+# java
+
+
+class Solution {
+  public String shiftingLetters(String s, int[] shifts) {
+    StringBuilder sb = new StringBuilder();
+
+    for (int i = shifts.length - 2; i >= 0; --i)
+      shifts[i] = (shifts[i] + shifts[i + 1]) % 26;
+
+    for (int i = 0; i < s.length(); ++i)
+      sb.append((char) ((s.charAt(i) - 'a' + shifts[i]) % 26 + 'a'));
+
+    return sb.toString();
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public String shiftingLetters(String s, int[] shifts) {
+        char[] cs = s.toCharArray();
+        int n = cs.length;
+        long t = 0;
+        for (int i = n - 1; i >= 0; --i) {
+            t += shifts[i];
+            int j = (int) ((cs[i] - 'a' + t) % 26);
+            cs[i] = (char) ('a' + j);
+        }
+        return String.valueOf(cs);
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public String shiftingLetters(String S, int[] shifts) {
+        StringBuilder ans = new StringBuilder();
+        int X = 0;
+        for (int shift: shifts)
+            X = (X + shift) % 26;
+
+        for (int i = 0; i < S.length(); ++i) {
+            int index = S.charAt(i) - 'a';
+            ans.append((char) ((index + X) % 26 + 97));
+            X = Math.floorMod(X - shifts[i], 26);
+        }
+
+        return ans.toString();
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public String shiftingLetters(String s, int[] shifts) {
+        StringBuilder ans = new StringBuilder(s);
+        long shift=0;
+        for (int i = s.length()-1; i >=0 ; i--){
+            ans.setCharAt(i, (char)((s.charAt(i) - 'a' + (shift+shifts[i]) % 26) % 26 + 'a'));
+            shift+=shifts[i];
+        }
+        return ans.toString();
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public String shiftingLetters(String s, int[] shifts) {
+        long maxi = 0;
+        char[] chars = s.toCharArray();
+        for (int i = shifts.length - 1; i >= 0; i--) {
+            maxi += shifts[i];
+            chars[i] = (char) ('a' + (chars[i] - 'a' + maxi) % 26);
+        }
+        return new String(chars);
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public String shiftingLetters(String s, int[] shifts) {
+        // calculate the total shifts
+		for(int i=shifts.length-1; i>0; --i){
+            shifts[i-1] += shifts[i]; // add up the shift
+            shifts[i-1] %= 26; // check for integer overflow
+        }
+        char[] charArr = s.toCharArray();
+        for(int i=0; i<s.length(); ++i){
+            charArr[i] = (char)('a'+(charArr[i]-'a' + shifts[i])%26);
+        }
+        return String.valueOf(charArr);
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public String shiftingLetters(String s, int[] shifts) {
+        
+        char arr[]=s.toCharArray();
+        
+        int tot_shifts=0;
+        
+        for(int i=s.length()-1;i>=0;i--)
+        {
+            tot_shifts+=shifts[i]%26;
+            arr[i]=(char)((arr[i]-97+tot_shifts)%26+97);
+        }
+        return String.valueOf(arr);
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public String shiftingLetters(String s, int[] shifts) {
+        char[] c=s.toCharArray();
+        int sum=0;
+       
+        for(int i=c.length-1;i>=0;i--){
+            sum=(sum+shifts[i])%26;
+             c[i]=(char)('a'+((sum+c[i]-'a')%26));
+        }
+        return new String(c);
+    }
+}
+
+
