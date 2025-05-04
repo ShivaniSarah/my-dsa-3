@@ -1,0 +1,326 @@
+https://leetcode.com/problems/describe-the-painting/
+
+1943. Describe the Painting
+Medium
+Topics
+Companies
+Hint
+There is a long and thin painting that can be represented by a number line. The painting was painted with multiple overlapping segments where each segment was painted with a unique color. You are given a 2D integer array segments, where segments[i] = [starti, endi, colori] represents the half-closed segment [starti, endi) with colori as the color.
+
+The colors in the overlapping segments of the painting were mixed when it was painted. When two or more colors mix, they form a new color that can be represented as a set of mixed colors.
+
+For example, if colors 2, 4, and 6 are mixed, then the resulting mixed color is {2,4,6}.
+For the sake of simplicity, you should only output the sum of the elements in the set rather than the full set.
+
+You want to describe the painting with the minimum number of non-overlapping half-closed segments of these mixed colors. These segments can be represented by the 2D array painting where painting[j] = [leftj, rightj, mixj] describes a half-closed segment [leftj, rightj) with the mixed color sum of mixj.
+
+For example, the painting created with segments = [[1,4,5],[1,7,7]] can be described by painting = [[1,4,12],[4,7,7]] because:
+[1,4) is colored {5,7} (with a sum of 12) from both the first and second segments.
+[4,7) is colored {7} from only the second segment.
+Return the 2D array painting describing the finished painting (excluding any parts that are not painted). You may return the segments in any order.
+
+A half-closed segment [a, b) is the section of the number line between points a and b including point a and not including point b.
+
+ 
+
+Example 1:
+
+
+Input: segments = [[1,4,5],[4,7,7],[1,7,9]]
+Output: [[1,4,14],[4,7,16]]
+Explanation: The painting can be described as follows:
+- [1,4) is colored {5,9} (with a sum of 14) from the first and third segments.
+- [4,7) is colored {7,9} (with a sum of 16) from the second and third segments.
+Example 2:
+
+
+Input: segments = [[1,7,9],[6,8,15],[8,10,7]]
+Output: [[1,6,9],[6,7,24],[7,8,15],[8,10,7]]
+Explanation: The painting can be described as follows:
+- [1,6) is colored 9 from the first segment.
+- [6,7) is colored {9,15} (with a sum of 24) from the first and second segments.
+- [7,8) is colored 15 from the second segment.
+- [8,10) is colored 7 from the third segment.
+Example 3:
+
+
+Input: segments = [[1,4,5],[1,4,7],[4,7,1],[4,7,11]]
+Output: [[1,4,12],[4,7,12]]
+Explanation: The painting can be described as follows:
+- [1,4) is colored {5,7} (with a sum of 12) from the first and second segments.
+- [4,7) is colored {1,11} (with a sum of 12) from the third and fourth segments.
+Note that returning a single segment [1,7) is incorrect because the mixed color sets are different.
+ 
+
+Constraints:
+
+1 <= segments.length <= 2 * 104
+segments[i].length == 3
+1 <= starti < endi <= 105
+1 <= colori <= 109
+Each colori is distinct.
+
+
+
+# jav
+
+class Solution {
+  public List<List<Long>> splitPainting(int[][] segments) {
+    List<List<Long>> ans = new ArrayList<>();
+    int prevIndex = 0;
+    long runningMix = 0;
+    TreeMap<Integer, Long> line = new TreeMap<>();
+
+    for (int[] segment : segments) {
+      final int start = segment[0];
+      final int end = segment[1];
+      final int color = segment[2];
+      line.merge(start, (long) color, Long::sum);
+      line.merge(end, (long) -color, Long::sum);
+    }
+
+    for (Map.Entry<Integer, Long> entry : line.entrySet()) {
+      final int i = entry.getKey();
+      final long mix = entry.getValue();
+      if (runningMix > 0)
+        ans.add(List.of((long) prevIndex, (long) i, runningMix));
+      runningMix += mix;
+      prevIndex = i;
+    }
+
+    return ans;
+  }
+}
+
+
+
+
+or
+
+
+
+class Solution {
+    public List<List<Long>> splitPainting(int[][] segments) {
+        TreeMap<Integer, Long> d = new TreeMap<>();
+        for (int[] e : segments) {
+            int l = e[0], r = e[1], c = e[2];
+            d.put(l, d.getOrDefault(l, 0L) + c);
+            d.put(r, d.getOrDefault(r, 0L) - c);
+        }
+        List<List<Long>> ans = new ArrayList<>();
+        long i = 0, j = 0;
+        long cur = 0;
+        for (Map.Entry<Integer, Long> e : d.entrySet()) {
+            if (Objects.equals(e.getKey(), d.firstKey())) {
+                i = e.getKey();
+            } else {
+                j = e.getKey();
+                if (cur > 0) {
+                    ans.add(Arrays.asList(i, j, cur));
+                }
+                i = j;
+            }
+            cur += e.getValue();
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+// best
+
+class Solution {
+    public List<List<Long>> splitPainting(int[][] segments) {
+    long mix[] = new long[100002], sum = 0, last_i = 0;
+    boolean ends[] = new boolean[100002];
+    List<List<Long>> res = new ArrayList<>();
+    for (var s : segments) {
+        mix[s[0]] += s[2];
+        mix[s[1]] -= s[2];
+        ends[s[0]] = ends[s[1]] = true;
+    }
+    for (int i = 1; i < 100002; ++i) {
+        if (ends[i] && sum > 0)
+            res.add(Arrays.asList(last_i, (long)i, sum));
+        last_i = ends[i] ? i : last_i;
+        sum += mix[i];
+    }    
+    return res;
+}
+}
+
+
+or
+
+
+class Solution {
+   public List<List<Long>> splitPainting(int[][] segments) {
+	TreeMap<Integer, Long> map = new TreeMap<>();
+
+	for(int segment[]: segments) {
+		map.put(segment[0], map.getOrDefault(segment[0], 0L) + segment[2]);
+		map.put(segment[1], map.getOrDefault(segment[1], 0L) - segment[2]);
+	}
+
+	List<List<Long>> result = new ArrayList<>();
+
+	int prev = 0;
+	long sum = 0;
+
+	for(int key: map.keySet()) {
+		if(sum != 0) { // Ignore the unpainted interval
+			result.add(Arrays.asList((long)prev, (long)key, sum)); // Add the interval
+		}
+
+		sum += map.get(key);
+		prev = key;
+	}
+
+	return result;
+}
+}
+
+
+or
+
+
+class Solution {
+  public List<List<Long>> splitPainting(int[][] segments) {
+        int n = 1_00_005;
+        // mix color array for finding the net value of color at each index
+        long mix[] = new long[n];
+        
+        // Using treeset so that duplicates will not store and we get all breakpoints in soted order
+        TreeSet<Integer> breakPoints = new TreeSet<>();
+        
+        for(int i=0; i<segments.length; i++){
+            int start = segments[i][0];
+            int end = segments[i][1];
+            int color = segments[i][2]; 
+            breakPoints.add(start);
+            breakPoints.add(end);
+            mix[start]+=color;
+            mix[end]-=color;
+        }
+        
+        // finding net color at each index using prefix sum
+        for(int i=1; i<n; i++){
+            mix[i] += mix[i-1];
+        }
+        
+        List<List<Long>> res = new ArrayList<>();
+        
+        long prev = breakPoints.first();
+        breakPoints.remove((int)prev);
+        
+        for(int x : breakPoints){
+            long curr = x;
+            List<Long> list = new ArrayList<>();
+            list.add(prev);
+            list.add(curr);
+            list.add(mix[(int)prev]);
+            if(mix[(int)prev] != 0)     // Do not consider if net color is 0 given in question
+                res.add(list);
+            prev = curr;
+        }
+        return res;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public List<List<Long>> splitPainting(int[][] segments) {
+        TreeMap<Integer, Long> map = new TreeMap<>();
+        for (int[] seg : segments) {
+            map.put(seg[0], map.getOrDefault(seg[0], 0L) + seg[2]);
+            map.put(seg[1], map.getOrDefault(seg[1], 0L) - seg[2]);
+        }
+
+        List<List<Long>> res = new ArrayList<>();
+        long sum = 0;
+        Integer prev = null;
+
+        for (int point : map.keySet()) {
+            if (prev != null && sum != 0) {
+                res.add(Arrays.asList((long) prev, (long) point, sum));
+            }
+            sum += map.get(point);
+            prev = point;
+        }
+
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public List<List<Long>> splitPainting(int[][] segments) {
+        int max = Integer.MIN_VALUE;
+        int min = Integer.MAX_VALUE;
+        List<List<Long>> ans = new ArrayList<>();
+
+        for (int[] seg : segments) {
+            max = Math.max(max, seg[1]);
+            min = Math.min(min, seg[0]);
+        }
+        long[] holder = new long[max + 2];
+        Set<Integer> criticalPoint = new HashSet<>();
+
+        for (int[] seg : segments) {
+            long prevVal[] = new long[] {holder[seg[0]], holder[seg[1]]};
+            holder[seg[0]] += seg[2];
+            holder[seg[1]] += -seg[2]; 
+            // Checking the change of value to add critical points
+            if (prevVal[0] != 0 && holder[seg[0]] == 0) {
+                criticalPoint.add(seg[0]);
+            }
+
+            if (prevVal[1] != 0 && holder[seg[1]] == 0) {
+                criticalPoint.add(seg[1]);
+            }
+        }
+
+        for (int i = 1; i < holder.length; i++) {
+            holder[i] += holder[i - 1];
+        }
+        int slow = min;
+        int fast = min;
+        long curr = holder[slow];
+
+        while (fast <= max) {
+
+            if (fast == max || curr != holder[fast] || criticalPoint.contains(fast)) {
+
+                if (holder[slow] != 0) {
+                    List<Long> temp = new ArrayList<>();
+                    temp.add((long)slow);
+                    temp.add((long)fast);
+                    temp.add(curr);
+                    ans.add(temp);
+                }
+                curr = holder[fast];
+                slow = fast;
+            }
+            fast++;
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+
+
+
