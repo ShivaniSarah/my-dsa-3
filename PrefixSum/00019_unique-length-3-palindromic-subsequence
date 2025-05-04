@@ -1,0 +1,372 @@
+https://leetcode.com/problems/unique-length-3-palindromic-subsequences/
+
+
+1930. Unique Length-3 Palindromic Subsequences
+Medium
+Topics
+Companies
+Hint
+Given a string s, return the number of unique palindromes of length three that are a subsequence of s.
+
+Note that even if there are multiple ways to obtain the same subsequence, it is still only counted once.
+
+A palindrome is a string that reads the same forwards and backwards.
+
+A subsequence of a string is a new string generated from the original string with some characters (can be none) deleted without changing the relative order of the remaining characters.
+
+For example, "ace" is a subsequence of "abcde".
+ 
+
+Example 1:
+
+Input: s = "aabca"
+Output: 3
+Explanation: The 3 palindromic subsequences of length 3 are:
+- "aba" (subsequence of "aabca")
+- "aaa" (subsequence of "aabca")
+- "aca" (subsequence of "aabca")
+Example 2:
+
+Input: s = "adc"
+Output: 0
+Explanation: There are no palindromic subsequences of length 3 in "adc".
+Example 3:
+
+Input: s = "bbcbaba"
+Output: 4
+Explanation: The 4 palindromic subsequences of length 3 are:
+- "bbb" (subsequence of "bbcbaba")
+- "bcb" (subsequence of "bbcbaba")
+- "bab" (subsequence of "bbcbaba")
+- "aba" (subsequence of "bbcbaba")
+ 
+
+Constraints:
+
+3 <= s.length <= 105
+s consists of only lowercase English letters.
+
+
+
+# java
+
+
+class Solution {
+  public int countPalindromicSubsequence(String s) {
+    int ans = 0;
+    int[] first = new int[26];
+    int[] last = new int[26];
+
+    Arrays.fill(first, s.length());
+    Arrays.fill(last, -1);
+
+    for (int i = 0; i < s.length(); ++i) {
+      final int index = s.charAt(i) - 'a';
+      first[index] = Math.min(first[index], i);
+      last[index] = i;
+    }
+
+    for (int i = 0; i < 26; ++i)
+      if (first[i] < last[i])
+        ans += s.substring(first[i] + 1, last[i]).chars().distinct().count();
+
+    return ans;
+  }
+}
+
+
+or
+
+class Solution {
+    public int countPalindromicSubsequence(String s) {
+        int ans = 0;
+        for (char c = 'a'; c <= 'z'; ++c) {
+            int l = s.indexOf(c), r = s.lastIndexOf(c);
+            Set<Character> cs = new HashSet<>();
+            for (int i = l + 1; i < r; ++i) {
+                cs.add(s.charAt(i));
+            }
+            ans += cs.size();
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int countPalindromicSubsequence(String s) {
+        Set<Character> letters = new HashSet();
+        for (Character c: s.toCharArray()) {
+            letters.add(c);
+        }
+        
+        int ans = 0;
+        for (Character letter : letters) {
+            int i = -1;
+            int j = 0;
+            
+            for (int k = 0; k < s.length(); k++) {
+                if (s.charAt(k) == letter) {
+                    if (i == -1) {
+                        i = k;
+                    }
+                    
+                    j = k;
+                }
+            }
+            
+            Set<Character> between = new HashSet();
+            for (int k = i + 1; k < j; k++) {
+                between.add(s.charAt(k));
+            }
+            
+            ans += between.size();
+        }
+        
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int countPalindromicSubsequence(String s) {
+        int[] first = new int[26];
+        int[] last = new int[26];
+        Arrays.fill(first, -1);
+        
+        for (int i = 0; i < s.length(); i++) {
+            int curr = s.charAt(i) - 'a';
+            if (first[curr] == - 1) {
+                first[curr] = i;
+            }
+            
+            last[curr] = i;
+        }
+        
+        int ans = 0;
+        for (int i = 0; i < 26; i++) {
+            if (first[i] == -1) {
+                continue;
+            }
+            
+            Set<Character> between = new HashSet();
+            for (int j = first[i] + 1; j < last[i]; j++) {
+                between.add(s.charAt(j));
+            }
+            
+            ans += between.size();
+        }
+        
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int countPalindromicSubsequence(String s) {
+        int[] R = new int[26];
+        for (char u : s.toCharArray()) {
+            R[u - 'a']++;
+        }
+        int[] L = new int[26];
+        HashSet<Integer> S = new HashSet<>();
+
+        for (int i = 0; i < s.length(); i++) {
+            int t = s.charAt(i) - 'a';
+            R[t]--;
+            for (int j = 0; j < 26; j++) {
+                if (L[j] > 0 && R[j] > 0) {
+                    S.add(26 * t + j);
+                }
+            }
+            L[t]++;
+        }
+
+        return S.size();
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int countPalindromicSubsequence(String s) {
+        char[] c = s.toCharArray();
+        boolean[] v = new boolean[128];
+        int a=0, t=0;
+
+        int l, r;
+        for(char x='a'; x<='z'; x++){
+            for(l=0; l<c.length && c[l]!=x; l++);
+            if(l==c.length)continue;
+            for(r=c.length-1; r>=0 && c[r]!=x; r--);
+            if(l>=r)continue;
+
+            Arrays.fill(v, false); t=0;
+            for(int i=l+1; i<r; i++){
+                if(!v[c[i]]){
+                    v[c[i]]=true; t++;
+                    if(t==26)break;
+                }
+            }
+            a+=t;
+        }
+        return a;
+    }
+}
+
+
+
+
+or
+
+
+
+class Solution {
+    private boolean isPali(String s) {
+        int i = 0, j = s.length() - 1;
+        while (i <= j) {
+            if (s.charAt(i++) != s.charAt(j--)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void solve(String s, int i, int k, StringBuilder temp, Set<String> st) {
+        if (temp.length() == k) {
+            if (isPali(temp.toString())) {
+                st.add(temp.toString());
+            }
+            return;
+        }
+        if (i >= s.length()) {
+            return;
+        }
+
+        temp.append(s.charAt(i));
+        solve(s, i + 1, k, temp, st);
+        temp.deleteCharAt(temp.length() - 1);
+
+        solve(s, i + 1, k, temp, st);
+    }
+
+    public int countPalindromicSubsequence(String s) {
+        int k = 3;
+        StringBuilder temp = new StringBuilder();
+        Set<String> st = new HashSet<>();
+        solve(s, 0, k, temp, st);
+        return st.size();
+    }
+}
+
+
+import java.util.*;
+
+class Solution {
+    private boolean isPali(String s) {
+        int i = 0, j = s.length() - 1;
+        while (i < j) {
+            if (s.charAt(i) != s.charAt(j)) {
+                return false;
+            }
+            i++;
+            j--;
+        }
+        return true;
+    }
+
+    private int solve(String s, int i, int k, String temp, Set<String> uniquePalindromes, List<List<Map<String, Integer>>> dp) {
+        if (temp.length() == 3) {
+            if (isPali(temp)) {
+                uniquePalindromes.add(temp);
+            }
+            return 0;
+        }
+        if (i >= s.length()) {
+            return 0;
+        }
+
+        if (dp.get(i).get(temp.length()).containsKey(temp)) {
+            return dp.get(i).get(temp.length()).get(temp);
+        }
+
+        temp += s.charAt(i);
+        solve(s, i + 1, k, temp, uniquePalindromes, dp);
+        temp = temp.substring(0, temp.length() - 1); // Backtrack
+
+        solve(s, i + 1, k, temp, uniquePalindromes, dp);
+
+        dp.get(i).get(temp.length()).put(temp, uniquePalindromes.size());
+        return dp.get(i).get(temp.length()).get(temp);
+    }
+
+    public int countPalindromicSubsequence(String s) {
+        Set<String> uniquePalindromes = new HashSet<>();
+        String temp = "";
+        int n = s.length();
+        List<List<Map<String, Integer>>> dp = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            dp.add(new ArrayList<>());
+            for (int j = 0; j < 4; j++) {
+                dp.get(i).add(new HashMap<>());
+            }
+        }
+        solve(s, 0, 3, temp, uniquePalindromes, dp);
+        return uniquePalindromes.size();
+    }
+}
+
+
+or
+
+
+import java.util.*;
+
+class Solution {
+    public int countPalindromicSubsequence(String s) {
+        int[] first = new int[26];
+        int[] last = new int[26];
+        int result = 0;
+
+        Arrays.fill(first, Integer.MAX_VALUE);
+        Arrays.fill(last, -1);
+
+        for (int i = 0; i < s.length(); ++i) {
+            int idx = s.charAt(i) - 'a';
+            first[idx] = Math.min(first[idx], i);
+            last[idx] = i;
+        }
+
+        for (int i = 0; i < 26; ++i) {
+            if (first[i] < last[i]) {
+                Set<Character> set = new HashSet<>();
+                for (int j = first[i] + 1; j < last[i]; ++j) {
+                    set.add(s.charAt(j));
+                }
+                result += set.size();
+            }
+        }
+
+        return result;
+    }
+}
+
+
+
