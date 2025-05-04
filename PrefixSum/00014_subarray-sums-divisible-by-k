@@ -1,0 +1,238 @@
+https://leetcode.com/problems/subarray-sums-divisible-by-k/description/
+
+974. Subarray Sums Divisible by K
+Medium
+Topics
+Companies
+Given an integer array nums and an integer k, return the number of non-empty subarrays that have a sum divisible by k.
+
+A subarray is a contiguous part of an array.
+
+ 
+
+Example 1:
+
+Input: nums = [4,5,0,-2,-3,1], k = 5
+Output: 7
+Explanation: There are 7 subarrays with a sum divisible by k = 5:
+[4, 5, 0, -2, -3, 1], [5], [5, 0], [5, 0, -2, -3], [0], [0, -2, -3], [-2, -3]
+Example 2:
+
+Input: nums = [5], k = 9
+Output: 0
+ 
+
+Constraints:
+
+1 <= nums.length <= 3 * 104
+-104 <= nums[i] <= 104
+2 <= k <= 104
+
+
+# java
+
+
+class Solution {
+    public int subarraysDivByK(int[] nums, int k) {
+        Map<Integer, Integer> cnt = new HashMap<>();
+        cnt.put(0, 1);
+        int ans = 0, s = 0;
+        for (int x : nums) {
+            s = ((s + x) % k + k) % k;
+            ans += cnt.getOrDefault(s, 0);
+            cnt.merge(s, 1, Integer::sum);
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+  public int subarraysDivByK(int[] nums, int k) {
+    int ans = 0;
+    int prefix = 0;
+    int[] count = new int[k];
+    count[0] = 1;
+
+    for (final int num : nums) {
+      prefix = (prefix + num % k + k) % k;
+      ans += count[prefix];
+      ++count[prefix];
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int subarraysDivByK(int[] nums, int k) {
+        int n = nums.length;
+        int prefixMod = 0, result = 0;
+
+        // There are k mod groups 0...k-1.
+        int[] modGroups = new int[k];
+        modGroups[0] = 1;
+
+        for (int num: nums) {
+            // Take modulo twice to avoid negative remainders.
+            prefixMod = (prefixMod + num % k + k) % k;
+            // Add the count of subarrays that have the same remainder as the current
+            // one to cancel out the remainders.
+            result += modGroups[prefixMod];
+            modGroups[prefixMod]++;
+        }
+
+        return result;
+    }
+}
+
+
+
+or
+
+
+public class Solution {
+    public int subarraysDivByK(int[] nums, int k) {
+        // Initialize count of subarrays, prefix sum, and hash map for remainders
+        int count = 0;
+        int prefixSum = 0;
+        HashMap<Integer, Integer> prefixMap = new HashMap<>();
+        prefixMap.put(0, 1); // To handle subarrays that start from the beginning
+
+        for (int num : nums) {
+            // Update prefix sum
+            prefixSum += num;
+            
+            // Calculate the remainder of the prefix sum divided by k
+            int mod = prefixSum % k;
+            
+            // Adjust negative remainders to be positive
+            if (mod < 0) {
+                mod += k;
+            }
+            
+            // If this remainder has been seen before, it means there are subarrays ending here that are divisible by k
+            if (prefixMap.containsKey(mod)) {
+                count += prefixMap.get(mod);
+                prefixMap.put(mod, prefixMap.get(mod) + 1);
+            } else {
+                prefixMap.put(mod, 1);
+            }
+        }
+        
+        return count; // Total number of subarrays divisible by k
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int subarraysDivByK(int[] nums, int k) {
+        HashMap<Integer,Integer> hashMap = new HashMap<>();
+        int prefixSum = 0;
+        int ans = 0;
+        hashMap.put(0,1);
+        for(int i = 0;i<nums.length;i++){
+            prefixSum = (prefixSum + nums[i])%k;
+            if(prefixSum<0) prefixSum +=k;
+            if(hashMap.containsKey(prefixSum)){
+                
+                    ans = ans+hashMap.get(prefixSum);
+                
+                
+                hashMap.put(prefixSum,hashMap.get(prefixSum)+1);
+            }else{
+                hashMap.put(prefixSum,1);
+            }
+
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int subarraysDivByK(int[] nums, int k) {
+        
+        HashMap<Integer,Integer> map=new HashMap<>();
+        map.put(0,1);
+        int prefix_sum=0;
+        int count=0;
+        for(int i=0; i<nums.length; i++){
+            prefix_sum+=nums[i];
+            int rem=prefix_sum % k;
+            if(rem<0){
+                rem=(rem+k);
+            }
+            if(map.containsKey(rem)){
+                count+=map.get(rem);
+                map.put(rem,map.get(rem)+1);
+            }else{
+                map.put(rem,1);
+            }
+
+        }
+        return count;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int subarraysDivByK(int[] nums, int k) {
+        // Array to store the frequency of remainders
+        int[] modulusCount = new int[k];
+        // Initialize the remainders array with 0
+        Arrays.fill(modulusCount, 0);
+
+        int currentMod = 0; // Current prefix sum remainder
+        int subarrayCount = 0; // Count of subarrays divisible by k
+        modulusCount[0] = 1; // There is one way to have a remainder of 0 (empty subarray)
+
+        // Iterate through the array
+        for (int num : nums) {
+            // Update the current remainder by adding the current number and taking modulo k
+            // Adding k before taking modulo k ensures we handle negative numbers correctly
+            currentMod = ((currentMod + num % k) + k) % k;
+
+            // Add the number of times this remainder has occurred before to the count
+            subarrayCount += modulusCount[currentMod];
+
+            // Increment the frequency of the current remainder
+            modulusCount[currentMod]++;
+        }
+
+        return subarrayCount;
+    }
+}
+
+
+
+or
+
+
+
