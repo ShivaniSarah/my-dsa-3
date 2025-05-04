@@ -1,0 +1,252 @@
+https://leetcode.com/problems/number-of-wonderful-substrings/
+
+1915. Number of Wonderful Substrings
+Medium
+Topics
+Companies
+Hint
+A wonderful string is a string where at most one letter appears an odd number of times.
+
+For example, "ccjjc" and "abab" are wonderful, but "ab" is not.
+Given a string word that consists of the first ten lowercase English letters ('a' through 'j'), return the number of wonderful non-empty substrings in word. If the same substring appears multiple times in word, then count each occurrence separately.
+
+A substring is a contiguous sequence of characters in a string.
+
+ 
+
+Example 1:
+
+Input: word = "aba"
+Output: 4
+Explanation: The four wonderful substrings are underlined below:
+- "aba" -> "a"
+- "aba" -> "b"
+- "aba" -> "a"
+- "aba" -> "aba"
+Example 2:
+
+Input: word = "aabb"
+Output: 9
+Explanation: The nine wonderful substrings are underlined below:
+- "aabb" -> "a"
+- "aabb" -> "aa"
+- "aabb" -> "aab"
+- "aabb" -> "aabb"
+- "aabb" -> "a"
+- "aabb" -> "abb"
+- "aabb" -> "b"
+- "aabb" -> "bb"
+- "aabb" -> "b"
+Example 3:
+
+Input: word = "he"
+Output: 2
+Explanation: The two wonderful substrings are underlined below:
+- "he" -> "h"
+- "he" -> "e"
+ 
+
+Constraints:
+
+1 <= word.length <= 105
+word consists of lowercase English letters from 'a' to 'j'.
+
+
+
+# java
+
+
+class Solution {
+    public long wonderfulSubstrings(String word) {
+        int[] cnt = new int[1 << 10];
+        cnt[0] = 1;
+        long ans = 0;
+        int st = 0;
+        for (char c : word.toCharArray()) {
+            st ^= 1 << (c - 'a');
+            ans += cnt[st];
+            for (int i = 0; i < 10; ++i) {
+                ans += cnt[st ^ (1 << i)];
+            }
+            ++cnt[st];
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+  public long wonderfulSubstrings(String word) {
+    long ans = 0;
+    int prefix = 0;              // the binary prefix
+    int[] count = new int[1024]; // the binary prefix count
+    count[0] = 1;                // the empty string ""
+
+    for (final char c : word.toCharArray()) {
+      prefix ^= 1 << c - 'a';
+      // All the letters occur even number of times.
+      ans += count[prefix];
+      // ('a' + i) occurs odd number of times.
+      for (int i = 0; i < 10; ++i)
+        ans += count[prefix ^ 1 << i];
+      ++count[prefix];
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    public long wonderfulSubstrings(String word) {
+        int N = word.length();
+
+        // Create the frequency map
+        // Key = bitmask, Value = frequency of bitmask key
+        Map<Integer, Integer> freq = new HashMap<>();
+
+        // The empty prefix can be the smaller prefix, which is handled like this
+        freq.put(0, 1);
+
+        int mask = 0;
+        long res = 0L;
+        for (int i = 0; i < N; i++) {
+            char c = word.charAt(i);
+            int bit = c - 'a';
+
+            // Flip the parity of the c-th bit in the running prefix mask
+            mask ^= (1 << bit);
+            
+            // Count smaller prefixes that create substrings with no odd occurring letters
+            res += freq.getOrDefault(mask, 0);
+
+            // Increment value associated with mask by 1
+            freq.put(mask, freq.getOrDefault(mask, 0) + 1);
+
+            // Loop through every possible letter that can appear an odd number of times in a substring
+            for (int odd_c=0; odd_c < 10; odd_c++) {
+                res += freq.getOrDefault(mask ^ (1 << odd_c),0);
+            }
+        }
+        return res;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+   public long wonderfulSubstrings(String word) {
+    long cnt[] = new long[1024], res = 0;
+    int mask = 0;
+    cnt[0] = 1;
+    for (var ch : word.toCharArray()) {
+        mask ^= 1 << (ch - 'a');
+        res += cnt[mask];
+        for (var n = 0; n < 10; ++n)
+            res += cnt[mask ^ (1 << n)];
+        ++cnt[mask];
+    }
+    return res;
+}
+}
+
+
+
+or
+
+
+class Solution {
+    public long wonderfulSubstrings(String word) {
+        long[] count = new long[1024]; // 2^10 to store XOR values
+        long result = 0;
+        int prefixXor = 0;
+        count[prefixXor] = 1;
+
+        for (char ch : word.toCharArray()) {
+            int charIndex = ch - 'a';
+            prefixXor ^= 1 << charIndex;
+            result += count[prefixXor];
+            for (int i = 0; i < 10; i++) {
+                result += count[prefixXor ^ (1 << i)];
+            }
+            count[prefixXor]++;
+        }
+
+        return result;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public long wonderfulSubstrings(String word) {
+        long[] cnt = new long[1024]; // cnt[state] stores how many times the state occurs
+        cnt[0] = 1; // empty string gives case where all characters occur even number of times
+        int mask = 0; // current state
+        long ans = 0;
+        char[] chars = word.toCharArray();
+        for (char c : chars) {
+            int idx = c - 'a';
+            mask ^= 1 << idx; // update state
+            ans += cnt[mask]; // add count of same previous states
+            for (int i = 1; i <= 512; i*=2) {
+                ans += cnt[mask ^ i];
+            }
+            cnt[mask]++; // add 1 to count of times we've seen current state
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public long wonderfulSubstrings(String word) {
+        int n = word.length();
+        long count = 0;
+        
+        long[] freq = new long[(1 << 10) + 1]; // Since we have to take only 2^10 possibilies, we can avoid an HashMap
+        
+        freq[0] = 1;
+        int res = 0; // initialize the frequency of 0000000000 as 1 because when no element is encountered, then th bitmask is 0
+        
+        for (int i = 0; i < n; i++) {
+            int mask = (1 << (word.charAt(i) - 'a'));
+            res ^= mask; // toggling bit of the current character to make it from odd to even OR even to odd
+            int chkMask = 1;
+            
+            count += freq[res];
+            for (int j = 1; j <= 10; j++) {  // Loop for checking all possiblities of different places of the Different Bit
+                count += freq[chkMask ^ res];
+                chkMask <<= 1;
+            }
+            
+            freq[res]++; // increasing the frequency of the current bitmask
+        }
+        
+        return count;
+    }
+}
+
+
+
+
+
