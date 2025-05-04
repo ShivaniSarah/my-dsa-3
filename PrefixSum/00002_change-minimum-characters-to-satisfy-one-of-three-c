@@ -1,0 +1,251 @@
+https://leetcode.com/problems/change-minimum-characters-to-satisfy-one-of-three-conditions/
+
+1737. Change Minimum Characters to Satisfy One of Three Conditions
+Medium
+Topics
+Companies
+Hint
+You are given two strings a and b that consist of lowercase letters. In one operation, you can change any character in a or b to any lowercase letter.
+
+Your goal is to satisfy one of the following three conditions:
+
+Every letter in a is strictly less than every letter in b in the alphabet.
+Every letter in b is strictly less than every letter in a in the alphabet.
+Both a and b consist of only one distinct letter.
+Return the minimum number of operations needed to achieve your goal.
+
+ 
+
+Example 1:
+
+Input: a = "aba", b = "caa"
+Output: 2
+Explanation: Consider the best way to make each condition true:
+1) Change b to "ccc" in 2 operations, then every letter in a is less than every letter in b.
+2) Change a to "bbb" and b to "aaa" in 3 operations, then every letter in b is less than every letter in a.
+3) Change a to "aaa" and b to "aaa" in 2 operations, then a and b consist of one distinct letter.
+The best way was done in 2 operations (either condition 1 or condition 3).
+Example 2:
+
+Input: a = "dabadd", b = "cda"
+Output: 3
+Explanation: The best way is to make condition 1 true by changing b to "eee".
+ 
+
+Constraints:
+
+1 <= a.length, b.length <= 105
+a and b consist only of lowercase letters.
+
+
+
+# java
+
+
+
+class Solution {
+  public int minCharacters(String a, String b) {
+    final int m = a.length();
+    final int n = b.length();
+    int[] countA = new int[26];
+    int[] countB = new int[26];
+
+    for (final char c : a.toCharArray())
+      ++countA[c - 'a'];
+
+    for (final char c : b.toCharArray())
+      ++countB[c - 'a'];
+
+    int ans = Integer.MAX_VALUE;
+    int prevA = 0; // the number of characters in a <= c
+    int prevB = 0; // the number of characters in b <= c
+
+    for (char c = 'a'; c <= 'z'; ++c) {
+      // the condition 3
+      ans = Math.min(ans, m + n - countA[c - 'a'] - countB[c - 'a']);
+      // the conditions 1 and 2
+      if (c > 'a')
+        ans = Math.min(ans, Math.min(m - prevA + prevB, n - prevB + prevA));
+      prevA += countA[c - 'a'];
+      prevB += countB[c - 'a'];
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    private int ans;
+
+    public int minCharacters(String a, String b) {
+        int m = a.length(), n = b.length();
+        int[] cnt1 = new int[26];
+        int[] cnt2 = new int[26];
+        for (int i = 0; i < m; ++i) {
+            ++cnt1[a.charAt(i) - 'a'];
+        }
+        for (int i = 0; i < n; ++i) {
+            ++cnt2[b.charAt(i) - 'a'];
+        }
+        ans = m + n;
+        for (int i = 0; i < 26; ++i) {
+            ans = Math.min(ans, m + n - cnt1[i] - cnt2[i]);
+        }
+        f(cnt1, cnt2);
+        f(cnt2, cnt1);
+        return ans;
+    }
+
+    private void f(int[] cnt1, int[] cnt2) {
+        for (int i = 1; i < 26; ++i) {
+            int t = 0;
+            for (int j = i; j < 26; ++j) {
+                t += cnt1[j];
+            }
+            for (int j = 0; j < i; ++j) {
+                t += cnt2[j];
+            }
+            ans = Math.min(ans, t);
+        }
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int minCharacters(String a, String b) {
+        
+         int lengthA = a.length();
+         int lengthB = b.length();
+         int[] afreq = new int[26];
+         int[] bfreq = new int[26];
+     
+        
+         int maxFreqA = 0;
+         int maxFreqB = 0;
+
+         int res = Integer.MAX_VALUE;
+        
+         for( int i = 0 ; i < a.length(); i++ )
+         {
+            int index = a.charAt(i) -'a';
+            afreq[ index ]++;    
+            maxFreqA = Math.max( maxFreqA,afreq[ index ]); 
+         }
+        
+      
+          for( int i = 0 ; i < b.length(); i++ )
+          {
+              int index = b.charAt(i) -'a';
+              bfreq[ index ]++;    
+              maxFreqB = Math.max( maxFreqB,bfreq[ index ]); 
+          }
+        
+        res = Math.min( res, lengthA + lengthB - maxFreqA - maxFreqB ); // Both a and b consist of only one distinct letter.
+        
+        for( int i = 1; i < 26; i++ )
+        {
+             afreq[i] = afreq[i] + afreq[i-1]; // A prefixSum 
+             bfreq[i] = bfreq[i] + bfreq[i-1];// B prefixSum
+        }   
+        
+		//Loop only goes till 'y' character because there is no character greater than z. 
+        for( int i =0 ; i < 25; i++ )
+        {
+            res = Math.min( lengthA - afreq[i] + bfreq[i],res  );
+            res = Math.min( lengthB - bfreq[i] + afreq[i],res  );
+        }
+    return res;
+    }
+}
+
+
+
+
+
+or
+
+
+
+class Solution {
+    public int minCharacters(String a, String b) {
+        int[] aCount = new int[26];
+        int aMax = 0;
+        for (int i = 0; i < a.length(); i++) {
+            aCount[a.charAt(i) - 'a']++;
+            aMax = Math.max(aMax, aCount[a.charAt(i) - 'a']);
+        }
+        
+        int[] bCount = new int[26];
+        int bMax = 0;
+        for (int i = 0; i < b.length(); i++) {
+            bCount[b.charAt(i) - 'a']++;
+            bMax = Math.max(bMax, bCount[b.charAt(i) - 'a']);
+        }
+        int condition3 = a.length() - aMax + b.length() - bMax;
+        
+        int globalMin = condition3;
+        
+        int aTillCurrent = 0;
+        int bTillCurrent = 0;
+        for (int i = 0; i < 25; i++) {
+            aTillCurrent += aCount[i];
+            bTillCurrent += bCount[i];
+            globalMin = Math.min(globalMin, bTillCurrent + a.length() - aTillCurrent);
+            globalMin = Math.min(globalMin, aTillCurrent + b.length() - bTillCurrent);
+        }
+        
+        
+        
+        return globalMin;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minCharacters(String a, String b) {
+        char[] str1 = a.toCharArray();
+        char[] str2 = b.toCharArray();
+        int n = str1.length;
+        int m = str2.length;
+        int[] count1 = new int[26];
+        int[] count2= new int[26];
+        for(int i = 0;i< str1.length;i++){
+            count1[str1[i] - 'a']++;
+        }
+        for(int i = 0;i< str2.length;i++){
+            count2[str2[i] - 'a']++;
+        }
+        int min= Integer.MAX_VALUE;
+        int sum1 = 0;
+        int sum2 = 0;
+        for(int i = 0;i < 25;i++){
+            sum1 += count1[i];
+            sum2 += count2[i];
+            min = Math.min(min, sum1 + m - sum2);
+            min = Math.min(min, sum2 + n - sum1);
+        }
+        int max = 0;
+        for(int i =0; i< 26;i++){
+            max = Math.max(max, count1[i]+count2[i]);
+        }
+        return Math.min(min, m+n- max);
+    }
+}
+
+
+or
+
+
