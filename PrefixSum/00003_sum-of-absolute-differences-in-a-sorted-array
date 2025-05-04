@@ -1,0 +1,326 @@
+https://leetcode.com/problems/sum-of-absolute-differences-in-a-sorted-array/description/
+
+
+1685. Sum of Absolute Differences in a Sorted Array
+Medium
+Topics
+Companies
+Hint
+You are given an integer array nums sorted in non-decreasing order.
+
+Build and return an integer array result with the same length as nums such that result[i] is equal to the summation of absolute differences between nums[i] and all the other elements in the array.
+
+In other words, result[i] is equal to sum(|nums[i]-nums[j]|) where 0 <= j < nums.length and j != i (0-indexed).
+
+ 
+
+Example 1:
+
+Input: nums = [2,3,5]
+Output: [4,3,5]
+Explanation: Assuming the arrays are 0-indexed, then
+result[0] = |2-2| + |2-3| + |2-5| = 0 + 1 + 3 = 4,
+result[1] = |3-2| + |3-3| + |3-5| = 1 + 0 + 2 = 3,
+result[2] = |5-2| + |5-3| + |5-5| = 3 + 2 + 0 = 5.
+Example 2:
+
+Input: nums = [1,4,6,8,10]
+Output: [24,15,13,15,21]
+ 
+
+Constraints:
+
+2 <= nums.length <= 105
+1 <= nums[i] <= nums[i + 1] <= 104
+
+
+# java
+
+
+class Solution {
+  public int[] getSumAbsoluteDifferences(int[] nums) {
+    final int n = nums.length;
+    int[] ans = new int[n];
+    int[] prefix = new int[n];
+    int[] suffix = new int[n];
+
+    prefix[0] = nums[0];
+    for (int i = 1; i < n; ++i)
+      prefix[i] = prefix[i - 1] + nums[i];
+
+    suffix[n - 1] = nums[n - 1];
+    for (int i = n - 2; i >= 0; --i)
+      suffix[i] = suffix[i + 1] + nums[i];
+
+    for (int i = 0; i < nums.length; ++i) {
+      final int left = nums[i] * (i + 1) - prefix[i];
+      final int right = suffix[i] - nums[i] * (n - i);
+      ans[i] = left + right;
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+
+
+class Solution {
+    public int[] getSumAbsoluteDifferences(int[] nums) {
+        // int s = Arrays.stream(nums).sum();
+        int s = 0, t = 0;
+        for (int x : nums) {
+            s += x;
+        }
+        int n = nums.length;
+        int[] ans = new int[n];
+        for (int i = 0; i < n; ++i) {
+            int v = nums[i] * i - t + s - t - nums[i] * (n - i);
+            ans[i] = v;
+            t += nums[i];
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int[] getSumAbsoluteDifferences(int[] nums) {
+        int n = nums.length;
+        int[] prefix = new int[n];
+        prefix[0] = nums[0];
+        for (int i = 1; i < n; i++) {
+            prefix[i] = prefix[i - 1] + nums[i];
+        }
+        
+        int[] ans = new int[n];
+        for (int i = 0; i < n; i++) {
+            int leftSum = prefix[i] - nums[i];
+            int rightSum = prefix[n - 1] - prefix[i];
+            
+            int leftCount = i;
+            int rightCount = n - 1 - i;
+            
+            int leftTotal = leftCount * nums[i] - leftSum;
+            int rightTotal = rightSum - rightCount * nums[i];
+            
+            ans[i] = leftTotal + rightTotal;
+        }
+        
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int[] getSumAbsoluteDifferences(int[] nums) {
+        int n = nums.length;
+        int totalSum = 0;
+        for (int num : nums) {
+            totalSum += num;
+        }
+        
+        int leftSum = 0;
+        int[] ans = new int[n];
+        for (int i = 0; i < n; i++) {
+            int rightSum = totalSum - leftSum - nums[i];
+            
+            int leftCount = i;
+            int rightCount = n - 1 - i;
+            
+            int leftTotal = leftCount * nums[i] - leftSum;
+            int rightTotal = rightSum - rightCount * nums[i];
+            
+            ans[i] = leftTotal + rightTotal;
+            leftSum += nums[i];
+        }
+        
+        return ans;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int[] getSumAbsoluteDifferences(int[] nums) {
+        int n = nums.length;
+        int[] result = new int[n];
+        int[] prefixSum = new int[n];
+        int[] suffixSum = new int[n];
+
+        // Calculate and initialize the prefix sums & suffixSum array
+        prefixSum[0] = nums[0];
+        suffixSum[n - 1] = nums[n - 1];
+
+        // Calculate the prefix sums & suffixSum array in one loop
+        for (int i = 1; i < n; ++i) {
+            prefixSum[i] = prefixSum[i - 1] + nums[i];
+            suffixSum[n - i - 1] = suffixSum[n - i] + nums[n - i - 1];
+        }
+
+        // Calculate absolute differences and update the result array
+        for (int i = 0; i < n; ++i) {
+            int currentAbsoluteDiff = ((nums[i] * i) - prefixSum[i]) + (suffixSum[i] - (nums[i] * (n - i - 1)));
+            result[i] = currentAbsoluteDiff;
+        }
+
+        return result;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int[] getSumAbsoluteDifferences(int[] nums) {
+        int sum = 0;
+        for (int n : nums) {
+            sum += n;
+        }
+        int left = 0;
+        int right = sum;
+
+        int[] r = new int[nums.length];
+
+        for (int i = 0; i < nums.length; i++) {
+            int n = nums[i];
+            right -= n;
+
+            r[i] = n * i - left + right - n * (nums.length - i - 1);
+
+            left += n;
+        }
+
+        return r;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int[] getSumAbsoluteDifferences(int[] nums) {
+        int sum = 0;
+        for (int n : nums) {
+            sum += n;
+        }
+        int left = 0;
+        int right = sum;
+
+        int[] r = new int[nums.length];
+
+        for (int i = 0; i < nums.length; i++) {
+            int n = nums[i];
+            right -= n;
+
+            r[i] = n * i - left + right - n * (nums.length - i - 1);
+
+            left += n;
+        }
+
+        return r;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int[] getSumAbsoluteDifferences(int[] nums) {
+        int sum = 0;
+        for (int n : nums) {
+            sum += n;
+        }
+        int left = 0;
+        int right = sum;
+
+        int[] result = new int[nums.length];
+
+        for (int i = 0; i < nums.length; i++) {
+            int n = nums[i];
+            right -= n;
+
+            result[i] = n * i - left + right - n * (nums.length - i - 1);
+
+            left += n;
+        }
+
+        return result;
+    }
+}
+
+
+
+or
+
+
+
+
+class Solution {
+    public int[] getSumAbsoluteDifferences(int[] nums) {
+        int x,y,tmp,len=nums.length;
+        x=y=0;
+        for(int i=0;i<len;i++){
+            y+=nums[i];
+        }
+        for(int i=0;i<len;i++){
+            x+=nums[i];
+            tmp=(nums[i]*(i+1)-x)+(y-nums[i]*(len-i));
+            
+            y-=nums[i];
+            nums[i]=tmp;
+        }
+        return nums;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int[] getSumAbsoluteDifferences(int[] nums) {
+        int n = nums.length , rightSum  = 0,leftSum = 0,totalSum = 0 ;
+        for(int i: nums) rightSum +=i;
+        for(int i = 0 ; i <n ; i++){
+            rightSum -=nums[i];
+            leftSum+=nums[i];
+            totalSum = Math.abs((i+1)*nums[i] -  leftSum) +
+            Math.abs((n-i-1)*nums[i]-rightSum);
+            nums[i] =  totalSum;
+        }
+    return nums;
+    }
+}
+
+
+or
+
+
