@@ -1,0 +1,398 @@
+https://leetcode.com/problems/make-sum-divisible-by-p/description/
+
+
+1590. Make Sum Divisible by P
+Medium
+Topics
+Companies
+Hint
+Given an array of positive integers nums, remove the smallest subarray (possibly empty) such that the sum of the remaining elements is divisible by p. It is not allowed to remove the whole array.
+
+Return the length of the smallest subarray that you need to remove, or -1 if it's impossible.
+
+A subarray is defined as a contiguous block of elements in the array.
+
+ 
+
+Example 1:
+
+Input: nums = [3,1,4,2], p = 6
+Output: 1
+Explanation: The sum of the elements in nums is 10, which is not divisible by 6. We can remove the subarray [4], and the sum of the remaining elements is 6, which is divisible by 6.
+Example 2:
+
+Input: nums = [6,3,5,2], p = 9
+Output: 2
+Explanation: We cannot remove a single element to get a sum divisible by 9. The best way is to remove the subarray [5,2], leaving us with [6,3] with sum 9.
+Example 3:
+
+Input: nums = [1,2,3], p = 3
+Output: 0
+Explanation: Here the sum is 6. which is already divisible by 3. Thus we do not need to remove anything.
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+1 <= nums[i] <= 109
+1 <= p <= 109
+
+
+
+# java
+
+
+
+class Solution {
+  public int minSubarray(int[] nums, int p) {
+    final long sum = Arrays.stream(nums).asLongStream().sum();
+    final int remainder = (int) (sum % p);
+    if (remainder == 0)
+      return 0;
+
+    int ans = nums.length;
+    int prefix = 0;
+    Map<Integer, Integer> prefixToIndex = new HashMap<>();
+    prefixToIndex.put(0, -1);
+
+    for (int i = 0; i < nums.length; ++i) {
+      prefix += nums[i];
+      prefix %= p;
+      final int target = (prefix - remainder + p) % p;
+      if (prefixToIndex.containsKey(target))
+        ans = Math.min(ans, i - prefixToIndex.get(target));
+      prefixToIndex.put(prefix, i);
+    }
+
+    return ans == nums.length ? -1 : ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int minSubarray(int[] nums, int p) {
+        int k = 0;
+        for (int x : nums) {
+            k = (k + x) % p;
+        }
+        if (k == 0) {
+            return 0;
+        }
+        Map<Integer, Integer> last = new HashMap<>();
+        last.put(0, -1);
+        int n = nums.length;
+        int ans = n;
+        int cur = 0;
+        for (int i = 0; i < n; ++i) {
+            cur = (cur + nums[i]) % p;
+            int target = (cur - k + p) % p;
+            if (last.containsKey(target)) {
+                ans = Math.min(ans, i - last.get(target));
+            }
+            last.put(cur, i);
+        }
+        return ans == n ? -1 : ans;
+    }
+}
+
+
+or
+
+
+
+// bf
+
+
+
+public class Solution {
+
+    public int minSubarray(int[] nums, int p) {
+        int n = nums.length;
+        long totalSum = 0;
+
+        // Calculate the total sum
+        for (int num : nums) {
+            totalSum += num;
+        }
+
+        // If the total sum is already divisible by p, no subarray needs to be removed
+        if (totalSum % p == 0) return 0;
+
+        int minLen = n; // Initialize minLen to the size of the array
+
+        // Try removing every possible subarray
+        for (int start = 0; start < n; ++start) {
+            long subSum = 0; // Initialize subarray sum
+            for (int end = start; end < n; ++end) {
+                subSum += nums[end]; // Calculate the subarray sum
+
+                // Check if removing this subarray makes the remaining sum divisible by p
+                long remainingSum = (totalSum - subSum) % p;
+
+                if (remainingSum == 0) {
+                    minLen = Math.min(minLen, end - start + 1); // Update the smallest subarray length
+                }
+            }
+        }
+
+        // If no valid subarray is found, return -1
+        return minLen == n ? -1 : minLen;
+    }
+}
+
+
+
+
+or
+
+
+// https://leetcode.com/problems/make-sum-divisible-by-p/editorial/#approach-2-prefix-sum-modulo
+
+class Solution {
+
+    public int minSubarray(int[] nums, int p) {
+        int n = nums.length;
+        int totalSum = 0;
+
+        // Step 1: Calculate total sum and target remainder
+        for (int num : nums) {
+            totalSum = (totalSum + num) % p;
+        }
+
+        int target = totalSum % p;
+        if (target == 0) {
+            return 0; // The array is already divisible by p
+        }
+
+        // Step 2: Use a hash map to track prefix sum mod p
+        HashMap<Integer, Integer> modMap = new HashMap<>();
+        modMap.put(0, -1); // To handle the case where the whole prefix is the answer
+        int currentSum = 0;
+        int minLen = n;
+
+        // Step 3: Iterate over the array
+        for (int i = 0; i < n; ++i) {
+            currentSum = (currentSum + nums[i]) % p;
+
+            // Calculate what we need to remove
+            int needed = (currentSum - target + p) % p;
+
+            // If we have seen the needed remainder, we can consider this subarray
+            if (modMap.containsKey(needed)) {
+                minLen = Math.min(minLen, i - modMap.get(needed));
+            }
+
+            // Store the current remainder and index
+            modMap.put(currentSum, i);
+        }
+
+        // Step 4: Return result
+        return minLen == n ? -1 : minLen;
+    }
+}
+
+
+
+or
+
+
+
+import java.util.HashMap;
+
+class Solution {
+    public int minSubarray(int[] nums, int p) {
+        long totalSum = 0;
+        for (int num : nums) {
+            totalSum += num;
+        }
+
+        // Find remainder when total sum is divided by p
+        int rem = (int)(totalSum % p);
+        if (rem == 0) return 0; // If remainder is 0, no subarray needs to be removed
+
+        HashMap<Integer, Integer> prefixMod = new HashMap<>();
+        prefixMod.put(0, -1);  // Initialize to handle full prefix
+        long prefixSum = 0;
+        int minLength = nums.length;
+
+        for (int i = 0; i < nums.length; ++i) {
+            prefixSum += nums[i];
+            int currentMod = (int)(prefixSum % p);
+            int targetMod = (currentMod - rem + p) % p;
+
+            if (prefixMod.containsKey(targetMod)) {
+                minLength = Math.min(minLength, i - prefixMod.get(targetMod));
+            }
+
+            prefixMod.put(currentMod, i);
+        }
+
+        return minLength == nums.length ? -1 : minLength;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int minSubarray(int[] nums, int p) {
+    int sum = 0;    
+    for(int x : nums)
+    sum = (sum + x)%p;
+  
+    int mod = sum%p; 
+    if(mod==0)
+    return 0;
+
+    int ans = nums.length;
+    HashMap<Integer, Integer>hm = new HashMap<>();
+    hm.put(0, -1);
+    int currSumMod = 0;
+    for(int i=0; i<nums.length; i++)
+    {
+      currSumMod = (currSumMod+nums[i])%p;
+      int neededMod = (currSumMod - mod + p)%p;
+      if(hm.containsKey(neededMod))
+      ans = Math.min(ans, i-hm.get(neededMod));
+      hm.put(currSumMod, i);
+    }
+     return ans==nums.length ? -1 : ans;
+    }
+}
+
+
+or
+
+
+import java.util.HashMap;
+
+public class Solution {
+    public int minSubarray(int[] nums, int p) {
+        int totalSum = 0;
+        for (int num : nums) {
+            totalSum += num;
+        }
+        int remainder = totalSum % p;
+
+        // If the total sum is already divisible by p, return 0
+        if (remainder == 0) {
+            return 0;
+        }
+
+        return findSmallestSubarray(nums, p, remainder);
+    }
+
+    private int findSmallestSubarray(int[] nums, int p, int remainder) {
+        int prefixSum = 0;
+        int minLength = nums.length;
+        HashMap<Integer, Integer> prefixMap = new HashMap<>();
+        prefixMap.put(0, -1);  // Initial condition for no subarray
+
+        for (int i = 0; i < nums.length; i++) {
+            prefixSum += nums[i];
+            int targetRemainder = (prefixSum % p - remainder + p) % p;
+
+            if (prefixMap.containsKey(targetRemainder)) {
+                minLength = Math.min(minLength, i - prefixMap.get(targetRemainder));
+            }
+
+            prefixMap.put(prefixSum % p, i);
+        }
+
+        return minLength < nums.length ? minLength : -1;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int minSubarray(int[] nums, int p) {
+        
+        long sum = 0;
+        for (int i = 0; i < nums.length; i++) sum += nums[i];
+        if (sum % p == 0) return 0;
+		
+		int requiredRem = (int) (sum % p);
+	   
+        // stores the rem of sub array idx : [0, i]
+        HashMap<Integer, Integer> rem = new HashMap<>();
+        rem.put(0, -1);
+        
+        sum = 0;
+        int res = nums.length;
+        for (int i = 0; i < nums.length; i++) {
+            sum += nums[i];
+            int curRem = (int) (sum % p);
+            
+            // find if any sub array had the required remainder
+            int searchFor = curRem - requiredRem;
+            if (searchFor < 0) searchFor += p;
+            if (rem.containsKey(searchFor))
+                res = Math.min(res, i - rem.get(searchFor));
+
+            // if remainder repeats then override it with latest sub array
+            rem.put(curRem, i);
+        }
+        return (res == nums.length) ? -1 : res;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+   
+    public int minSubarray(int[] nums, int p) {
+        
+        long sum = 0;
+        for(int num : nums) {
+            sum = (sum + num) % p; // For large numbers using p as mod
+        }
+        
+        if(sum % p == 0) {
+            return 0;
+        }
+        
+        int rem = ((int)sum % p + p) % p;      // The remainder to remove
+        Map<Integer, Integer> map = new HashMap<>();
+        int n = nums.length;
+        int len = n;
+        long pSum = 0;
+        
+        map.put(0, -1);
+        for(int i = 0; i < n; i ++) {
+            
+            pSum = (pSum + nums[i]) % p;    // For large numbers using p as mod
+            int currRem = ((int)pSum % p + p) % p;
+            map.put(currRem, i);
+            
+            int remToSearch = ((currRem - rem) % p + p) % p;
+            if(map.containsKey(remToSearch)) {
+                len = Math.min(len, i - map.get(remToSearch));
+            }
+            
+        }
+        
+        if(len == n) {
+            return -1;
+        }
+        return len;
+    }
+}
+
+
+or
+
+
+
