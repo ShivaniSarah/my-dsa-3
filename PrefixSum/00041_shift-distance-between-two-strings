@@ -1,0 +1,469 @@
+https://leetcode.com/problems/shift-distance-between-two-strings/description/
+
+3361. Shift Distance Between Two Strings
+Medium
+Topics
+Companies
+Hint
+You are given two strings s and t of the same length, and two integer arrays nextCost and previousCost.
+
+In one operation, you can pick any index i of s, and perform either one of the following actions:
+
+Shift s[i] to the next letter in the alphabet. If s[i] == 'z', you should replace it with 'a'. This operation costs nextCost[j] where j is the index of s[i] in the alphabet.
+Shift s[i] to the previous letter in the alphabet. If s[i] == 'a', you should replace it with 'z'. This operation costs previousCost[j] where j is the index of s[i] in the alphabet.
+The shift distance is the minimum total cost of operations required to transform s into t.
+
+Return the shift distance from s to t.
+
+ 
+
+Example 1:
+
+Input: s = "abab", t = "baba", nextCost = [100,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], previousCost = [1,100,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+
+Output: 2
+
+Explanation:
+
+We choose index i = 0 and shift s[0] 25 times to the previous character for a total cost of 1.
+We choose index i = 1 and shift s[1] 25 times to the next character for a total cost of 0.
+We choose index i = 2 and shift s[2] 25 times to the previous character for a total cost of 1.
+We choose index i = 3 and shift s[3] 25 times to the next character for a total cost of 0.
+Example 2:
+
+Input: s = "leet", t = "code", nextCost = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], previousCost = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+
+Output: 31
+
+Explanation:
+
+We choose index i = 0 and shift s[0] 9 times to the previous character for a total cost of 9.
+We choose index i = 1 and shift s[1] 10 times to the next character for a total cost of 10.
+We choose index i = 2 and shift s[2] 1 time to the previous character for a total cost of 1.
+We choose index i = 3 and shift s[3] 11 times to the next character for a total cost of 11.
+ 
+
+Constraints:
+
+1 <= s.length == t.length <= 105
+s and t consist only of lowercase English letters.
+nextCost.length == previousCost.length == 26
+0 <= nextCost[i], previousCost[i] <= 109
+
+
+
+# java
+
+
+
+class Solution {
+  public long shiftDistance(String s, String t, int[] nextCost, int[] previousCost) {
+    long ans = 0;
+    // prev[i][j]: the prev cost to shift from ('a' + i) to ('a' + j)
+    long[][] prev = new long[26][26];
+    // next[i][j]: the next cost to shift from ('a' + i) to ('a' + j)
+    long[][] next = new long[26][26];
+
+    for (int i = 0; i < 26; ++i) {
+      long cost = 0;
+      for (int j = 0; j < 26; ++j) {
+        next[i][(i + j) % 26] = cost;
+        cost += nextCost[(i + j) % 26];
+      }
+    }
+
+    for (int i = 0; i < 26; ++i) {
+      long cost = 0;
+      for (int j = 0; j < 26; ++j) {
+        prev[i][(i - j + 26) % 26] = cost;
+        cost += previousCost[(i - j + 26) % 26];
+      }
+    }
+
+    for (int i = 0; i < s.length(); ++i) {
+      final int a = s.charAt(i) - 'a';
+      final int b = t.charAt(i) - 'a';
+      ans += Math.min(next[a][b], prev[a][b]);
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    public long shiftDistance(String s, String t, int[] nextCost, int[] previousCost) {
+        int m = 26;
+        long[] s1 = new long[(m << 1) + 1];
+        long[] s2 = new long[(m << 1) + 1];
+        for (int i = 0; i < (m << 1); i++) {
+            s1[i + 1] = s1[i] + nextCost[i % m];
+            s2[i + 1] = s2[i] + previousCost[(i + 1) % m];
+        }
+        long ans = 0;
+        for (int i = 0; i < s.length(); i++) {
+            int x = s.charAt(i) - 'a';
+            int y = t.charAt(i) - 'a';
+            long c1 = s1[y + (y < x ? m : 0)] - s1[x];
+            long c2 = s2[x + (x < y ? m : 0)] - s2[y];
+            ans += Math.min(c1, c2);
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+
+class Solution {
+    public long shiftDistance(String s, String t, int[] nextCost, int[] previousCost) {
+        int n = s.length();
+        long[] next = new long[26];
+        long[] prev = new long[26];
+        
+        for (int i = 0; i < 26; i++) {
+            next[i] = nextCost[i];
+            prev[i] = previousCost[i];
+        }
+        
+        // Calculate cumulative costs for next and previous
+        for (int i = 1; i < 26; i++) {
+            next[i] += next[i - 1];
+        }
+        for (int i = 24; i >= 0; i--) {
+            prev[i] += prev[i + 1];
+        }
+        
+        long cost = 0;
+        for(int i = 0; i < n; i++){
+            if(s.charAt(i) != t.charAt(i)){
+                int start = s.charAt(i) - 'a', end = t.charAt(i) - 'a';
+                
+                if(start < end){ // case 1
+                    long forwardCost = next[end - 1] - (start > 0 ? next[start - 1] : 0);
+                    long backwardCost = prev[0] - (start + 1 < 26 ? prev[start + 1] : 0) + (end == 25 ? 0 : prev[end +1]);
+                    cost += Math.min(forwardCost, backwardCost);
+                } 
+                else{ // case 2
+                    long backwardCost = prev[end + 1] - (start >= 25 ? 0 : prev[start + 1]);
+                    long forwardCost = next[25] - next[start - 1] + (end != 0 ? next[end - 1] : 0);
+                    cost += Math.min(forwardCost, backwardCost);
+                }
+            }
+        }
+        
+        return cost;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    private Map<Character, Map<Character, Integer>> costs;
+    private Map<String, Long> cache;
+
+    public long shiftDistance(String s, String t, int[] nextCost, int[] previousCost) {
+        costs = new HashMap<>();
+        cache = new HashMap<>();
+        char ordA = 'a';
+
+        for (int i = 0; i < 26; i++) {
+            costs.put((char) (ordA + i), new HashMap<>());
+        }
+        for (int toAdd = 0; toAdd < 25; toAdd++) {
+            costs.get((char) (ordA + toAdd)).put((char) (ordA + toAdd), 0);
+            costs.get((char) (ordA + toAdd)).put((char) (ordA + toAdd + 1), nextCost[toAdd]);
+        }
+        costs.get('z').put('z', 0);
+        costs.get('z').put('a', nextCost[25]);
+        costs.get('a').put('z', previousCost[0]);
+
+        for (int i = 1; i < 26; i++) {
+            costs.get((char) (ordA + i)).put((char) (ordA + i - 1), previousCost[i]);
+        }
+
+        long totalCost = 0;
+        for (int i = 0; i < s.length(); i++) {
+            totalCost += findCost(s.charAt(i), t.charAt(i));
+        }
+        return totalCost;
+    }
+
+    private long findCost(char sChar, char tChar) {
+        if (sChar == tChar) {
+            return 0;
+        }
+
+        String key = sChar + "," + tChar;
+        if (cache.containsKey(key)) {
+            return cache.get(key);
+        }
+
+        PriorityQueue<long[]> pq = new PriorityQueue<>(Comparator.comparingLong(a -> a[0]));
+        Set<Character> visited = new HashSet<>();
+        pq.add(new long[] {0, sChar});
+
+        while (!pq.isEmpty()) {
+            long[] current = pq.poll();
+            long cost = current[0];
+            char node = (char) current[1];
+
+            if (node == tChar) {
+                cache.put(key, cost);
+                return cost;
+            }
+            if (visited.contains(node)) {
+                continue;
+            }
+            visited.add(node);
+
+            for (Map.Entry<Character, Integer> entry : costs.get(node).entrySet()) {
+                char nextNode = entry.getKey();
+                int nextCost = entry.getValue();
+                pq.add(new long[] {cost + nextCost, nextNode});
+            }
+        }
+        return -1; // This should never happen
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public long shiftDistance(String s, String t, int[] nextCost, int[] previousCost) {
+        long totalCost = 0;
+        int n = s.length();
+
+        for (int i = 0; i < n; i++) {
+            int start = s.charAt(i) - 'a'; 
+            int end = t.charAt(i) - 'a';   
+
+            if (start == end) continue; 
+
+            int frwd = (end - start + 26) % 26;
+            long frwdcost = 0;
+            for (int j = 0; j < frwd; j++) {
+                frwdcost += nextCost[(start + j) % 26];
+            }
+            int bkwd = (start - end + 26) % 26;
+            long bkwdcost = 0;
+            for (int j = 0; j < bkwd; j++) {
+                bkwdcost += previousCost[(start - j + 26) % 26];
+            }
+            totalCost += Math.min(frwdcost, bkwdcost);
+        }
+
+        return totalCost;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public long shiftDistance(String s, String t, int[] nextCost, int[] previousCost) {
+        int n = s.length();
+        long res = 0;
+        long[] next = new long[26], prev = new long[26];
+        next[0] = nextCost[0];
+        prev[0] = previousCost[0];
+        for (int i = 1; i < 26; i++){
+            next[i] = (long)nextCost[i] + next[i - 1];
+            prev[i] = (long)previousCost[i] + prev[i - 1];
+        }
+        for (int i = 0; i < n; i++){
+            int a = s.charAt(i) - 'a', b = t.charAt(i) - 'a';
+            if (a == b) continue;
+            long forward = 0, back = 0;
+            if (b < a){
+                forward += next[25] - (a != 0 ? next[a - 1] : 0); // forward
+                if (b != 0) forward += next[b - 1];
+                back = prev[a] - prev[b]; // back
+            }
+            else{
+                forward += next[b - 1]; // forward
+                if (a != 0) forward -= next[a - 1];
+                back += prev[a] + prev[25] - prev[b]; // back
+            }
+            res += Math.min(forward, back);
+        }
+        return res;
+    }
+}
+
+
+
+or
+
+
+// best
+class Solution {
+    public long shiftDistance(String s, String t, int[] nextCost, int[] previousCost) {
+        long res = 0L, sum = 0L;
+        long[] suffix = new long[26], prefix = new long[26];
+        for (int i = 25; i >= 0; --i)
+            suffix[i] = sum += nextCost[i];
+
+        sum = 0;
+        for (int i = 0; i < 26; ++i)
+            prefix[i] = sum += previousCost[i];
+
+        for (int i = 0; i < s.length(); ++i) {
+            int S = s.charAt(i) - 'a', T = t.charAt(i) - 'a';
+            long fwdCost = suffix[S] - suffix[T];
+            long bwdCost = prefix[S] - prefix[T];
+            if (S > T) fwdCost += suffix[0];
+            if (S < T) bwdCost += prefix[25];
+            res += Math.min(fwdCost, bwdCost);
+        }
+
+        return res;
+    }
+}
+
+or
+
+
+
+class Solution {
+    public long shiftDistance(String s, String t, int[] nextCost, int[] previousCost) {
+        int n=s.length();
+        long ans=0;
+        for(int i=0; i<n; i++){
+            ans+=giveMinShift(s.charAt(i) -97 , t.charAt(i)  -97, nextCost, previousCost);
+        }
+        return ans;
+    }
+    private long giveMinShift(int a, int b, int[] nextCost, int[] previousCost) {
+        long ans1=0;
+        int temp=a;
+        while(a!=b){
+            ans1+=nextCost[a];
+            a=(a+1)%26;
+        }
+        long ans2 =  0;
+        a=temp;
+        while(a!=b){
+            ans2+=previousCost[a];
+            a=(a+25 )%26;
+        }
+        return Math.min(ans1, ans2);
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public long shiftDistance(String s, String t, int[] nexta, int[] preva) {
+        long[] next = new long[26];
+        long[] prev = new long[26];
+        
+        for (int i = 0; i < 26; i++) {
+            next[i] = nexta[i];
+            prev[i] = preva[i];
+        }
+        
+        for (int i = 1; i < 26; i++) {
+            next[i] += next[i - 1];
+            prev[i] += prev[i - 1];
+        }
+        
+        long res = 0;
+        int n = s.length();
+        for (int i = 0; i < n; i++) {
+            if (s.charAt(i) == t.charAt(i)) continue;
+            int si = s.charAt(i) - 'a';
+            int ti = t.charAt(i) - 'a';
+            if (ti > si) {
+                long fcost = next[ti - 1] - (si == 0 ? 0 : next[si - 1]);
+                long bcost = prev[si] + prev[25] - prev[ti];
+                res += Math.min(fcost, bcost);
+            } else {
+                long fcost = next[25] - next[si - 1] + (ti == 0 ? 0 : next[ti - 1]);
+                long bcost = prev[si] - prev[ti];
+                res += Math.min(fcost, bcost);
+            }
+        }
+        
+        return res;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public long shiftDistance(String s, String t, int[] nextCost, int[] previousCost) {
+        long res = 0;
+
+        for (int i = 0; i < s.length(); i++) {
+            int ind1 = s.charAt(i) - 'a';
+            int ind2 = t.charAt(i) - 'a';
+
+            long sum1 = 0;
+            long sum2 = 0;
+
+            // Case: s[i] < t[i]
+            if (ind2 > ind1) {
+                // Forward shift
+                for (int j = ind1; j < ind2; j++) {
+                    sum1 += nextCost[j];
+                }
+
+                // Backward shift (wrap around)
+                for (int j = ind2 + 1; j < 26; j++) {
+                    sum2 += previousCost[j];
+                }
+                for (int j = 0; j <= ind1; j++) {
+                    sum2 += previousCost[j];
+                }
+            } else {
+                // Forward shift (wrap around)
+                for (int j = ind1; j < 26; j++) {
+                    sum1 += nextCost[j];
+                }
+                for (int j = 0; j < ind2; j++) {
+                    sum1 += nextCost[j];
+                }
+
+                // Backward shift
+                for (int j = ind1; j > ind2; j--) {
+                    sum2 += previousCost[j];
+                }
+            }
+
+            res += Math.min(sum1, sum2);
+        }
+
+        return res;
+    }
+}
+
+
+or
+
+
+
+
+
