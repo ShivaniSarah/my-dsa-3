@@ -1,0 +1,231 @@
+https://leetcode.com/problems/minimum-average-difference/description/
+
+2256. Minimum Average Difference
+Medium
+Topics
+Companies
+Hint
+You are given a 0-indexed integer array nums of length n.
+
+The average difference of the index i is the absolute difference between the average of the first i + 1 elements of nums and the average of the last n - i - 1 elements. Both averages should be rounded down to the nearest integer.
+
+Return the index with the minimum average difference. If there are multiple such indices, return the smallest one.
+
+Note:
+
+The absolute difference of two numbers is the absolute value of their difference.
+The average of n elements is the sum of the n elements divided (integer division) by n.
+The average of 0 elements is considered to be 0.
+ 
+
+Example 1:
+
+Input: nums = [2,5,3,9,5,3]
+Output: 3
+Explanation:
+- The average difference of index 0 is: |2 / 1 - (5 + 3 + 9 + 5 + 3) / 5| = |2 / 1 - 25 / 5| = |2 - 5| = 3.
+- The average difference of index 1 is: |(2 + 5) / 2 - (3 + 9 + 5 + 3) / 4| = |7 / 2 - 20 / 4| = |3 - 5| = 2.
+- The average difference of index 2 is: |(2 + 5 + 3) / 3 - (9 + 5 + 3) / 3| = |10 / 3 - 17 / 3| = |3 - 5| = 2.
+- The average difference of index 3 is: |(2 + 5 + 3 + 9) / 4 - (5 + 3) / 2| = |19 / 4 - 8 / 2| = |4 - 4| = 0.
+- The average difference of index 4 is: |(2 + 5 + 3 + 9 + 5) / 5 - 3 / 1| = |24 / 5 - 3 / 1| = |4 - 3| = 1.
+- The average difference of index 5 is: |(2 + 5 + 3 + 9 + 5 + 3) / 6 - 0| = |27 / 6 - 0| = |4 - 0| = 4.
+The average difference of index 3 is the minimum average difference so return 3.
+Example 2:
+
+Input: nums = [0]
+Output: 0
+Explanation:
+The only index is 0 so return 0.
+The average difference of index 0 is: |0 / 1 - 0| = |0 - 0| = 0.
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+0 <= nums[i] <= 105
+
+
+
+# jaav
+
+class Solution {
+  public int minimumAverageDifference(int[] nums) {
+    final int n = nums.length;
+    int ans = 0;
+    int minDiff = Integer.MAX_VALUE;
+    long prefix = 0;
+    long suffix = Arrays.stream(nums).asLongStream().sum();
+
+    for (int i = 0; i < nums.length; ++i) {
+      prefix += nums[i];
+      suffix -= nums[i];
+      final int prefixAvg = (int) (prefix / (i + 1));
+      final int suffixAvg = (i == n - 1) ? 0 : (int) (suffix / (n - 1 - i));
+      final int diff = Math.abs(prefixAvg - suffixAvg);
+      if (diff < minDiff) {
+        ans = i;
+        minDiff = diff;
+      }
+    }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int minimumAverageDifference(int[] nums) {
+        int n = nums.length;
+        long pre = 0, suf = 0;
+        for (int x : nums) {
+            suf += x;
+        }
+        int ans = 0;
+        long mi = Long.MAX_VALUE;
+        for (int i = 0; i < n; ++i) {
+            pre += nums[i];
+            suf -= nums[i];
+            long a = pre / (i + 1);
+            long b = n - i - 1 == 0 ? 0 : suf / (n - i - 1);
+            long t = Math.abs(a - b);
+            if (t < mi) {
+                ans = i;
+                mi = t;
+            }
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+
+class Solution {
+   public int minimumAverageDifference(int[] nums) {
+	int len = nums.length, res = 0;
+	long min = Integer.MAX_VALUE, sum = 0, leftSum = 0, rightSum = 0;
+	for (int num : nums)
+		sum += num;
+	for (int i = 0; i < len; i++) {
+		leftSum += nums[i];
+		rightSum = sum - leftSum;
+		long diff = Math.abs(leftSum / (i + 1) - (len - i == 1 ? 0 : rightSum / (len -i - 1)));
+		if (diff < min) {
+			min = diff;
+			res = i;
+		}
+	}
+	return res;
+}
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int minimumAverageDifference(int[] nums) {
+        int n=nums.length;
+        //if length==1 difference=0
+        if(n==1)return 0;
+        // initialsing left and right sum
+        long right=0,left=0;
+        //ans will contain index
+        int ans=0;
+        //mina will contain minimum difference found till now
+        long mina=100001;
+        for(Integer i:nums){right+=i;}//right=total sum
+
+        //iterating on array and obtaining corresponding difference
+        for(int i=0; i<n; i++){
+
+            //left sum increases on each iteration
+            left+=nums[i];
+            //right sum decreases on each iteration
+            right-=nums[i];
+            //avl -> average of left side
+            long avl=left/(i+1);
+            //avr-> average of right side
+            long avr=0;
+            //for last index right=0 , avr=0
+            if(i!=n-1){avr=right/(n-1-i);}
+
+            //if current difference is less than mina 
+            if(Math.abs(avl-avr)<mina)
+            {
+                //update mina 
+            mina=Math.abs(avl-avr);
+            //update ans index
+            ans=i;}
+        }
+        // return ans index
+        return ans;
+    }
+}
+
+
+or
+
+
+// bets
+class Solution {
+    public int minimumAverageDifference(int[] nums) {
+        long min = Integer.MAX_VALUE, sum = 0;
+        for (int i : nums) sum += i;
+        int leftIndex = 0, resultIndex = -1;
+        long prefixSum = 0;
+
+        while (leftIndex < nums.length) {
+            prefixSum += nums[leftIndex];
+            long leftAverage = prefixSum / (leftIndex + 1);
+            long sumRight = sum - prefixSum;
+            if (sumRight != 0) sumRight /= nums.length - leftIndex - 1;
+            long res = Math.abs(leftAverage - sumRight);
+            if (res < min) {
+                min = res;
+                resultIndex = leftIndex;
+            }
+            leftIndex++;
+        }
+        return resultIndex;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int minimumAverageDifference(int[] nums) {
+        int l = nums.length;  
+        int index = 0;
+        long min = Integer.MAX_VALUE, sum = 0, leftsum = 0, rightsum = 0;
+        for (int j = 0; j < l; j++) {
+            sum = sum + nums[j];
+        }
+        for (int i = 0; i < l; i++) {
+            leftsum += nums[i];
+            rightsum = sum - leftsum;
+            long diff = Math.abs(leftsum / (i + 1) - (l - i == 1 ? 0 : rightsum / (l - i - 1)));  // if number of rightsum values = 0
+            if (diff < min) {
+                min = diff;
+                index = i;
+            }
+        }
+        return index;
+
+    }
+}
+
+
+
