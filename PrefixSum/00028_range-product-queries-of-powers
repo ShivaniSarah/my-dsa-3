@@ -1,0 +1,283 @@
+https://leetcode.com/problems/range-product-queries-of-powers/description/
+
+
+2438. Range Product Queries of Powers
+Medium
+Topics
+Companies
+Hint
+Given a positive integer n, there exists a 0-indexed array called powers, composed of the minimum number of powers of 2 that sum to n. The array is sorted in non-decreasing order, and there is only one way to form the array.
+
+You are also given a 0-indexed 2D integer array queries, where queries[i] = [lefti, righti]. Each queries[i] represents a query where you have to find the product of all powers[j] with lefti <= j <= righti.
+
+Return an array answers, equal in length to queries, where answers[i] is the answer to the ith query. Since the answer to the ith query may be too large, each answers[i] should be returned modulo 109 + 7.
+
+ 
+
+Example 1:
+
+Input: n = 15, queries = [[0,1],[2,2],[0,3]]
+Output: [2,4,64]
+Explanation:
+For n = 15, powers = [1,2,4,8]. It can be shown that powers cannot be a smaller size.
+Answer to 1st query: powers[0] * powers[1] = 1 * 2 = 2.
+Answer to 2nd query: powers[2] = 4.
+Answer to 3rd query: powers[0] * powers[1] * powers[2] * powers[3] = 1 * 2 * 4 * 8 = 64.
+Each answer modulo 109 + 7 yields the same answer, so [2,4,64] is returned.
+Example 2:
+
+Input: n = 2, queries = [[0,0]]
+Output: [2]
+Explanation:
+For n = 2, powers = [2].
+The answer to the only query is powers[0] = 2. The answer modulo 109 + 7 is the same, so [2] is returned.
+ 
+
+Constraints:
+
+1 <= n <= 109
+1 <= queries.length <= 105
+0 <= starti <= endi < powers.length
+
+
+
+# java
+
+
+class Solution {
+  public int[] productQueries(int n, int[][] queries) {
+    final int MOD = 1_000_000_007;
+    final int MAX_BIT = 30;
+    int[] ans = new int[queries.length];
+    List<Integer> pows = new ArrayList<>();
+
+    for (int i = 0; i < MAX_BIT; ++i)
+      if ((n >> i & 1) == 1)
+        pows.add(1 << i);
+
+    for (int i = 0; i < queries.length; ++i) {
+      final int left = queries[i][0];
+      final int right = queries[i][1];
+      long prod = 1;
+      for (int j = left; j <= right; ++j) {
+        prod *= pows.get(j);
+        prod %= MOD;
+      }
+      ans[i] = (int) prod;
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    private static final int MOD = (int) 1e9 + 7;
+
+    public int[] productQueries(int n, int[][] queries) {
+        int[] powers = new int[Integer.bitCount(n)];
+        for (int i = 0; n > 0; ++i) {
+            int x = n & -n;
+            powers[i] = x;
+            n -= x;
+        }
+        int[] ans = new int[queries.length];
+        for (int i = 0; i < ans.length; ++i) {
+            long x = 1;
+            int l = queries[i][0], r = queries[i][1];
+            for (int j = l; j <= r; ++j) {
+                x = (x * powers[j]) % MOD;
+            }
+            ans[i] = (int) x;
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int[] productQueries(int n, int[][] queries) {
+        int mod=1000000007;
+        //generating the array based on the given n value  n%2 and n/2 evry time genrating an array of 0 and 1 indcating whether to consdier the index or not and generate the powers array according to the array generated indexes
+        List<Integer> arr=new ArrayList<Integer>();
+        List<Integer> powers=new ArrayList<Integer>();
+        while(n>0){  
+            arr.add((int)n%2);
+            n/=2;
+        }
+         //System.out.print(arr);
+        for(int i=0;i<arr.size();i++){
+            if(arr.get(i)==1){  //considering only the arrays of value equals 1 indicating the maximum powers sum to n
+                int t=(int)Math.pow(2,i);
+                powers.add(t);
+            }
+        }
+        int result[]=new int[queries.length];
+        int j=0;
+        for(int []a:queries){
+            long res=1;
+            for(int i=a[0];i<=a[1];i++){
+                res=(res*powers.get(i)%mod);
+            }
+            result[j++]=(int)res%mod;
+        }
+        return result;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    double m = 1e9+7;
+    public int[] productQueries(int n, int[][] queries) {
+
+        LinkedList<Integer> x = new LinkedList<>();
+        int c = 0;
+        while(n>0){
+           if((n&1) == 1)
+           x.add(c); // Adding power of 2 in the list , not the actual value 
+           c++;
+           n>>=1; 
+        }
+        
+        int sz = x.size();
+        for(int i=1;i<sz;i++){
+            x.set(i,x.get(i-1)+x.get(i));
+        }
+        x.addFirst(0);
+
+        int[] res = new int[queries.length];
+        int i=0;
+        for(int[] q: queries){
+
+            int s = x.get(q[1]+1)-x.get(q[0]);
+            res[i]= (int)(Math.pow(2,s)%m);
+            i++;
+        }
+        return res;
+    }
+}
+
+
+
+or
+
+
+
+//  if you found my solution usefull please upvote it
+class Solution 
+{
+    public int mod=(int)1e9+7;
+    public int[] productQueries(int n, int[][] queries) 
+    {
+        List<Integer> ref=new ArrayList();
+        int cnt=0;
+        while(n>0)
+        {
+            int top=n%2;
+            n=n/2;
+            if(top==1) ref.add((int)Math.pow(2,cnt));
+            cnt++;
+        }
+        int[] result=new int[queries.length];
+        int idx=0;
+        for(int[] i : queries)
+        {
+            int start=i[0];
+            int end=i[1];
+            long curr=1;
+            for(int k=start;k<=end;k++) curr=(curr*ref.get(k))%mod;
+            result[idx++]=(int)curr;
+        }
+        return result;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {    
+    public int[] productQueries(int n, int[][] queries) {
+        List<Integer> list = new ArrayList<>();
+        int sum = n;
+        int value = 0;
+        while (sum > 0) {
+            value = findPreviousPower(sum);
+            sum = sum - value;
+            list.add(value);
+        }
+        Collections.reverse(list);
+        int[] result = new int[queries.length];
+        int index = 0;
+        for (int[] query : queries) {
+            int start = query[0];
+            int end = query[1];
+            long queryResult = 1;
+            for (int i = start; i <= end; i++) {
+                queryResult = (queryResult * list.get(i) % (long) (Math.pow(10, 9) + 7));
+            }
+            result[index] =  (int) queryResult;
+            index++;
+        }
+        return result;
+    }
+    public int findPreviousPower(int value) {
+        while ((value & value - 1) != 0) {
+            value = value & value - 1;
+        }
+        return value;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int[] productQueries(int n, int[][] queries) {
+        List<Long> powers = new ArrayList<>();
+        for(int i=0; i<32; i++) {
+            if((n & 1) == 1) {
+                powers.add((long)Math.pow(2, i));
+            }
+            n >>= 1;
+        }
+        
+        int mod = 1_000_000_007;
+        int[] res = new int[queries.length];
+        for(int i=0; i<res.length; i++) {
+            int[] q = queries[i];
+            long ans = 1;
+            for(int j=q[0]; j<=q[1]; j++) {
+                ans = (ans * powers.get(j)) % mod;
+            }
+            res[i] = (int) ans;
+        }
+        
+        return res;
+    }
+}
+
+
+
+or
+
+
+
