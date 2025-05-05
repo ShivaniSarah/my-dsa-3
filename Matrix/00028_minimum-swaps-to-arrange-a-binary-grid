@@ -1,0 +1,327 @@
+https://leetcode.com/problems/minimum-swaps-to-arrange-a-binary-grid/description/
+
+1536. Minimum Swaps to Arrange a Binary Grid
+Medium
+Topics
+Companies
+Hint
+Given an n x n binary grid, in one step you can choose two adjacent rows of the grid and swap them.
+
+A grid is said to be valid if all the cells above the main diagonal are zeros.
+
+Return the minimum number of steps needed to make the grid valid, or -1 if the grid cannot be valid.
+
+The main diagonal of a grid is the diagonal that starts at cell (1, 1) and ends at cell (n, n).
+
+ 
+
+Example 1:
+
+
+Input: grid = [[0,0,1],[1,1,0],[1,0,0]]
+Output: 3
+Example 2:
+
+
+Input: grid = [[0,1,1,0],[0,1,1,0],[0,1,1,0],[0,1,1,0]]
+Output: -1
+Explanation: All rows are similar, swaps have no effect on the grid.
+Example 3:
+
+
+Input: grid = [[1,0,0],[1,1,0],[1,1,1]]
+Output: 0
+ 
+
+Constraints:
+
+n == grid.length == grid[i].length
+1 <= n <= 200
+grid[i][j] is either 0 or 1
+
+
+
+# java
+
+
+
+class Solution {
+  public int minSwaps(int[][] grid) {
+    final int n = grid.length;
+    int ans = 0;
+    // suffixZeros[i] := the number of suffix zeros in the i-th row
+    int[] suffixZeros = new int[n];
+
+    for (int i = 0; i < grid.length; ++i)
+      suffixZeros[i] = getSuffixZeroCount(grid[i]);
+
+    for (int i = 0; i < n; ++i) {
+      final int neededZeros = n - 1 - i;
+      // Get the first row with suffix zeros >= `neededZeros` in suffixZeros[i:..n).
+      final int j = getFirstRowWithEnoughZeros(suffixZeros, i, neededZeros);
+      if (j == -1)
+        return -1;
+      // Move the rows[j] to the rows[i].
+      for (int k = j; k > i; --k)
+        suffixZeros[k] = suffixZeros[k - 1];
+      ans += j - i;
+    }
+
+    return ans;
+  }
+
+  private int getSuffixZeroCount(int[] row) {
+    for (int i = row.length - 1; i >= 0; --i)
+      if (row[i] == 1)
+        return row.length - i - 1;
+    return row.length;
+  }
+
+  // Returns first row that has suffix zeros > `neededZeros` in suffixZeros[i:..n).
+  private int getFirstRowWithEnoughZeros(int[] suffixZeros, int i, int neededZeros) {
+    for (int j = i; j < suffixZeros.length; ++j)
+      if (suffixZeros[j] >= neededZeros)
+        return j;
+    return -1;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int minSwaps(int[][] grid) {
+        int n = grid.length;
+        int[] pos = new int[n];
+        Arrays.fill(pos, -1);
+        for (int i = 0; i < n; ++i) {
+            for (int j = n - 1; j >= 0; --j) {
+                if (grid[i][j] == 1) {
+                    pos[i] = j;
+                    break;
+                }
+            }
+        }
+        int ans = 0;
+        for (int i = 0; i < n; ++i) {
+            int k = -1;
+            for (int j = i; j < n; ++j) {
+                if (pos[j] <= i) {
+                    ans += j - i;
+                    k = j;
+                    break;
+                }
+            }
+            if (k == -1) {
+                return -1;
+            }
+            for (; k > i; --k) {
+                int t = pos[k];
+                pos[k] = pos[k - 1];
+                pos[k - 1] = t;
+            }
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int minSwaps(int[][] grid) {
+        int n = grid.length;
+        int[] conseq0 = new int[n]; // Count trailing zeros for all rows
+        for (int i = 0; i < n; ++i)
+        {
+            int counter = 0;
+            for (int j = n - 1; j >= 0; --j)
+            {
+                if (grid[i][j] != 0)
+                    break;
+                counter++;
+            }
+            conseq0[i] = counter;
+        }
+        int numNeeded = n - 1;
+        int ans = 0;
+        while (numNeeded > 0)
+        {
+            boolean flag = false;
+            for (int i = n - numNeeded - 1; i < n; ++i)
+            {
+                if (conseq0[i] >= numNeeded)
+                {
+                    //Perform the swaps
+                    int temp = conseq0[i];
+                    for (int k = i; k > n - numNeeded - 1; --k)
+                        conseq0[k] = conseq0[k - 1];
+                    conseq0[n - numNeeded - 1] = temp;
+                    flag = true;
+                    //Calculate the number of swaps
+                    ans += i - (n - numNeeded - 1);
+                    break;
+                }
+            }
+            if (!flag)
+                return -1;
+            numNeeded--;
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+// best
+
+class Solution {
+    // O(N^2)time
+// O(N)space
+public int minSwaps(int[][] grid) {
+    //use linkedlist to save the continuous zero count from right to left
+    LinkedList<Integer> list = new LinkedList<>();
+    int r = grid.length, c = grid[0].length;
+    for (int i = 0; i < r; i++) {
+        int count = 0;
+        for (int j = c - 1; j >= 0; j--) {
+            if (grid[i][j] != 0) break;
+            count++;
+        }
+        list.add(count);
+    }
+    int res = 0;
+    for (int i = 0; i < r; i++) {
+        int t = -1;
+        //find the first zero count which is >= (r - 1 - i)
+        //the index is the step
+        for (int j = 0; j < list.size(); j++) {
+            if (list.get(j) >= (r - 1 - i)) {
+                t = list.remove(j);
+                res += j;
+                break;
+            }
+        }
+        if (t == -1) return -1;
+    }
+    return res;
+}
+}
+
+
+
+or
+
+
+class Solution {
+    public int minSwaps(int[][] grid) {
+        int n = grid.length;
+		
+		//Keeps count of consecutive zeros from end
+		// For given eg. [0,1,2]
+        int[] zeroCount = new int[n];
+        int largest = 0;
+        for(int i=0; i<n;i++){
+            int count =0;
+            for(int j=n-1; j>=0;j--){
+                if(grid[i][j] ==0) count++;
+                if(grid[i][j] == 1) break;
+            }
+            zeroCount[i] = count;
+            largest = Math.max(largest, count);
+        }
+		//If there is no row with sufficient 0s to replace first row, return -1
+        if(largest < n-1) return -1;
+		
+		//To keep track of used values from zeroCount[] arr
+        int[] isUsed = new int[n];
+		
+		//New order of rows
+        int[] arr = new int[n];
+        int ans = 0;
+        
+		//We are basically trying to sort zeroCount array in descending order
+		//This is more like selection sort
+        for(int i=0;i<n;i++)
+        {
+		   //Minumum number of trailing 0s required
+            int reqmt = n - i -1;
+			//This keeps track of how many consecutive rows we need to swap to reach i
+            int countRows = 0;
+			
+            for(int j=0; j<n;j++)
+            {   
+				//FInd the first non-used row to fulfill this condition. - Greedy
+                if(isUsed[j] == 1) continue;
+                if(zeroCount[j] >= reqmt)
+                {
+                      ans+=countRows; 
+						isUsed[j] = 1;
+                    reqmt = -1;
+                    arr[i] = zeroCount[j];
+                    break;
+                }    
+                else countRows++;
+            }
+			//If we don't find any row satisfying reqmt
+            if(reqmt > -1) return -1;
+
+        }
+        
+        return ans;
+    }
+}
+
+or
+
+
+
+class Solution {
+    public int minSwaps(int[][] grid) {
+        int row = grid.length, col = grid[0].length;
+        List<Integer> lastOne = new ArrayList<>(row + 1);
+        for (int i = 0; i < row; i++) {
+            lastOne.add(i, -1);
+            for (int j = col - 1; j >= 0; j--) {
+                if (grid[i][j] == 1) {
+                    lastOne.set(i, j);
+                    break;
+                }
+            }
+        }
+        int step = 0;
+        for (int i = 0; i < row - 1; i++) {
+            if (lastOne.get(i) <= i) {
+                continue;
+            }
+            boolean flag = false;
+            for (int j = i + 1; j < row; j++) {
+                if (lastOne.get(j) <= i) {
+                    flag = true;
+                    step += j - i;
+                    int curFind = lastOne.get(j);
+                    lastOne.remove(j);
+                    lastOne.add(i, curFind);
+                    break;
+                }
+            }
+			// if there is no valid row left, return -1 directly
+            if (!flag) {
+                return -1;
+            }
+        }
+        return step;
+    }
+}
+
+
+
+
