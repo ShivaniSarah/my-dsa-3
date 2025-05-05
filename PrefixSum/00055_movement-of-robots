@@ -1,0 +1,216 @@
+https://leetcode.com/problems/movement-of-robots/
+
+
+2731. Movement of Robots
+Medium
+Topics
+Companies
+Hint
+Some robots are standing on an infinite number line with their initial coordinates given by a 0-indexed integer array nums and will start moving once given the command to move. The robots will move a unit distance each second.
+
+You are given a string s denoting the direction in which robots will move on command. 'L' means the robot will move towards the left side or negative side of the number line, whereas 'R' means the robot will move towards the right side or positive side of the number line.
+
+If two robots collide, they will start moving in opposite directions.
+
+Return the sum of distances between all the pairs of robots d seconds after the command. Since the sum can be very large, return it modulo 109 + 7.
+
+Note:
+
+For two robots at the index i and j, pair (i,j) and pair (j,i) are considered the same pair.
+When robots collide, they instantly change their directions without wasting any time.
+Collision happens when two robots share the same place in a moment.
+For example, if a robot is positioned in 0 going to the right and another is positioned in 2 going to the left, the next second they'll be both in 1 and they will change direction and the next second the first one will be in 0, heading left, and another will be in 2, heading right.
+For example, if a robot is positioned in 0 going to the right and another is positioned in 1 going to the left, the next second the first one will be in 0, heading left, and another will be in 1, heading right.
+ 
+
+Example 1:
+
+Input: nums = [-2,0,2], s = "RLL", d = 3
+Output: 8
+Explanation: 
+After 1 second, the positions are [-1,-1,1]. Now, the robot at index 0 will move left, and the robot at index 1 will move right.
+After 2 seconds, the positions are [-2,0,0]. Now, the robot at index 1 will move left, and the robot at index 2 will move right.
+After 3 seconds, the positions are [-3,-1,1].
+The distance between the robot at index 0 and 1 is abs(-3 - (-1)) = 2.
+The distance between the robot at index 0 and 2 is abs(-3 - 1) = 4.
+The distance between the robot at index 1 and 2 is abs(-1 - 1) = 2.
+The sum of the pairs of all distances = 2 + 4 + 2 = 8.
+Example 2:
+
+Input: nums = [1,0], s = "RL", d = 2
+Output: 5
+Explanation: 
+After 1 second, the positions are [2,-1].
+After 2 seconds, the positions are [3,-2].
+The distance between the two robots is abs(-2 - 3) = 5.
+ 
+
+Constraints:
+
+2 <= nums.length <= 105
+-2 * 109 <= nums[i] <= 2 * 109
+0 <= d <= 109
+nums.length == s.length 
+s consists of 'L' and 'R' only
+nums[i] will be unique.
+
+
+
+# java
+
+
+
+class Solution {
+  public int sumDistance(int[] nums, String s, int d) {
+    final int MOD = 1_000_000_007;
+    final int n = nums.length;
+    int ans = 0;
+    int prefix = 0;
+    int[] pos = new int[n];
+
+    for (int i = 0; i < n; ++i)
+      if (s.charAt(i) == 'L')
+        pos[i] = nums[i] - d;
+      else
+        pos[i] = nums[i] + d;
+
+    Arrays.sort(pos);
+
+    for (int i = 0; i < n; ++i) {
+      ans = (int) (((ans + 1L * i * pos[i] - prefix) % MOD + MOD) % MOD);
+      prefix = (int) (((0L + prefix + pos[i]) % MOD + MOD) % MOD);
+    }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public int sumDistance(int[] nums, String s, int d) {
+        int n = nums.length;
+        long[] arr = new long[n];
+        for (int i = 0; i < n; ++i) {
+            arr[i] = (long) nums[i] + (s.charAt(i) == 'L' ? -d : d);
+        }
+        Arrays.sort(arr);
+        long ans = 0, sum = 0;
+        final int mod = (int) 1e9 + 7;
+        for (int i = 0; i < n; ++i) {
+            ans = (ans + i * arr[i] - sum) % mod;
+            sum += arr[i];
+        }
+        return (int) ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+       public int sumDistance(int[] A, String s, int d) {
+        int n = A.length, mod = (int)1e9 + 7;
+        for(int i = 0; i < n; ++i)
+            A[i] += s.charAt(i) == 'R' ? d : -d;
+        Arrays.sort(A);
+        long res = 0;
+        for(int i = 0; i < n; ++i)
+            res = (res + (1L + i + i - n) * A[i]) % mod;
+        return (int)(res + mod) % mod;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int sumDistance(int[] nums, String s, int d) {
+        final int mod = 1_000_000_007;
+        for (int i=0; i<nums.length; i++) {
+            nums[i] += d * (s.charAt(i) == 'R' ? 1 : -1);
+        }
+        
+        Arrays.sort(nums);
+        long sum = 0;
+        int n = nums.length;
+        for (int i=0; i<n; i++) {
+            long curr = i * (long)nums[i] - (n - 1 - i) * (long)nums[i];
+            sum += curr;
+            sum %= mod;
+        }   
+        
+        return (int) sum ;
+    }
+}
+
+
+
+or
+
+// 1 test cas enot passing
+
+class Solution {
+	public int sumDistance(int[] nums, String s, int d) {
+        for (int i = 0; i < s.length(); i++) {
+            char dir = s.charAt(i);
+            if (dir == 'R') {
+                nums[i] += d;
+            } else {
+                nums[i] -= d;
+            }
+        }
+        return sumPairs(nums, nums.length);
+    }
+
+    int sumPairs(int nums[], int n) {
+        Arrays.sort(nums);
+        long sum = 0;
+        int mod = (int) 1e9 + 7;
+        long prefix = 0;
+        for (int i = 0; i < n; i++) {
+            sum = (sum + i * (long) nums[i] - prefix) % mod;
+            prefix += nums[i] % mod;
+        }
+
+        return (int) sum;
+    }
+}
+
+
+or
+
+
+// best
+
+
+class Solution {
+  public int sumDistance(int[] nums, String s, int d) {
+    final int modulo = (int) 1e9 + 7;
+    final int n = nums.length;
+    long[] position = new long[n];
+    for (int i = 0; i < n; i++) {
+      position[i] = (s.charAt(i) == 'L' ? -1L : 1L) * d + nums[i];
+    }
+
+    Arrays.sort(position);
+    long distance = 0;
+    long prefix = 0;
+    for (int i = 0; i < n; i++) {
+      distance = (distance + (i * position[i] - prefix)) % modulo;
+      prefix += position[i];
+    }
+
+    return (int) distance;
+  }
+}
+
+
+
