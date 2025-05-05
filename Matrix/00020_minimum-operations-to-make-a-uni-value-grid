@@ -1,0 +1,292 @@
+https://leetcode.com/problems/minimum-operations-to-make-a-uni-value-grid/description/
+
+
+2033. Minimum Operations to Make a Uni-Value Grid
+Medium
+Topics
+Companies
+Hint
+You are given a 2D integer grid of size m x n and an integer x. In one operation, you can add x to or subtract x from any element in the grid.
+
+A uni-value grid is a grid where all the elements of it are equal.
+
+Return the minimum number of operations to make the grid uni-value. If it is not possible, return -1.
+
+ 
+
+Example 1:
+
+
+Input: grid = [[2,4],[6,8]], x = 2
+Output: 4
+Explanation: We can make every element equal to 4 by doing the following: 
+- Add x to 2 once.
+- Subtract x from 6 once.
+- Subtract x from 8 twice.
+A total of 4 operations were used.
+Example 2:
+
+
+Input: grid = [[1,5],[2,3]], x = 1
+Output: 5
+Explanation: We can make every element equal to 3.
+Example 3:
+
+
+Input: grid = [[1,2],[3,4]], x = 2
+Output: -1
+Explanation: It is impossible to make every element equal.
+ 
+
+Constraints:
+
+m == grid.length
+n == grid[i].length
+1 <= m, n <= 105
+1 <= m * n <= 105
+1 <= x, grid[i][j] <= 104
+
+
+# java
+
+
+class Solution {
+  public int minOperations(int[][] grid, int x) {
+    final int m = grid.length;
+    final int n = grid[0].length;
+    int[] arr = new int[m * n];
+    for (int i = 0; i < m; ++i)
+      for (int j = 0; j < n; ++j)
+        arr[i * n + j] = grid[i][j];
+    if (Arrays.stream(arr).anyMatch(a -> (a - arr[0]) % x != 0))
+      return -1;
+
+    int ans = 0;
+
+    Arrays.sort(arr);
+
+    for (final int a : arr)
+      ans += Math.abs(a - arr[arr.length / 2]) / x;
+
+    return ans;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public int minOperations(int[][] grid, int x) {
+        int m = grid.length, n = grid[0].length;
+        int[] nums = new int[m * n];
+        int mod = grid[0][0] % x;
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (grid[i][j] % x != mod) {
+                    return -1;
+                }
+                nums[i * n + j] = grid[i][j];
+            }
+        }
+        Arrays.sort(nums);
+        int mid = nums[nums.length >> 1];
+        int ans = 0;
+        for (int v : nums) {
+            ans += Math.abs(v - mid) / x;
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+
+    public int minOperations(int[][] grid, int x) {
+        // Create a list to store all the numbers from the grid
+        ArrayList<Integer> numsArray = new ArrayList<>();
+        int result = 0;
+
+        // Flatten the grid into numsArray
+        for (int row = 0; row < grid.length; row++) {
+            for (int col = 0; col < grid[0].length; col++) {
+                numsArray.add(grid[row][col]);
+            }
+        }
+
+        // Sort numsArray in non-decreasing order to easily find the median
+        Collections.sort(numsArray);
+
+        int length = numsArray.size();
+        // Store the median element as the final common value
+        int finalCommonNumber = numsArray.get(length / 2);
+
+        // Iterate through each number in numsArray
+        for (int number : numsArray) {
+            // If the remainder when divided by x is different, return -1
+            if (number % x != finalCommonNumber % x) {
+                return -1;
+            }
+            // Add the number of operations required to make the current number equal to finalCommonNumber
+            result += Math.abs(finalCommonNumber - number) / x;
+        }
+
+        return result;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public int minOperations(int[][] grid, int x) {
+        // Initialize an empty array to store all numbers
+        ArrayList<Integer> numsArray = new ArrayList<>();
+        int result = Integer.MAX_VALUE;
+
+        // Flatten the grid into numsArray and check if all elements have the same remainder when divided by x
+        for (int row = 0; row < grid.length; row++) {
+            for (int col = 0; col < grid[0].length; col++) {
+                // If remainder of any element doesn't match the first element, return -1
+                if (grid[row][col] % x != grid[0][0] % x) return -1;
+                numsArray.add(grid[row][col]);
+            }
+        }
+
+        // Sort numsArray in non-decreasing order to easily calculate operations
+        Collections.sort(numsArray);
+
+        int length = numsArray.size();
+        int[] prefixSum = new int[length];
+        int[] suffixSum = new int[length];
+
+        // Calculate the prefix sum up to each index (excluding the current element)
+        for (int index = 1; index < length; index++) {
+            prefixSum[index] = prefixSum[index - 1] + numsArray.get(index - 1);
+        }
+
+        // Calculate the suffix sum from each index (excluding the current element)
+        for (int index = length - 2; index >= 0; index--) {
+            suffixSum[index] = suffixSum[index + 1] + numsArray.get(index + 1);
+        }
+
+        // Iterate through numsArray to calculate the number of operations for each potential common value
+        for (int index = 0; index < length; index++) {
+            int leftOperations =
+                (numsArray.get(index) * index - prefixSum[index]) / x;
+            int rightOperations =
+                (suffixSum[index] -
+                    numsArray.get(index) * (length - index - 1)) /
+                x;
+            // Update the result with the minimum operations needed
+            result = Math.min(result, leftOperations + rightOperations);
+        }
+
+        return result;
+    }
+}
+
+
+or
+
+
+class Solution {
+
+    public int minOperations(int[][] grid, int x) {
+        List<Integer> numsArray = new ArrayList<>();
+        int result = 0;
+
+        // Flatten the grid into numsArray and check remainder condition
+        for (int row = 0; row < grid.length; row++) {
+            for (int col = 0; col < grid[0].length; col++) {
+                if (grid[row][col] % x != grid[0][0] % x) return -1;
+                // If any element has a different remainder than the first
+                // element, it is impossible to make all elements equal, so
+                // return -1
+                numsArray.add(grid[row][col]);
+            }
+        }
+
+        Collections.sort(numsArray);
+
+        int length = numsArray.size();
+        int prefixIndex = 0;
+        int suffixIndex = length - 1;
+
+        // Move prefixIndex and suffixIndex towards the middle
+        while (prefixIndex < suffixIndex) {
+            // If the prefix of equal elements is shorter than the suffix
+            if (prefixIndex < length - suffixIndex - 1) {
+                // Calculate the number of operations required to extend the prefix
+                int prefixOperations =
+                    ((prefixIndex + 1) *
+                        (numsArray.get(prefixIndex + 1) -
+                            numsArray.get(prefixIndex))) /
+                    x;
+                result += prefixOperations;
+                // Move the prefix index forward
+                prefixIndex++;
+            } else {
+                // Calculate the number of operations required to extend the suffix
+                int suffixOperations =
+                    ((length - suffixIndex) *
+                        (numsArray.get(suffixIndex) -
+                            numsArray.get(suffixIndex - 1))) /
+                    x;
+                result += suffixOperations;
+                // Move the suffix index backward
+                suffixIndex--;
+            }
+        }
+
+        return result;
+    }
+}
+
+
+
+or
+
+
+
+import java.util.*;
+
+class Solution {
+    public int minOperations(int[][] grid, int x) {
+        List<Integer> all = new ArrayList<>();
+        
+        for (int[] row : grid) {
+            for (int num : row) {
+                all.add(num);
+            }
+        }
+        
+        int mod = all.get(0) % x;
+        for (int num : all) {
+            if (num % x != mod) return -1;
+        }
+
+        Collections.sort(all);
+        int median = all.get(all.size() / 2);
+        int operations = 0;
+
+        for (int num : all) {
+            operations += Math.abs(num - median) / x;
+        }
+
+        return operations;
+    }
+}
+
+
+or
+
+
