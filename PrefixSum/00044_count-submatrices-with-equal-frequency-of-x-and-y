@@ -1,0 +1,273 @@
+https://leetcode.com/problems/count-submatrices-with-equal-frequency-of-x-and-y/
+
+3212. Count Submatrices With Equal Frequency of X and Y
+Medium
+Topics
+Companies
+Hint
+Given a 2D character matrix grid, where grid[i][j] is either 'X', 'Y', or '.', return the number of submatrices that contain:
+
+grid[0][0]
+an equal frequency of 'X' and 'Y'.
+at least one 'X'.
+ 
+
+Example 1:
+
+Input: grid = [["X","Y","."],["Y",".","."]]
+
+Output: 3
+
+Explanation:
+
+
+
+Example 2:
+
+Input: grid = [["X","X"],["X","Y"]]
+
+Output: 0
+
+Explanation:
+
+No submatrix has an equal frequency of 'X' and 'Y'.
+
+Example 3:
+
+Input: grid = [[".","."],[".","."]]
+
+Output: 0
+
+Explanation:
+
+No submatrix has at least one 'X'.
+
+ 
+
+Constraints:
+
+1 <= grid.length, grid[i].length <= 1000
+grid[i][j] is either 'X', 'Y', or '.'.
+
+
+# java
+
+
+class Solution {
+  public int numberOfSubmatrices(char[][] grid) {
+    final int m = grid.length;
+    final int n = grid[0].length;
+    int ans = 0;
+    // x[i][j] := the number of 'X' in grid[0..i)[0..j)
+    int[][] x = new int[m + 1][n + 1];
+    // y[i][j] := the number of 'Y' in grid[0..i)[0..j)
+    int[][] y = new int[m + 1][n + 1];
+
+    for (int i = 0; i < m; ++i)
+      for (int j = 0; j < n; ++j) {
+        x[i + 1][j + 1] = (grid[i][j] == 'X' ? 1 : 0) + x[i][j + 1] + x[i + 1][j] - x[i][j];
+        y[i + 1][j + 1] = (grid[i][j] == 'Y' ? 1 : 0) + y[i][j + 1] + y[i + 1][j] - y[i][j];
+        if (x[i + 1][j + 1] > 0 && x[i + 1][j + 1] == y[i + 1][j + 1])
+          ++ans;
+      }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int numberOfSubmatrices(char[][] grid) {
+        int m = grid.length, n = grid[0].length;
+        int[][][] s = new int[m + 1][n + 1][2];
+        int ans = 0;
+        for (int i = 1; i <= m; ++i) {
+            for (int j = 1; j <= n; ++j) {
+                s[i][j][0] = s[i - 1][j][0] + s[i][j - 1][0] - s[i - 1][j - 1][0]
+                    + (grid[i - 1][j - 1] == 'X' ? 1 : 0);
+                s[i][j][1] = s[i - 1][j][1] + s[i][j - 1][1] - s[i - 1][j - 1][1]
+                    + (grid[i - 1][j - 1] == 'Y' ? 1 : 0);
+                if (s[i][j][0] > 0 && s[i][j][0] == s[i][j][1]) {
+                    ++ans;
+                }
+            }
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+        public int numberOfSubmatrices(char[][] A) {
+        int n = A.length, m = A[0].length, res = 0;
+        int[][] X = new int[n + 1][m + 1], Y = new int[n + 1][m + 1];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                X[i + 1][j + 1] = X[i][j + 1] + X[i + 1][j] - X[i][j] + (A[i][j] == 'X' ? 1 : 0);
+                Y[i + 1][j + 1] = Y[i][j + 1] + Y[i + 1][j] - Y[i][j] + (A[i][j] == 'Y' ? 1 : 0);
+                if (X[i + 1][j + 1] == Y[i + 1][j + 1] && X[i + 1][j + 1] > 0) {
+                    res++;
+                }
+            }
+        }
+        return res;
+    }
+}
+
+
+
+or
+
+
+// best
+
+class Solution {
+    public int numberOfSubmatrices(char[][] grid) {
+        int m = grid.length, n = grid[0].length, result = 0;
+        int[][][] dp = new int[m + 1][n + 1][2];
+        for (int i = 1; i <= m; i++) {
+            for (int j = 1; j <= n; j++) {
+                dp[i][j][0] = dp[i-1][j][0] + dp[i][j-1][0] - dp[i-1][j-1][0] + (grid[i-1][j-1] == 'X' ? 1 : 0);
+                dp[i][j][1] = dp[i-1][j][1] + dp[i][j-1][1] - dp[i-1][j-1][1] + (grid[i-1][j-1] == 'Y' ? 1 : 0);
+                if (dp[i][j][0] != 0 && dp[i][j][0] == dp[i][j][1])
+                    result++;
+            }
+        }
+        return result;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int numberOfSubmatrices(char[][] grid) {
+//         prefix count of 'X' & 'Y'
+        int[][] pref_X = new int[grid.length+1][grid[0].length+1];
+        int[][] pref_Y = new int[grid.length+1][grid[0].length+1];
+        for(int i=0; i<grid.length+1; i++){
+            Arrays.fill(pref_X[i], 0);
+            Arrays.fill(pref_Y[i], 0);
+        }
+        
+        
+//         prefix calculation
+        for(int i=1; i<=grid.length; i++){
+            for(int j=1; j<=grid[0].length; j++){
+                pref_X[i][j]=pref_X[i-1][j]+pref_X[i][j-1]-pref_X[i-1][j-1]+
+                    (grid[i-1][j-1]=='X'?1:0);
+                pref_Y[i][j]=pref_Y[i-1][j]+pref_Y[i][j-1]-pref_Y[i-1][j-1]+
+                    (grid[i-1][j-1]=='Y'?1:0);
+            }
+        }
+        
+        
+//         result cal
+        int res = 0;
+//         all the possible cases for the substring
+//         from {0,0}-{grid.length, grid[0].length}
+        for(int i=1; i<grid.length+1; i++){
+            for(int j=1; j<grid[0].length+1; j++){
+                int cnt_x=pref_X[i][j];
+                int cnt_y=pref_Y[i][j];
+                
+                if(cnt_x==cnt_y && cnt_x>0 && (grid[0][0]=='X' || grid[0][0]=='Y'|| grid[0][0]=='.')){
+                    res++;
+                }
+            }
+        }
+        return res;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    static class Pair{
+        int xf;
+        int yf;
+        public Pair(int xf,int yf){
+            this.xf=xf;
+            this.yf=yf;
+        }
+    }
+    public int numberOfSubmatrices(char[][] grid) {
+        Pair[][] freq=new Pair[grid.length][grid[0].length];
+        for(int i=0;i<grid.length;i++){
+            int x=0;
+            int y=0;
+            //horizontal summing
+            for(int j=0;j<grid[0].length;j++){
+                if(grid[i][j]=='X'){
+                    x++;
+                }
+                else if(grid[i][j]=='Y'){
+                    y++;
+                }
+                freq[i][j]=new Pair(x,y);
+            }
+        }
+        //vertical summation
+        for(int j=0;j<grid[0].length;j++){
+            for(int i=1;i<grid.length;i++){
+                freq[i][j].xf+=freq[i-1][j].xf;
+                freq[i][j].yf+=freq[i-1][j].yf;
+            }
+        }
+        int count=0;
+        for(int i=0;i<grid.length;i++){
+            for(int j=0;j<grid[0].length;j++){
+                if(freq[i][j].xf==freq[i][j].yf&&freq[i][j].xf>0){
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+}
+
+or
+
+
+class Solution {
+    public record Pair(int x, int y){}
+    public int numberOfSubmatrices(char[][] grid) {
+        int m = grid.length;
+        int n = grid[0].length;
+        int x = 0, y = 0;
+        Pair[] prevRow = new Pair[n];
+        int count = 0;
+        Arrays.fill(prevRow, new Pair(0,0));
+        for(int i = 0; i < m; i++){
+            for(int j = 0; j < n; j++){
+                x += (grid[i][j] == 'X') ? 1 : 0;
+                y += (grid[i][j] == 'Y') ? 1 : 0;
+                prevRow[j] = new Pair(prevRow[j].x() + x, prevRow[j].y() + y);
+                if(prevRow[j].x() >= 1 && prevRow[j].x() == prevRow[j].y()){
+                    count++;
+                }
+            }
+            x = 0;
+            y = 0;
+        }
+        return count;
+    }
+}
+
+
+
