@@ -1,0 +1,246 @@
+https://leetcode.com/problems/find-the-grid-of-region-average/description/
+
+
+3030. Find the Grid of Region Average
+Medium
+Topics
+Companies
+Hint
+You are given m x n grid image which represents a grayscale image, where image[i][j] represents a pixel with intensity in the range [0..255]. You are also given a non-negative integer threshold.
+
+Two pixels are adjacent if they share an edge.
+
+A region is a 3 x 3 subgrid where the absolute difference in intensity between any two adjacent pixels is less than or equal to threshold.
+
+All pixels in a region belong to that region, note that a pixel can belong to multiple regions.
+
+You need to calculate a m x n grid result, where result[i][j] is the average intensity of the regions to which image[i][j] belongs, rounded down to the nearest integer. If image[i][j] belongs to multiple regions, result[i][j] is the average of the rounded-down average intensities of these regions, rounded down to the nearest integer. If image[i][j] does not belong to any region, result[i][j] is equal to image[i][j].
+
+Return the grid result.
+
+ 
+
+Example 1:
+
+Input: image = [[5,6,7,10],[8,9,10,10],[11,12,13,10]], threshold = 3
+
+Output: [[9,9,9,9],[9,9,9,9],[9,9,9,9]]
+
+Explanation:
+
+
+
+There are two regions as illustrated above. The average intensity of the first region is 9, while the average intensity of the second region is 9.67 which is rounded down to 9. The average intensity of both of the regions is (9 + 9) / 2 = 9. As all the pixels belong to either region 1, region 2, or both of them, the intensity of every pixel in the result is 9.
+
+Please note that the rounded-down values are used when calculating the average of multiple regions, hence the calculation is done using 9 as the average intensity of region 2, not 9.67.
+
+Example 2:
+
+Input: image = [[10,20,30],[15,25,35],[20,30,40],[25,35,45]], threshold = 12
+
+Output: [[25,25,25],[27,27,27],[27,27,27],[30,30,30]]
+
+Explanation:
+
+
+
+There are two regions as illustrated above. The average intensity of the first region is 25, while the average intensity of the second region is 30. The average intensity of both of the regions is (25 + 30) / 2 = 27.5 which is rounded down to 27.
+
+All the pixels in row 0 of the image belong to region 1, hence all the pixels in row 0 in the result are 25. Similarly, all the pixels in row 3 in the result are 30. The pixels in rows 1 and 2 of the image belong to region 1 and region 2, hence their assigned value is 27 in the result.
+
+Example 3:
+
+Input: image = [[5,6,7],[8,9,10],[11,12,13]], threshold = 1
+
+Output: [[5,6,7],[8,9,10],[11,12,13]]
+
+Explanation:
+
+There is only one 3 x 3 subgrid, while it does not have the condition on difference of adjacent pixels, for example, the difference between image[0][0] and image[1][0] is |5 - 8| = 3 > threshold = 1. None of them belong to any valid regions, so the result should be the same as image.
+
+ 
+
+Constraints:
+
+3 <= n, m <= 500
+0 <= image[i][j] <= 255
+0 <= threshold <= 255
+
+
+
+# java
+
+
+class Solution {
+  public int[][] resultGrid(int[][] image, int threshold) {
+    final int m = image.length;
+    final int n = image[0].length;
+    int[][] sums = new int[m][n];
+    int[][] counts = new int[m][n];
+
+    for (int i = 0; i < m - 2; ++i)
+      for (int j = 0; j < n - 2; ++j)
+        if (isRegion(image, i, j, threshold)) {
+          final int subgridSum = getSubgridSum(image, i, j);
+          for (int x = i; x < i + 3; ++x)
+            for (int y = j; y < j + 3; ++y) {
+              sums[x][y] += subgridSum / 9;
+              counts[x][y] += 1;
+            }
+        }
+
+    for (int i = 0; i < m; ++i)
+      for (int j = 0; j < n; ++j)
+        if (counts[i][j] > 0)
+          image[i][j] = sums[i][j] / counts[i][j];
+
+    return image;
+  }
+
+  // Returns true if image[i..i + 2][j..j + 2] is a region.
+  private boolean isRegion(int[][] image, int i, int j, int threshold) {
+    for (int x = i; x < i + 3; ++x)
+      for (int y = j; y < j + 3; ++y) {
+        if (x > i && Math.abs(image[x][y] - image[x - 1][y]) > threshold)
+          return false;
+        if (y > j && Math.abs(image[x][y] - image[x][y - 1]) > threshold)
+          return false;
+      }
+    return true;
+  }
+
+  // Returns the sum of image[i..i + 2][j..j + 2].
+  private int getSubgridSum(int[][] image, int i, int j) {
+    int subgridSum = 0;
+    for (int x = i; x < i + 3; ++x)
+      for (int y = j; y < j + 3; ++y)
+        subgridSum += image[x][y];
+    return subgridSum;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int[][] resultGrid(int[][] image, int threshold) {
+        int n = image.length;
+        int m = image[0].length;
+        int[][] ans = new int[n][m];
+        int[][] ct = new int[n][m];
+        for (int i = 0; i + 2 < n; ++i) {
+            for (int j = 0; j + 2 < m; ++j) {
+                boolean region = true;
+                for (int k = 0; k < 3; ++k) {
+                    for (int l = 0; l < 2; ++l) {
+                        region
+                            &= Math.abs(image[i + k][j + l] - image[i + k][j + l + 1]) <= threshold;
+                    }
+                }
+                for (int k = 0; k < 2; ++k) {
+                    for (int l = 0; l < 3; ++l) {
+                        region
+                            &= Math.abs(image[i + k][j + l] - image[i + k + 1][j + l]) <= threshold;
+                    }
+                }
+                if (region) {
+                    int tot = 0;
+                    for (int k = 0; k < 3; ++k) {
+                        for (int l = 0; l < 3; ++l) {
+                            tot += image[i + k][j + l];
+                        }
+                    }
+                    for (int k = 0; k < 3; ++k) {
+                        for (int l = 0; l < 3; ++l) {
+                            ct[i + k][j + l]++;
+                            ans[i + k][j + l] += tot / 9;
+                        }
+                    }
+                }
+            }
+        }
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < m; ++j) {
+                if (ct[i][j] == 0) {
+                    ans[i][j] = image[i][j];
+                } else {
+                    ans[i][j] /= ct[i][j];
+                }
+            }
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+
+class Solution {
+    int m = 0, n = 0;
+    int[][] result = null;
+    int[][] count = null;
+    public int[][] resultGrid(int[][] image, int threshold) {
+        m = image.length; n = image[0].length;
+        result = new int[m][n];
+        count = new int[m][n];
+        
+		// For each possible grid of 3x3
+        for(int col = 0; col <= n-3; col++) {
+            for(int row = 0; row <= m-3; row++) {
+                int currentAverage = calculateCurrentAverage(image, row, col, threshold);
+                if(currentAverage != Integer.MIN_VALUE) // it means current grid is valid
+                    updateAverage(image, row, col, currentAverage, threshold);
+            }
+        }
+        
+        for(int i = 0; i < m; i++)
+            for(int j = 0; j < n; j++)
+                if(count[i][j] != 0) // When VALID
+                    result[i][j] = (result[i][j] / count[i][j]);
+                else
+                    result[i][j] = image[i][j]; // When INVALID: update with original value
+        
+        return result;
+    }
+    
+    public void updateAverage(int[][] image, int row, int col, int currentAverage, int threshold) {
+        for(int i = row; i < row+3; i++) {
+            for(int j = col; j < col+3; j++) {
+                  result[i][j] += currentAverage;
+                count[i][j]++;
+            }
+        }
+    }
+    
+    public int calculateCurrentAverage(int[][] image, int row, int col, int threshold) {
+        int tempSum = 0;
+        for(int i = row; i < row+3; i++) {
+            for(int j = col; j < col+3; j++) {
+				// If the current position is invalid, the current grid is invalid too, so return MIN_VALUE as average
+                if(!isCurrentPositionValid(image, i, j, threshold, row, col))
+                    return Integer.MIN_VALUE;
+                tempSum += image[i][j];
+            }
+        }
+        return tempSum/9;
+    }
+    
+    public boolean isCurrentPositionValid(int[][] image, int row, int col, int threshold, int startRow, int startCol) {
+        if(row - 1 >= startRow && Math.abs(image[row-1][col] - image[row][col]) > threshold)
+            return false;
+        if(row + 1 <= startRow + 2 && Math.abs(image[row+1][col] - image[row][col]) > threshold)
+            return false;
+        if(col - 1 >= startCol && Math.abs(image[row][col-1] - image[row][col]) > threshold)
+            return false;
+        if(col + 1 <= startCol + 2 && Math.abs(image[row][col+1] - image[row][col]) > threshold)
+            return false;
+        return true;
+    }
+}
+
+
