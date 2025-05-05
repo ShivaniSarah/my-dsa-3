@@ -1,0 +1,197 @@
+https://leetcode.com/problems/find-the-minimum-area-to-cover-all-ones-i/
+
+3195. Find the Minimum Area to Cover All Ones I
+Medium
+Topics
+Companies
+Hint
+You are given a 2D binary array grid. Find a rectangle with horizontal and vertical sides with the smallest area, such that all the 1's in grid lie inside this rectangle.
+
+Return the minimum possible area of the rectangle.
+
+ 
+
+Example 1:
+
+Input: grid = [[0,1,0],[1,0,1]]
+
+Output: 6
+
+Explanation:
+
+
+
+The smallest rectangle has a height of 2 and a width of 3, so it has an area of 2 * 3 = 6.
+
+Example 2:
+
+Input: grid = [[1,0],[0,0]]
+
+Output: 1
+
+Explanation:
+
+
+
+The smallest rectangle has both height and width 1, so its area is 1 * 1 = 1.
+
+ 
+
+Constraints:
+
+1 <= grid.length, grid[i].length <= 1000
+grid[i][j] is either 0 or 1.
+The input is generated such that there is at least one 1 in grid.
+
+
+
+# java
+
+
+class Solution {
+  public int minimumArea(int[][] grid) {
+    int x1 = Integer.MAX_VALUE;
+    int y1 = Integer.MAX_VALUE;
+    int x2 = 0;
+    int y2 = 0;
+
+    for (int i = 0; i < grid.length; ++i)
+      for (int j = 0; j < grid[0].length; ++j)
+        if (grid[i][j] == 1) {
+          x1 = Math.min(x1, i);
+          y1 = Math.min(y1, j);
+          x2 = Math.max(x2, i);
+          y2 = Math.max(y2, j);
+        }
+
+    return (x2 - x1 + 1) * (y2 - y1 + 1);
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int minimumArea(int[][] grid) {
+        int m = grid.length, n = grid[0].length;
+        int x1 = m, y1 = n;
+        int x2 = 0, y2 = 0;
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (grid[i][j] == 1) {
+                    x1 = Math.min(x1, i);
+                    y1 = Math.min(y1, j);
+                    x2 = Math.max(x2, i);
+                    y2 = Math.max(y2, j);
+                }
+            }
+        }
+        return (x2 - x1 + 1) * (y2 - y1 + 1);
+    }
+}
+
+
+
+
+or
+
+
+
+class Solution {
+    public int minimumArea(int[][] grid) {
+        
+        //number of rows
+        int r = grid.length;
+        
+        //number of columns
+        int c = grid[0].length;
+        
+        //initialize a top pointer to the extreme bottom
+        int top = r;
+        
+        //initialize a bottom pointer to the extreme top
+        int bottom = -1;
+        
+        //initialize a left pointer to the extreme right
+        int left = c;
+        
+        //initialize a right pointer to the extreme left
+        int right = -1;
+        
+        //loop over all the elements in the matrix
+        for(int i=0;i<r;i++){
+            for(int j=0;j<c;j++){
+                
+                //when 1 is encountered in the matrix
+                //keep the four pointers as close as possible to 1
+                if(grid[i][j] == 1){
+
+                    //find the closest top value using min function
+                    top = Math.min(top,i);
+
+                    //find the closest bottom value using max function
+                    bottom = Math.max(bottom,i);
+
+                    //find the closest left value using min function
+                    left = Math.min(left,j);
+
+                    //find the closest right value using max function
+                    right = Math.max(right,j);
+                }
+            }
+        }
+        
+        //length = right - left + 1, breadth = bottom - top + 1, area = length * breadth
+
+        return (bottom-top+1)*(right-left+1);
+    }
+}
+
+
+
+or
+
+class Solution {
+    public int minimumArea(int[][] grid) {
+        int last=0;
+        int first=-1;
+        int width=0;
+        int len=0;
+        int wfirst=-1;
+        int wlast=0;
+        for(int i=0;i<grid.length;i++){
+            for(int j=0;j<grid[0].length;j++){
+                if(grid[i][j]==1 && wfirst==-1){
+                    wfirst=i;
+                    width++;
+                    
+                }else if(grid[i][j]==1){
+                    wlast=Math.max(wlast,i);
+                }
+
+            }
+        }
+
+        for(int i=0;i<grid[0].length;i++){
+            for(int j=0;j<grid.length;j++){
+                if(grid[j][i]==1 && first==-1){
+                    first=i;
+                    len++;
+                }else if(grid[j][i]==1){
+                    last=Math.max(last,i);
+                }
+
+
+            }
+           
+        }
+        int wid=Math.max(width,wlast-wfirst+1);
+         int size=Math.max(len,last-first+1);
+            int ans=size*wid;
+            return ans;
+
+        
+    }
+}
+
