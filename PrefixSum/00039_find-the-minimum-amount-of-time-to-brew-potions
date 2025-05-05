@@ -1,0 +1,463 @@
+https://leetcode.com/problems/find-the-minimum-amount-of-time-to-brew-potions/
+
+3494. Find the Minimum Amount of Time to Brew Potions
+Medium
+Topics
+Companies
+Hint
+You are given two integer arrays, skill and mana, of length n and m, respectively.
+
+In a laboratory, n wizards must brew m potions in order. Each potion has a mana capacity mana[j] and must pass through all the wizards sequentially to be brewed properly. The time taken by the ith wizard on the jth potion is timeij = skill[i] * mana[j].
+
+Since the brewing process is delicate, a potion must be passed to the next wizard immediately after the current wizard completes their work. This means the timing must be synchronized so that each wizard begins working on a potion exactly when it arrives. ​
+
+Return the minimum amount of time required for the potions to be brewed properly.
+
+ 
+
+Example 1:
+
+Input: skill = [1,5,2,4], mana = [5,1,4,2]
+
+Output: 110
+
+Explanation:
+
+Potion Number	Start time	Wizard 0 done by	Wizard 1 done by	Wizard 2 done by	Wizard 3 done by
+0	0	5	30	40	60
+1	52	53	58	60	64
+2	54	58	78	86	102
+3	86	88	98	102	110
+As an example for why wizard 0 cannot start working on the 1st potion before time t = 52, consider the case where the wizards started preparing the 1st potion at time t = 50. At time t = 58, wizard 2 is done with the 1st potion, but wizard 3 will still be working on the 0th potion till time t = 60.
+
+Example 2:
+
+Input: skill = [1,1,1], mana = [1,1,1]
+
+Output: 5
+
+Explanation:
+
+Preparation of the 0th potion begins at time t = 0, and is completed by time t = 3.
+Preparation of the 1st potion begins at time t = 1, and is completed by time t = 4.
+Preparation of the 2nd potion begins at time t = 2, and is completed by time t = 5.
+Example 3:
+
+Input: skill = [1,2,3,4], mana = [1,2]
+
+Output: 21
+
+ 
+
+Constraints:
+
+n == skill.length
+m == mana.length
+1 <= n, m <= 5000
+1 <= mana[i], skill[i] <= 5000
+
+
+ #java
+
+
+class Solution {
+  public long minTime(int[] skill, int[] mana) {
+    long sumSkill = Arrays.stream(skill).sum();
+    long prevWizardDone = sumSkill * mana[0];
+
+    for (int j = 1; j < mana.length; ++j) {
+      long prevPotionDone = prevWizardDone;
+      for (int i = skill.length - 2; i >= 0; --i) {
+        // start time for wizard i brewing potion j
+        // = max(end time for wizard i brewing potion j - 1,
+        //       the earliest start time for wizard i + 1 brewing potion j
+        //       (coming from previous iteration)
+        //       - time for wizard i brewing potion j)
+        prevPotionDone -= (long) skill[i + 1] * mana[j - 1];
+        prevWizardDone = Math.max(prevPotionDone, prevWizardDone - (long) skill[i] * mana[j]);
+      }
+      prevWizardDone += sumSkill * mana[j];
+    }
+
+    return prevWizardDone;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public long minTime(int[] skill, int[] mana) {
+       
+    long[] endTime = new long[skill.length];
+    Arrays.fill(endTime, 0);
+    for(int i = 0; i < mana.length; ++i){
+        long t = 0, maxDiff = 0;
+        for(int j = 0; j < skill.length; ++j){
+            maxDiff = Math.max(maxDiff, endTime[j] - t);
+            t += (long)skill[j] * (long)mana[i];
+            endTime[j] = t;
+        }
+        for(int j = 0; j < skill.length; ++j) endTime[j] += maxDiff;
+    }
+    return endTime[endTime.length-1];
+}
+}
+
+
+
+or
+
+
+
+class Solution {
+       public long minTime(int[] skill, int[] mana) {
+        int n = skill.length, m = mana.length;
+        long[] acc = new long[n + 1];
+        for (int i = 0; i < n; i++) {
+            acc[i + 1] = acc[i] + skill[i];
+        }
+        long t = 0, t2 = 0;
+        for (int j = 1; j < m; j++) {
+            t2 = 0;
+            for (int i = 0; i < n; i++) {
+                t2 = Math.max(t2, t + mana[j - 1] * acc[i + 1] - mana[j] * acc[i]);
+            }
+            t = t2;
+        }
+        return t + mana[m - 1] * acc[n];
+    }
+}
+
+
+
+or
+
+
+
+
+class Solution {
+    public long minTime(int[] skill, int[] mana) {
+        int n = skill.length;
+        int m = mana.length;
+
+        long[] sPre = new long[n];
+        for (int i = 1; i < n; i++) 
+            sPre[i] = sPre[i - 1] + skill[i];
+
+        long tSum = (long) skill[0] * mana[0];
+
+        for (int j = 1; j < m; j++) {
+            long tMax = (long) skill[0] * mana[j];
+            for (int i = 1; i < n; i++) {
+                long tDiff = sPre[i] * mana[j - 1] - sPre[i - 1] * mana[j];
+                if (tDiff > tMax) 
+                    tMax = tDiff;
+            }
+            tSum += tMax;
+        }
+        return tSum + sPre[n - 1] * mana[m - 1];
+    }
+}
+
+
+or
+
+
+class Solution {
+    boolean isValid(int[] skill, int[] mana, long[] prevPotionEndTimes, int currPotionIdx, long startTime)
+    {
+        long endTime = startTime;
+        for (int i = 0; i < skill.length; i++)
+        {
+            if (endTime < prevPotionEndTimes[i])
+                return false;
+            endTime += ((long)skill[i] * mana[currPotionIdx]);
+        }
+        return true;
+    }
+    long getStartTime(int[] skill, int[] mana, int currPotionIdx, long lowTime, long[] prevPotionEndTimes)
+    {
+        int wizardCount = skill.length;
+        long highTime = prevPotionEndTimes[wizardCount - 1];
+        long ans = highTime;
+        //============================================================================================
+        while(lowTime <= highTime)
+        {
+            long midTime = lowTime + (highTime - lowTime) / 2;
+            if (isValid(skill, mana, prevPotionEndTimes, currPotionIdx, midTime))
+            {
+                ans = midTime;
+                highTime = midTime - 1;
+            }
+            else
+                lowTime = midTime + 1;
+        }
+        //============================================================================================
+        return ans;
+    }
+    public long minTime(int[] skill, int[] mana) 
+    {
+        int wizardCount = skill.length, potionCount = mana.length;
+        long prevStartTime = 0; //startTime of brewing "previous" Potion
+        
+        //potionEndTimes[i] denotes end time at which ith wizard finishes brewing "current" Potion
+        long[] potionEndTimes = new long[wizardCount]; 
+        //===================================================================================================
+        for (int i = 0; i < potionCount; i++)
+        {
+            long startTime = (i == 0)? 0 : getStartTime(skill, mana, i, prevStartTime + 1, potionEndTimes);
+            
+            long endTime = startTime;
+            for (int j = 0; j < wizardCount; j++)
+            {
+                endTime += ((long)(skill[j]) * (mana[i]));
+                potionEndTimes[j] = endTime;
+            }
+            
+            prevStartTime = startTime;
+        }
+        //======================================================================================================
+        return potionEndTimes[wizardCount - 1];
+        
+    }
+}
+
+
+or
+
+
+class Solution {
+    
+    public boolean possible(int[] skills, long ps, long ns, int pm, int nm) {
+        for (int skill : skills) {
+            long prev = (long) skill * pm;
+            long curr = (long) skill * nm;
+            if (ps + prev > ns) // comparison here to avoid equality edge case
+                return false;
+            // System.out.println(ps+prev+"-"+ns);
+            ps += prev;
+            ns += curr;
+        }
+        return true;
+    }
+
+    public long time(int[] skills, int mana) {
+        long res = 0;
+        for (int skill : skills) {
+            res += (long) skill * mana;
+        }
+        return res;
+    }
+
+    public long minTime(int[] skill, int[] mana) {
+        int n = skill.length, m = mana.length;
+        long start = 0, end = time(skill, mana[0]); // Use the maximum mana for upper bound
+        // System.out.println(start+"-"+end);
+        for (int i = 1; i < m; i++) { // Loop through mana ranges
+            long left = start, right = end;
+            while (left <= right) {
+                long mid = left + (right - left) / 2;
+                // System.out.println(mid);
+                if (possible(skill, start, mid, mana[i-1], mana[i])) {
+                    right = mid - 1; // Narrow the range to search for smaller time
+                } else {
+                    left = mid + 1; // Expand range if current is not possible
+                }
+            }
+            start = left; // Update start for the next range
+            end = start + time(skill, mana[i]);
+            // System.out.println(start+"-"+end);
+        }
+        return end; // Return the minimum required time
+    }
+}
+
+
+or
+
+import java.util.*;
+
+class Solution {
+    public long minTime(int[] skill, int[] mana) {
+        int n = skill.length;
+        int m = mana.length;
+        long[][] dp = new long[m + 2][n + 2];
+        
+        for (int i = 1; i <= n; i++) {
+            dp[0][i] = dp[0][i - 1] + (long) skill[i - 1] * mana[0];
+        }
+        
+        for (int i = 1; i < m; i++) {
+            long curr = dp[i - 1][n];
+            long l = dp[i - 1][1];
+            long r = dp[i - 1][n];
+            
+            while (l <= r) {
+                long mid = l + ((r - l) >> 1);
+                long start = mid;
+                boolean flag = true;
+                
+                for (int j = 0; j < n; j++) {
+                    start = start + (long) skill[j] * mana[i];
+                    if (start < dp[i - 1][j + 2]) {
+                        flag = false;
+                        break;
+                    }
+                }
+                
+                if (flag) {
+                    r = mid - 1;
+                    dp[i][0] = mid;
+                } else {
+                    l = mid + 1;
+                }
+            }
+            
+            for (int j = 1; j <= n; j++) {
+                dp[i][j] = dp[i][j - 1] + (long) skill[j - 1] * mana[i];
+            }
+        }
+        
+        return dp[m - 1][n];
+    }
+}
+
+
+
+or
+
+// much better
+
+class Solution {
+    public long minTime(int[] skill, int[] mana) {
+        int n = skill.length;
+        int m = mana.length;
+        long free[] = new long[n]; //earliest free time of wizards
+        long ans = 0;
+        for(int i = 0; i < m; i++) {
+            //start making each potion
+            //binary search to find the start time 
+            long l = free[0] - 1; //first wiz's earliest time
+            long h = free[n - 1]; //last wiz's earliest time
+            while(l + 1 < h) {
+                long mid = (l + h) / 2;
+                if(isGood(free, skill, mana[i], mid)) {
+                    h = mid;
+                }else {
+                    l = mid;
+                }
+            }
+
+            long t = h; // start time for each potion
+            //update time
+            for(int j = 0; j < n; j++) {
+                t += skill[j] * mana[i];
+                free[j] = t;
+            }
+
+            //debug
+            // System.out.println("start at = " + h + " " + Arrays.toString(free));
+            
+            //update answer
+            ans = Math.max(ans, free[n - 1]);
+        }
+        return ans;
+    }
+
+    private boolean isGood(long free[], int skill[], int potionCapacity, long checkTime) {
+        //function return true if it is possible to start at this start time 'checkTime' and complete the potion
+        int n = skill.length;
+        long curTime = checkTime; //start time
+        for(int j = 0; j < n; j++) {
+            if(curTime < free[j]) return false;
+            curTime += skill[j] * potionCapacity;
+        }
+        return true;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public long minTime(int[] a, int[] b) {
+        int n=a.length,m=b.length;
+        long p[][]=new long[m][n];
+        long sum=0;
+        for(int i=0;i<n;i++){
+            sum+=1l*a[i]*b[0];
+            p[0][i]=sum;
+        }
+        for(int i=1;i<m;i++){
+            long x=b[i];
+            for(int j=0;j<n;j++){
+                p[i][j]=p[i-1][j]+(1l*a[j]*x);                
+            }
+        // System.out.println(Arrays.deepToString(p));
+            for(int j=0;j<n;j++){
+                long v=p[i][j];
+                boolean found=false;
+                for(int k=j;k<n;k++){
+                    if(k==n-1){
+                        found=true;
+                        if(j!=n-1)
+                            p[i][n-1]=v;
+                        for(int u=k-1;u>=0;u--){
+                            p[i][u]=p[i][u+1]-a[u+1]*x;
+                        }
+                        
+                    // System.out.println(j);
+                        break;
+                    }
+                    // System.out.println(j+" "+k+" "+v);
+                    if(v<=p[i-1][k+1])
+                        break;
+                    v+=1l*a[k+1]*x;
+                }
+                if(found)
+                    break;
+            }
+            
+        // System.out.println(Arrays.deepToString(p)+"\n");
+        }
+            return p[m-1][n-1];
+    }
+}
+
+
+
+or
+
+
+
+// bets
+
+
+class Solution {
+        public long minTime(int[] skill, int[] mana) {
+        int n = skill.length, m = mana.length;
+        long[] acc = new long[n + 1];
+        for (int i = 0; i < n; i++) {
+            acc[i + 1] = acc[i] + skill[i];
+        }
+        long t = 0, t2 = 0;
+        for (int j = 1; j < m; j++) {
+            t2 = 0;
+            for (int i = 0; i < n; i++) {
+                t2 = Math.max(t2, t + mana[j - 1] * acc[i + 1] - mana[j] * acc[i]);
+            }
+            t = t2;
+        }
+        return t + mana[m - 1] * acc[n];
+    }
+}
+
+
+
+
+
+
+
