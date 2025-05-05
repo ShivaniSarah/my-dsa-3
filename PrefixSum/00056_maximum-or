@@ -1,0 +1,123 @@
+https://leetcode.com/problems/maximum-or/description/
+
+
+2680. Maximum OR
+Medium
+Topics
+Companies
+Hint
+You are given a 0-indexed integer array nums of length n and an integer k. In an operation, you can choose an element and multiply it by 2.
+
+Return the maximum possible value of nums[0] | nums[1] | ... | nums[n - 1] that can be obtained after applying the operation on nums at most k times.
+
+Note that a | b denotes the bitwise or between two integers a and b.
+
+ 
+
+Example 1:
+
+Input: nums = [12,9], k = 1
+Output: 30
+Explanation: If we apply the operation to index 1, our new array nums will be equal to [12,18]. Thus, we return the bitwise or of 12 and 18, which is 30.
+Example 2:
+
+Input: nums = [8,1,2], k = 2
+Output: 35
+Explanation: If we apply the operation twice on index 0, we yield a new array of [32,1,2]. Thus, we return 32|1|2 = 35.
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+1 <= nums[i] <= 109
+1 <= k <= 15
+
+
+# java
+
+
+class Solution {
+  public long maximumOr(int[] nums, int k) {
+    final int n = nums.length;
+    long ans = 0;
+    // prefix[i] := nums[0] | nums[1] | ... | nums[i - 1]
+    long[] prefix = new long[n];
+    // suffix[i] := nums[i + 1] | nums[i + 2] | ... nums[n - 1]
+    long[] suffix = new long[n];
+
+    for (int i = 1; i < n; ++i)
+      prefix[i] = prefix[i - 1] | nums[i - 1];
+
+    for (int i = n - 2; i >= 0; --i)
+      suffix[i] = suffix[i + 1] | nums[i + 1];
+
+    // For each num, greedily shift it left by k bits. The bitwise or value is
+    // prefix[i] | nums[i] << k | suffix[i]
+    for (int i = 0; i < n; ++i)
+      ans = Math.max(ans, prefix[i] | (long) nums[i] << k | suffix[i]);
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public long maximumOr(int[] nums, int k) {
+        int n = nums.length;
+        long[] suf = new long[n + 1];
+        for (int i = n - 1; i >= 0; --i) {
+            suf[i] = suf[i + 1] | nums[i];
+        }
+        long ans = 0, pre = 0;
+        for (int i = 0; i < n; ++i) {
+            ans = Math.max(ans, pre | (1L * nums[i] << k) | suf[i + 1]);
+            pre |= nums[i];
+        }
+        return ans;
+    }
+}
+
+
+or
+
+// best
+class Solution {
+    public long maximumOr(int[] nums, int k) {
+        int n = nums.length;
+        long result = 0;
+        int[] prefix = new int[n + 1];
+        int[] suffix = new int[n + 1];
+        for (int i = 1; i < n; i++) {
+            prefix[i] = prefix[i - 1] | nums[i - 1];
+            suffix[n - i - 1] = suffix[n - i] | nums[n - i];
+        }
+        for (int i = 0; i < n; i++) {
+            result = Math.max(result, prefix[i] | ((long)nums[i] << k) | suffix[i]);
+        }
+        return result;
+    }
+}
+
+or
+
+
+class Solution {
+        public long maximumOr(int[] A, int k) {
+        int n = A.length, right[] = new int[n], left = 0;
+        long res = 0;
+        for (int i = n - 2; i >= 0; --i) {
+            right[i] = right[i + 1] | A[i + 1];
+        }
+        for (int i = 0; i < n; i++) {
+            res = Math.max(res, left | (long)A[i] << k | right[i]);
+            left |= A[i];
+        }
+        return res;
+    }
+}
+
