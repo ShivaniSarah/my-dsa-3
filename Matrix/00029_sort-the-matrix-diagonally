@@ -1,0 +1,187 @@
+https://leetcode.com/problems/sort-the-matrix-diagonally/description/
+
+
+1329. Sort the Matrix Diagonally
+Medium
+Topics
+Companies
+Hint
+A matrix diagonal is a diagonal line of cells starting from some cell in either the topmost row or leftmost column and going in the bottom-right direction until reaching the matrix's end. For example, the matrix diagonal starting from mat[2][0], where mat is a 6 x 3 matrix, includes cells mat[2][0], mat[3][1], and mat[4][2].
+
+Given an m x n matrix mat of integers, sort each matrix diagonal in ascending order and return the resulting matrix.
+
+ 
+
+Example 1:
+
+
+Input: mat = [[3,3,1,1],[2,2,1,2],[1,1,1,2]]
+Output: [[1,1,1,1],[1,2,2,2],[1,2,3,3]]
+Example 2:
+
+Input: mat = [[11,25,66,1,69,7],[23,55,17,45,15,52],[75,31,36,44,58,8],[22,27,33,25,68,4],[84,28,14,11,5,50]]
+Output: [[5,17,4,1,52,7],[11,11,25,45,8,69],[14,23,25,44,58,15],[22,27,31,36,50,66],[84,28,75,33,55,68]]
+ 
+
+Constraints:
+
+m == mat.length
+n == mat[i].length
+1 <= m, n <= 100
+1 <= mat[i][j] <= 100
+
+
+
+# java
+
+
+class Solution {
+  public int[][] diagonalSort(int[][] mat) {
+    final int m = mat.length;
+    final int n = mat[0].length;
+
+    Map<Integer, Queue<Integer>> count = new HashMap<>();
+
+    for (int i = 0; i < m; ++i)
+      for (int j = 0; j < n; ++j)
+        count.computeIfAbsent(i - j, k -> new PriorityQueue<>()).add(mat[i][j]);
+
+    for (int i = 0; i < m; ++i)
+      for (int j = 0; j < n; ++j)
+        mat[i][j] = count.get(i - j).poll();
+
+    return mat;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int[][] diagonalSort(int[][] mat) {
+        int m = mat.length, n = mat[0].length;
+        for (int k = 0; k < Math.min(m, n) - 1; ++k) {
+            for (int i = 0; i < m - 1; ++i) {
+                for (int j = 0; j < n - 1; ++j) {
+                    if (mat[i][j] > mat[i + 1][j + 1]) {
+                        int t = mat[i][j];
+                        mat[i][j] = mat[i + 1][j + 1];
+                        mat[i + 1][j + 1] = t;
+                    }
+                }
+            }
+        }
+        return mat;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+       public int[][] diagonalSort(int[][] A) {
+        int m = A.length, n = A[0].length;
+        HashMap<Integer, PriorityQueue<Integer>> d = new HashMap<>();
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                d.putIfAbsent(i - j, new PriorityQueue<>());
+                d.get(i - j).add(A[i][j]);
+            }
+        }
+        for (int i = 0; i < m; ++i)
+            for (int j = 0; j < n; ++j)
+                A[i][j] = d.get(i - j).poll();
+        return A;
+    }
+}
+
+
+or
+
+
+class Solution {
+    
+    PriorityQueue<Integer> pQ = new PriorityQueue<>();
+    
+    public int[][] diagonalSort(int[][] mat) {
+        
+        int[][] seen = new int[mat.length][mat[0].length];
+        
+        for(int i = 0; i < mat.length; i++) {
+            for(int j = 0; j < mat[0].length; j++) {
+                if(seen[i][j] != 1) {
+                    loadQueue(mat, i, j);
+                    loadDiagonal(mat, seen, i, j);
+                }
+            }
+        }
+        
+        return mat;
+    }
+    
+    
+    public void loadQueue(int[][] mat, int i, int j) {
+        if(i >= mat.length || j >= mat[0].length || i < 0 || j < 0) {
+            return;
+        }
+        
+        pQ.add(mat[i][j]);
+        loadQueue(mat, i + 1, j + 1);
+    }
+    
+    public void loadDiagonal(int[][] mat, int[][] seen,  int i, int j) {
+        if(i >= mat.length || j > mat[0].length || i < 0 || j < 0 || pQ.isEmpty()) {
+            return;
+        }
+        
+        mat[i][j] = pQ.poll();
+        seen[i][j] = 1;
+        loadDiagonal(mat, seen, i + 1, j + 1);
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int[][] diagonalSort(int[][] mat) {
+      int n=mat.length;
+        int count=0;//this keeps the count of elements in frst row & 1st col
+        int m=mat[0].length;
+        int i=0,k=0;
+//this while loop will be sending all the starting element-index of the diagonal
+         while(count<m+n){
+             if(i==n-1&&k<m){++k;}
+             if(i!=n-1){i++;}
+             
+             pass(mat,n-1-i,k,n,m);count++;
+         }
+        return mat;
+    }
+    public void pass(int [][]a,int row,int col,int n,int m){
+ 
+        //here we perform COUNT SORT IN EVERY DIAGONAL     
+       
+        int []arr=new int [101]; //Frequency Array
+        int i=row,j=col;
+        while(row<n&&col<m){
+            arr[a[row++][col++]]++;
+        }
+//SORTING ELEMENTS IN ORIGINAL ARAY DIAGONAL        
+       for(int k=0;k<101;k++){
+           if(arr[k]>0){
+               while(arr[k]!=0){
+               a[i++][j++]=k;
+                   --arr[k];
+           }
+           }
+       } 
+    }
+}
+
+
