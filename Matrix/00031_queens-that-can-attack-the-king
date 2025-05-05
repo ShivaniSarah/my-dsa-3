@@ -1,0 +1,171 @@
+https://leetcode.com/problems/queens-that-can-attack-the-king/description/
+
+
+1222. Queens That Can Attack the King
+Medium
+Topics
+Companies
+Hint
+On a 0-indexed 8 x 8 chessboard, there can be multiple black queens and one white king.
+
+You are given a 2D integer array queens where queens[i] = [xQueeni, yQueeni] represents the position of the ith black queen on the chessboard. You are also given an integer array king of length 2 where king = [xKing, yKing] represents the position of the white king.
+
+Return the coordinates of the black queens that can directly attack the king. You may return the answer in any order.
+
+ 
+
+Example 1:
+
+
+Input: queens = [[0,1],[1,0],[4,0],[0,4],[3,3],[2,4]], king = [0,0]
+Output: [[0,1],[1,0],[3,3]]
+Explanation: The diagram above shows the three queens that can directly attack the king and the three queens that cannot attack the king (i.e., marked with red dashes).
+Example 2:
+
+
+Input: queens = [[0,0],[1,1],[2,2],[3,4],[3,5],[4,4],[4,5]], king = [3,3]
+Output: [[2,2],[3,4],[4,4]]
+Explanation: The diagram above shows the three queens that can directly attack the king and the three queens that cannot attack the king (i.e., marked with red dashes).
+ 
+
+Constraints:
+
+1 <= queens.length < 64
+queens[i].length == king.length == 2
+0 <= xQueeni, yQueeni, xKing, yKing < 8
+All the given positions are unique.
+
+
+# java
+
+
+
+class Solution {
+  public List<List<Integer>> queensAttacktheKing(int[][] queens, int[] king) {
+    List<List<Integer>> ans = new ArrayList<>();
+    Set<Integer> queensSet = new HashSet<>();
+
+    for (int[] queen : queens)
+      queensSet.add(hash(queen[0], queen[1]));
+
+    int[][] directions =
+        new int[][] {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
+    for (int[] d : directions)
+      for (int i = king[0] + d[0], j = king[1] + d[1]; 0 <= i && i < 8 && 0 <= j && j < 8;
+           i += d[0], j += d[1])
+        if (queensSet.contains(hash(i, j))) {
+          ans.add(Arrays.asList(i, j));
+          break;
+        }
+
+    return ans;
+  }
+
+  private int hash(int i, int j) {
+    return i * 8 + j;
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    public List<List<Integer>> queensAttacktheKing(int[][] queens, int[] king) {
+        final int n = 8;
+        var s = new boolean[n][n];
+        for (var q : queens) {
+            s[q[0]][q[1]] = true;
+        }
+        List<List<Integer>> ans = new ArrayList<>();
+        for (int a = -1; a <= 1; ++a) {
+            for (int b = -1; b <= 1; ++b) {
+                if (a != 0 || b != 0) {
+                    int x = king[0] + a, y = king[1] + b;
+                    while (x >= 0 && x < n && y >= 0 && y < n) {
+                        if (s[x][y]) {
+                            ans.add(List.of(x, y));
+                            break;
+                        }
+                        x += a;
+                        y += b;
+                    }
+                }
+            }
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+
+class Solution {
+    public List<List<Integer>> queensAttacktheKing(int[][] queens, int[] king) {
+        boolean[][] q = new boolean[8][8];
+		//Mark all the positions of queen on a 8 X 8 board.
+        for (int[] queen: queens) {
+            q[queen[0]][queen[1]] = true;
+        }
+        List<List<Integer>> output = new ArrayList<>();
+		//Specify all the moves of the queen
+        int[][] moves = {{-1,-1}, {0,-1}, {1,-1},{1,0}, {1,1}, {0,1}, {-1,1}, {-1,0}};
+        for(int i = 0; i < moves.length; i++){
+            int k = king[0] + moves[i][0];
+            int l = king[1] + moves[i][1];
+            while(k >= 0 && l >=0 && k < 8 && l < 8){
+                if(q[k][l]){
+                    List<Integer> pair = new ArrayList<>();
+                    pair.add(k);
+                    pair.add(l);
+                    output.add(pair);
+                    break;
+                }
+                k = k + moves[i][0];
+                l = l + moves[i][1];
+            }
+        }
+        
+        return output;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    
+    int[][] directions = {{0,1}, {1,0}, {0,-1}, {-1,0}, {1,1}, {-1,-1}, {1,-1}, {-1,1}};
+    
+    public List<List<Integer>> queensAttacktheKing(int[][] queens, int[] king) {
+        int[][] board = new int[8][8];
+        List<List<Integer>> res = new LinkedList<>();
+        
+        for(int[] queenPos : queens){
+            board[queenPos[0]][queenPos[1]] = 1;
+        }
+        
+        for(int[] direction : directions){
+            int row = king[0], col = king[1];
+            
+            while(row>=0 && row<8 && col>=0 && col<8 && board[row][col]==0){
+                row += direction[0];
+                col += direction[1];
+            }
+            
+            if(row>=0 && row<8 && col>=0 && col<8){
+                res.add(new LinkedList<>(Arrays.asList(new Integer[]{row, col})));
+            }
+        }
+        
+        return res;
+    }
+}
