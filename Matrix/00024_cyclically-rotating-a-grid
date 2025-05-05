@@ -1,0 +1,182 @@
+https://leetcode.com/problems/cyclically-rotating-a-grid/description/
+
+1914. Cyclically Rotating a Grid
+Medium
+Topics
+Companies
+Hint
+You are given an m x n integer matrix grid​​​, where m and n are both even integers, and an integer k.
+
+The matrix is composed of several layers, which is shown in the below image, where each color is its own layer:
+
+
+
+A cyclic rotation of the matrix is done by cyclically rotating each layer in the matrix. To cyclically rotate a layer once, each element in the layer will take the place of the adjacent element in the counter-clockwise direction. An example rotation is shown below:
+
+
+Return the matrix after applying k cyclic rotations to it.
+
+ 
+
+Example 1:
+
+
+Input: grid = [[40,10],[30,20]], k = 1
+Output: [[10,20],[40,30]]
+Explanation: The figures above represent the grid at every state.
+Example 2:
+
+
+Input: grid = [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]], k = 2
+Output: [[3,4,8,12],[2,11,10,16],[1,7,6,15],[5,9,13,14]]
+Explanation: The figures above represent the grid at every state.
+ 
+
+Constraints:
+
+m == grid.length
+n == grid[i].length
+2 <= m, n <= 50
+Both m and n are even integers.
+1 <= grid[i][j] <= 5000
+1 <= k <= 109
+
+
+# java
+
+class Solution {
+  public int[][] rotateGrid(int[][] grid, int k) {
+    final int m = grid.length;
+    final int n = grid[0].length;
+    int t = 0;     // the top
+    int l = 0;     // the left
+    int b = m - 1; // the bottom
+    int r = n - 1; // the right
+
+    while (t < b && l < r) {
+      final int elementInThisLayer = 2 * (b - t + 1) + 2 * (r - l + 1) - 4;
+      final int netRotations = k % elementInThisLayer;
+      for (int rotate = 0; rotate < netRotations; ++rotate) {
+        final int topLeft = grid[t][l];
+        for (int j = l; j < r; ++j)
+          grid[t][j] = grid[t][j + 1];
+        for (int i = t; i < b; ++i)
+          grid[i][r] = grid[i + 1][r];
+        for (int j = r; j > l; --j)
+          grid[b][j] = grid[b][j - 1];
+        for (int i = b; i > t; --i)
+          grid[i][l] = grid[i - 1][l];
+        grid[t + 1][l] = topLeft;
+      }
+      ++t;
+      ++l;
+      --b;
+      --r;
+    }
+
+    return grid;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    private int m;
+    private int n;
+    private int[][] grid;
+
+    public int[][] rotateGrid(int[][] grid, int k) {
+        m = grid.length;
+        n = grid[0].length;
+        this.grid = grid;
+        for (int p = 0; p < Math.min(m, n) / 2; ++p) {
+            rotate(p, k);
+        }
+        return grid;
+    }
+
+    private void rotate(int p, int k) {
+        List<Integer> nums = new ArrayList<>();
+        for (int j = p; j < n - p - 1; ++j) {
+            nums.add(grid[p][j]);
+        }
+        for (int i = p; i < m - p - 1; ++i) {
+            nums.add(grid[i][n - p - 1]);
+        }
+        for (int j = n - p - 1; j > p; --j) {
+            nums.add(grid[m - p - 1][j]);
+        }
+        for (int i = m - p - 1; i > p; --i) {
+            nums.add(grid[i][p]);
+        }
+        int l = nums.size();
+        k %= l;
+        if (k == 0) {
+            return;
+        }
+        for (int j = p; j < n - p - 1; ++j) {
+            grid[p][j] = nums.get(k++ % l);
+        }
+        for (int i = p; i < m - p - 1; ++i) {
+            grid[i][n - p - 1] = nums.get(k++ % l);
+        }
+        for (int j = n - p - 1; j > p; --j) {
+            grid[m - p - 1][j] = nums.get(k++ % l);
+        }
+        for (int i = m - p - 1; i > p; --i) {
+            grid[i][p] = nums.get(k++ % l);
+        }
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+       public int[][] rotateGrid(int[][] grid, int k) {
+        int m = grid.length;
+        int n = grid[0].length;
+        
+        for (int i = 0; i < Math.min(m/2, n/2); i++) {
+            int div = (m - i*2)*2 + (n - i*2 -2)*2;
+            rotate(grid, i, i, k%div);
+        }
+        return grid;
+    }
+    
+    public void rotate(int[][] matrix, int row, int col, int k) {
+        Queue<Integer> list = new LinkedList<>();
+        int m = matrix.length;
+        int n = matrix[0].length;
+        for (int i = col; i <= n-col-1; i++) list.add(matrix[row][i]);
+        for (int i = row+1; i <= m-row-1-1; i++) list.add(matrix[i][n-col-1]);
+        for (int i = n-col-1; i >= col; i--) list.add(matrix[m-row-1][i]);
+        for (int i = m-row-1-1; i >= row+1; i--) list.add(matrix[i][col]);
+        
+        // cyclic rotate k times.
+        while (k > 0) {
+            int tmp = list.poll();
+            list.add(tmp);
+            k--;
+        }
+        
+        for (int i = col; i <= n-col-1; i++) matrix[row][i] = list.poll();
+        for (int i = row+1; i <= m-row-1-1; i++) matrix[i][n-col-1] = list.poll();
+        for (int i = n-col-1; i >= col; i--) matrix[m-row-1][i] = list.poll();
+        for (int i = m-row-1-1; i >= row+1; i--) matrix[i][col] = list.poll();
+        
+    }
+}
+
+
+
+or
+
+
+
