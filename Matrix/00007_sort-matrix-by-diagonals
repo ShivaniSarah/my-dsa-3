@@ -1,0 +1,264 @@
+https://leetcode.com/problems/sort-matrix-by-diagonals/description/
+
+3446. Sort Matrix by Diagonals
+Medium
+Topics
+Companies
+Hint
+You are given an n x n square matrix of integers grid. Return the matrix such that:
+
+The diagonals in the bottom-left triangle (including the middle diagonal) are sorted in non-increasing order.
+The diagonals in the top-right triangle are sorted in non-decreasing order.
+ 
+
+Example 1:
+
+Input: grid = [[1,7,3],[9,8,2],[4,5,6]]
+
+Output: [[8,2,3],[9,6,7],[4,5,1]]
+
+Explanation:
+
+
+
+The diagonals with a black arrow (bottom-left triangle) should be sorted in non-increasing order:
+
+[1, 8, 6] becomes [8, 6, 1].
+[9, 5] and [4] remain unchanged.
+The diagonals with a blue arrow (top-right triangle) should be sorted in non-decreasing order:
+
+[7, 2] becomes [2, 7].
+[3] remains unchanged.
+Example 2:
+
+Input: grid = [[0,1],[1,2]]
+
+Output: [[2,1],[1,0]]
+
+Explanation:
+
+
+
+The diagonals with a black arrow must be non-increasing, so [0, 2] is changed to [2, 0]. The other diagonals are already in the correct order.
+
+Example 3:
+
+Input: grid = [[1]]
+
+Output: [[1]]
+
+Explanation:
+
+Diagonals with exactly one element are already in order, so no changes are needed.
+
+ 
+
+Constraints:
+
+grid.length == grid[i].length == n
+1 <= n <= 10
+-105 <= grid[i][j] <= 105
+
+
+
+# java
+
+
+class Solution {
+  public int[][] sortMatrix(int[][] grid) {
+    final int n = grid.length;
+    int[][] ans = new int[n][n];
+    Map<Integer, List<Integer>> diag = new HashMap<>();
+
+    for (int i = 0; i < n; ++i)
+      for (int j = 0; j < n; ++j) {
+        final int key = i - j;
+        diag.putIfAbsent(key, new ArrayList<>());
+        diag.get(key).add(grid[i][j]);
+      }
+
+    for (Map.Entry<Integer, List<Integer>> entry : diag.entrySet()) {
+      List<Integer> values = entry.getValue();
+      if (entry.getKey() < 0)
+        Collections.sort(values, Collections.reverseOrder());
+      else
+        Collections.sort(values);
+    }
+
+    for (int i = 0; i < n; i++)
+      for (int j = 0; j < n; j++) {
+        final int key = i - j;
+        ans[i][j] = diag.get(key).remove(diag.get(key).size() - 1);
+      }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public int[][] sortMatrix(int[][] grid) {
+        int n = grid.length;
+        for (int k = n - 2; k >= 0; --k) {
+            int i = k, j = 0;
+            List<Integer> t = new ArrayList<>();
+            while (i < n && j < n) {
+                t.add(grid[i++][j++]);
+            }
+            Collections.sort(t);
+            for (int x : t) {
+                grid[--i][--j] = x;
+            }
+        }
+        for (int k = n - 2; k > 0; --k) {
+            int i = k, j = n - 1;
+            List<Integer> t = new ArrayList<>();
+            while (i >= 0 && j >= 0) {
+                t.add(grid[i--][j--]);
+            }
+            Collections.sort(t);
+            for (int x : t) {
+                grid[++i][++j] = x;
+            }
+        }
+        return grid;
+    }
+}
+
+
+or
+
+
+import java.util.*;
+
+class Solution {
+    public int[][] sortMatrix(int[][] matrix) {
+        // Map to store diagonals, where key is the difference of row and column index
+        Map<Integer, List<Integer>> diagonalMap = new HashMap<>();
+        int rows = matrix.length, cols = matrix[0].length;
+
+        // Traverse the matrix and group elements by their diagonal (row - col)
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                int key = i - j;
+                diagonalMap.putIfAbsent(key, new ArrayList<>());
+                diagonalMap.get(key).add(matrix[i][j]);
+            }
+        }
+
+        // Sort each diagonal: negative keys (upper diagonals) in ascending order,
+        // positive keys (lower diagonals) in descending order
+        for (Map.Entry<Integer, List<Integer>> entry : diagonalMap.entrySet()) {
+            List<Integer> values = entry.getValue();
+            if (entry.getKey() < 0) {
+                Collections.sort(values);
+            } else {
+                values.sort(Collections.reverseOrder());
+            }
+        }
+
+        // Populate the sorted values back into the matrix
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                int key = i - j;
+                matrix[i][j] = diagonalMap.get(key).remove(0);
+            }
+        }
+
+        return matrix;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int[][] sortMatrix(int[][] grid) {
+        int n = grid.length;
+        for (int i = 0; i < n; i++) {
+            List<Integer> diagnol = new ArrayList<>();
+            int r = i, c = 0;
+            while (r < n && c < n) {
+                diagnol.add(grid[r][c]);
+                r++;
+                c++;
+            }
+            Collections.sort(diagnol, Collections.reverseOrder());
+            
+            r = i;
+            c = 0;
+            int ind = 0;
+            while (r < n && c < n) {
+                grid[r][c] = diagnol.get(ind++);
+                r++;
+                c++;
+            }
+        }
+        for (int j = 1; j < n; j++) {
+            List<Integer> diagnol = new ArrayList<>();
+            int r = 0, c = j;
+            while (r < n && c < n) {
+                diagnol.add(grid[r][c]);
+                r++;
+                c++;
+            }
+            Collections.sort(diagnol);
+            
+            r = 0;
+            c = j;
+            int ind = 0;
+            while (r < n && c < n) {
+                grid[r][c] = diagnol.get(ind++);
+                r++;
+                c++;
+            }
+        }
+        return grid;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int[][] sortMatrix(int[][] grid) {
+        int n = grid.length;
+        
+        for(int i=0; i<n; i++)
+        {
+            PriorityQueue<Integer> maxHeap = new PriorityQueue<>((a,b) -> b-a);
+            for(int j=i, k=0; k<n-i; j++, k++)
+            {
+               maxHeap.add(grid[j][k]);
+            }
+            for(int j=i, k=0; k<n-i; j++, k++)
+            {
+               grid[j][k] = maxHeap.poll();
+            }
+        }
+
+        for(int i=0; i<n; i++)
+        {
+            PriorityQueue<Integer> minHeap = new PriorityQueue<>((a,b) -> a-b);
+            for(int j=0, k=n-i; k<n; j++, k++)
+            {
+               minHeap.add(grid[j][k]);
+            }
+            for(int j=0, k=n-i; k<n; j++, k++)
+            {
+               grid[j][k] = minHeap.poll();
+            }
+        }
+        return grid;
+    }
+}
+
+
+
