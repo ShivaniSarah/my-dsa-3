@@ -1,0 +1,192 @@
+https://leetcode.com/problems/check-if-word-can-be-placed-in-crossword/description/
+
+2018. Check if Word Can Be Placed In Crossword
+Medium
+Topics
+Companies
+Hint
+You are given an m x n matrix board, representing the current state of a crossword puzzle. The crossword contains lowercase English letters (from solved words), ' ' to represent any empty cells, and '#' to represent any blocked cells.
+
+A word can be placed horizontally (left to right or right to left) or vertically (top to bottom or bottom to top) in the board if:
+
+It does not occupy a cell containing the character '#'.
+The cell each letter is placed in must either be ' ' (empty) or match the letter already on the board.
+There must not be any empty cells ' ' or other lowercase letters directly left or right of the word if the word was placed horizontally.
+There must not be any empty cells ' ' or other lowercase letters directly above or below the word if the word was placed vertically.
+Given a string word, return true if word can be placed in board, or false otherwise.
+
+ 
+
+Example 1:
+
+
+Input: board = [["#", " ", "#"], [" ", " ", "#"], ["#", "c", " "]], word = "abc"
+Output: true
+Explanation: The word "abc" can be placed as shown above (top to bottom).
+Example 2:
+
+
+Input: board = [[" ", "#", "a"], [" ", "#", "c"], [" ", "#", "a"]], word = "ac"
+Output: false
+Explanation: It is impossible to place the word because there will always be a space/letter above or below it.
+Example 3:
+
+
+Input: board = [["#", " ", "#"], [" ", " ", "#"], ["#", " ", "c"]], word = "ca"
+Output: true
+Explanation: The word "ca" can be placed as shown above (right to left). 
+ 
+
+Constraints:
+
+m == board.length
+n == board[i].length
+1 <= m * n <= 2 * 105
+board[i][j] will be ' ', '#', or a lowercase English letter.
+1 <= word.length <= max(m, n)
+word will contain only lowercase English letters.
+
+
+# jvaa
+
+
+class Solution {
+  public boolean placeWordInCrossword(char[][] board, String word) {
+    for (char[][] state : new char[][][] {board, getRotated(board)})
+      for (char[] chars : state)
+        for (final String token : String.valueOf(chars).split("#"))
+          for (final String letters :
+               new String[] {word, new StringBuilder(word).reverse().toString()})
+            if (letters.length() == token.length())
+              if (canFit(letters, token))
+                return true;
+    return false;
+  }
+
+  private char[][] getRotated(char[][] board) {
+    final int m = board.length;
+    final int n = board[0].length;
+    char[][] rotated = new char[n][m];
+    for (int i = 0; i < m; ++i)
+      for (int j = 0; j < n; ++j)
+        rotated[j][i] = board[i][j];
+    return rotated;
+  }
+
+  private boolean canFit(final String letters, final String token) {
+    for (int i = 0; i < letters.length(); ++i)
+      if (token.charAt(i) != ' ' && token.charAt(i) != letters.charAt(i))
+        return false;
+    return true;
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    private int m;
+    private int n;
+    private char[][] board;
+    private String word;
+    private int k;
+
+    public boolean placeWordInCrossword(char[][] board, String word) {
+        m = board.length;
+        n = board[0].length;
+        this.board = board;
+        this.word = word;
+        k = word.length();
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                boolean leftToRight = (j == 0 || board[i][j - 1] == '#') && check(i, j, 0, 1);
+                boolean rightToLeft = (j == n - 1 || board[i][j + 1] == '#') && check(i, j, 0, -1);
+                boolean upToDown = (i == 0 || board[i - 1][j] == '#') && check(i, j, 1, 0);
+                boolean downToUp = (i == m - 1 || board[i + 1][j] == '#') && check(i, j, -1, 0);
+                if (leftToRight || rightToLeft || upToDown || downToUp) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean check(int i, int j, int a, int b) {
+        int x = i + a * k, y = j + b * k;
+        if (x >= 0 && x < m && y >= 0 && y < n && board[x][y] != '#') {
+            return false;
+        }
+        for (int p = 0; p < k; ++p) {
+            if (i < 0 || i >= m || j < 0 || j >= n
+                || (board[i][j] != ' ' && board[i][j] != word.charAt(p))) {
+                return false;
+            }
+            i += a;
+            j += b;
+        }
+        return true;
+    }
+}
+
+
+or
+
+
+class Solution {
+        public static boolean placeWordInCrossword(char[][] board, String word) {
+        int rows = board.length, cols = rows > 0 ? board[0].length : 0;
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                if (isPossible(board, word, row, col, rows, cols)) {
+//                    System.out.println("row = " + row + " col = " + col);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    static boolean isPossible(char[][] grid, String word, int row, int col, int rows, int cols) {
+//        The start character should not '#'
+        if (grid[row][col] == '#') return false;
+//        Check if word can be placed in left direction. For that you have to check if the right element of starting point should be either out of index, or should be '#'
+        if (isValid(grid, row, col + 1, rows, cols) && isPossible(grid, word, row, col, rows, cols, 0, -1)) return true;
+//        Check if word can be placed in right direction. For that you have to check if the right element of starting point should be either out of index, or should be '#'
+        if (isValid(grid, row, col - 1, rows, cols) && isPossible(grid, word, row, col, rows, cols, 0, 1)) return true;
+//        Check if word can be placed in top direction. For that you have to check if the bottom element of starting point should be either out of index, or should be '#'
+        if (isValid(grid, row + 1, col, rows, cols) && isPossible(grid, word, row, col, rows, cols, -1, 0)) return true;
+//        Check if word can be placed in bottom direction. For that you have to check if the top element of starting point should be either out of index, or should be '#'
+        return isValid(grid, row - 1, col, rows, cols) && isPossible(grid, word, row, col, rows, cols, 1, 0);
+    }
+
+    static boolean isPossible(char[][] board, String word, int row, int col, int rows, int cols, int d1, int d2) {
+        int i = 0, len = word.length();
+        while (i < len && inRange(row, col, rows, cols) && (board[row][col] == ' ' || board[row][col] == word.charAt(i))) {
+            row += d1;
+            col += d2;
+            i++;
+        }
+//        If all characters are not travelled in the word
+        if (i < len) return false;
+//        The ending char should be valid, either out of index or '#'
+        return isValid(board, row, col, rows, cols);
+    }
+
+    static boolean inRange(int row, int col, int rows, int cols) {
+        return row >= 0 && row < rows && col >= 0 && col < cols;
+    }
+
+    static boolean isValid(char[][] board, int row, int col, int rows, int cols) {
+//        Is to check the left and right element is valid, when placing horizontally. And vise-versa
+        if (inRange(row, col, rows, cols)) return board[row][col] == '#';
+        return true;
+    }
+}
+
+
+
+or
+
+
