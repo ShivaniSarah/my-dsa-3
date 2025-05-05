@@ -1,0 +1,312 @@
+https://leetcode.com/problems/maximize-number-of-subsequences-in-a-string/description/
+
+2207. Maximize Number of Subsequences in a String
+Medium
+Topics
+Companies
+Hint
+You are given a 0-indexed string text and another 0-indexed string pattern of length 2, both of which consist of only lowercase English letters.
+
+You can add either pattern[0] or pattern[1] anywhere in text exactly once. Note that the character can be added even at the beginning or at the end of text.
+
+Return the maximum number of times pattern can occur as a subsequence of the modified text.
+
+A subsequence is a string that can be derived from another string by deleting some or no characters without changing the order of the remaining characters.
+
+ 
+
+Example 1:
+
+Input: text = "abdcdbc", pattern = "ac"
+Output: 4
+Explanation:
+If we add pattern[0] = 'a' in between text[1] and text[2], we get "abadcdbc". Now, the number of times "ac" occurs as a subsequence is 4.
+Some other strings which have 4 subsequences "ac" after adding a character to text are "aabdcdbc" and "abdacdbc".
+However, strings such as "abdcadbc", "abdccdbc", and "abdcdbcc", although obtainable, have only 3 subsequences "ac" and are thus suboptimal.
+It can be shown that it is not possible to get more than 4 subsequences "ac" by adding only one character.
+Example 2:
+
+Input: text = "aabb", pattern = "ab"
+Output: 6
+Explanation:
+Some of the strings which can be obtained from text and have 6 subsequences "ab" are "aaabb", "aaabb", and "aabbb".
+ 
+
+Constraints:
+
+1 <= text.length <= 105
+pattern.length == 2
+text and pattern consist only of lowercase English letters.
+
+
+
+# java
+
+
+
+class Solution {
+  public long maximumSubsequenceCount(String text, String pattern) {
+    long ans = 0;
+    int count0 = 0; // the count of the letter pattern[0]
+    int count1 = 0; // the count of the letter pattern[1]
+
+    for (final char c : text.toCharArray()) {
+      if (c == pattern.charAt(1)) {
+        ans += count0;
+        ++count1;
+      }
+      if (c == pattern.charAt(0))
+        ++count0;
+    }
+
+    // It is optimal to add pattern[0] at the beginning or add pattern[1] at the
+    // end of the text.
+    return ans + Math.max(count0, count1);
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    public long maximumSubsequenceCount(String text, String pattern) {
+        int[] cnt = new int[26];
+        char a = pattern.charAt(0);
+        char b = pattern.charAt(1);
+        long ans = 0;
+        for (char c : text.toCharArray()) {
+            if (c == b) {
+                ans += cnt[a - 'a'];
+            }
+            cnt[c - 'a']++;
+        }
+        ans += Math.max(cnt[a - 'a'], cnt[b - 'a']);
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+       public long maximumSubsequenceCount(String s, String pattern) {
+        long res = 0, cnt1 = 0, cnt2 = 0;
+        for (int i = 0; i < s.length(); ++i) {   
+            if (s.charAt(i) == pattern.charAt(1)) {   
+                res += cnt1; 
+                cnt2++;
+            }
+            if (s.charAt(i) == pattern.charAt(0)) {   
+                cnt1++;
+            }
+        }
+        return res + Math.max(cnt1, cnt2);
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+
+    public long maximumSubsequenceCount(String s, String p) {
+        long ans = 0, max = 0;
+        int cnt = 1;
+        //Assume adding 0th character of pattern at starting
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == p.charAt(1)) ans += cnt;
+            if (s.charAt(i) == p.charAt(0)) cnt++;
+        }
+        max = Math.max(max, ans);
+        ans = 0; cnt = 1;
+        //Assume adding second character of pattern at end
+        for (int i = s.length() - 1; i >= 0; i--) {
+            if (s.charAt(i) == p.charAt(0)) ans += cnt;
+            if (s.charAt(i) == p.charAt(1)) cnt++;
+        }
+        max = Math.max(max, ans);
+        return max;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public long maximumSubsequenceCount(String s, String p) {
+        
+        // choice1: place p0 at the start
+        long choice1 = 0;
+        int countOfP0 = 1;
+        for (int i = 0; i < s.length(); i++)
+        {
+            // if p1 found, it can be paired with all the p0's found till now
+            if (s.charAt(i) == p.charAt(1)) choice1 += countOfP0;
+            if (s.charAt(i) == p.charAt(0)) countOfP0++;
+        }
+        
+        // choice2: place p1 at the end
+        long choice2 = 0;
+        int countOfP1 = 1;
+        for (int i = s.length() - 1; i >= 0; i--) 
+        {
+            // if p0 found, it can be paired with all the p1's found till now 
+            if (s.charAt(i) == p.charAt(0)) choice2 += countOfP1;
+            if (s.charAt(i) == p.charAt(1)) countOfP1++;
+        }
+        
+        return Math.max(choice1, choice2);
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public long maximumSubsequenceCount(String text, String pattern) {
+        long result = 0, first = 0, second = 0;
+
+        for(int i = 0; i < text.length(); ++i) {
+            if(text.charAt(i) == pattern.charAt(1)) {
+                result += first;
+                second++;
+            }
+            
+            if(text.charAt(i) == pattern.charAt(0))
+                first++;
+        }
+
+        return result + Math.max(first, second);
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public long maximumSubsequenceCount(String text, String pattern) {
+        //when pattern[0] == pattern[1]
+        if (pattern.charAt(0) == pattern.charAt(1)) {
+            long freq = 1;
+			//O(N)
+            for (int i = 0; i < text.length(); i++) {
+                if (text.charAt(i) == pattern.charAt(0)) {
+                    freq++;
+                }
+            }
+            //number of subsequences : choose any two characters from freq nC2
+            return (freq * (freq - 1)) / 2;
+        }
+        
+        //choice 1
+        String text1 = pattern.charAt(0) + text;
+        
+        int freq = 0;
+        long count1 = 0;
+		//O(N)
+        for (int i = 0; i < text1.length(); i++) {
+            if (text1.charAt(i) == pattern.charAt(0)) {
+                freq++;
+            } else if (text1.charAt(i) == pattern.charAt(1)) {
+                count1 += freq;
+            }
+        }
+        
+        //choice 2
+        String text2 = text + pattern.charAt(1);
+        freq = 0;
+        long count2 = 0;
+		//O(N)
+        for (int i = text2.length() - 1; i>= 0; i--) {
+            if (text2.charAt(i) == pattern.charAt(1)) {
+                freq++;
+            } else if (text2.charAt(i) == pattern.charAt(0)) {
+                count2 += freq;
+            }
+        }
+        
+        return Math.max(count1, count2); 
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public long maximumSubsequenceCount(String text, String pattern) {
+        
+        long count1 = 0 ,count2 =0;
+         char fc = pattern.charAt(0);
+        char sc = pattern.charAt(1);
+        
+        Stack<Character> st = new Stack<>();
+        
+        int n = text.length();
+        
+        String s1 = pattern.charAt(0)+text;
+        String s2 = text+sc;
+        
+       
+        
+        for(int i=0;i<n+1;i++){
+            
+            char c = s1.charAt(i);
+            
+            if(c==fc)
+                st.push(c);
+            else if(c==sc)
+                count1+=st.size();
+        }
+        
+        st.clear();
+        for(int i=0;i<n+1;i++){
+            
+            char c = s2.charAt(i);
+            
+            if(c==fc)
+                st.push(c);
+            
+            else if(c==sc)
+                count2+=st.size();
+        }
+        
+        long ans = Math.max(count1,count2);
+        long count0 = 0;
+        for(int i=0; i<text.length(); i++){
+            if(text.charAt(i)==pattern.charAt(0)){
+                count0+=1;
+            }
+            
+        }
+        if(pattern.charAt(0)==pattern.charAt(1)){
+            long a=count0;
+            return a*(a+1)/2;
+        }
+        return ans;
+    }
+}
+
+
+
+
+or
+
+
+
