@@ -1,0 +1,313 @@
+https://leetcode.com/problems/minimum-operations-to-write-the-letter-y-on-a-grid/description/
+
+3071. Minimum Operations to Write the Letter Y on a Grid
+Medium
+Topics
+Companies
+You are given a 0-indexed n x n grid where n is odd, and grid[r][c] is 0, 1, or 2.
+
+We say that a cell belongs to the Letter Y if it belongs to one of the following:
+
+The diagonal starting at the top-left cell and ending at the center cell of the grid.
+The diagonal starting at the top-right cell and ending at the center cell of the grid.
+The vertical line starting at the center cell and ending at the bottom border of the grid.
+The Letter Y is written on the grid if and only if:
+
+All values at cells belonging to the Y are equal.
+All values at cells not belonging to the Y are equal.
+The values at cells belonging to the Y are different from the values at cells not belonging to the Y.
+Return the minimum number of operations needed to write the letter Y on the grid given that in one operation you can change the value at any cell to 0, 1, or 2.
+
+ 
+
+Example 1:
+
+
+Input: grid = [[1,2,2],[1,1,0],[0,1,0]]
+Output: 3
+Explanation: We can write Y on the grid by applying the changes highlighted in blue in the image above. After the operations, all cells that belong to Y, denoted in bold, have the same value of 1 while those that do not belong to Y are equal to 0.
+It can be shown that 3 is the minimum number of operations needed to write Y on the grid.
+Example 2:
+
+
+Input: grid = [[0,1,0,1,0],[2,1,0,1,2],[2,2,2,0,1],[2,2,2,2,2],[2,1,2,2,2]]
+Output: 12
+Explanation: We can write Y on the grid by applying the changes highlighted in blue in the image above. After the operations, all cells that belong to Y, denoted in bold, have the same value of 0 while those that do not belong to Y are equal to 2. 
+It can be shown that 12 is the minimum number of operations needed to write Y on the grid.
+ 
+
+Constraints:
+
+3 <= n <= 49 
+n == grid.length == grid[i].length
+0 <= grid[i][j] <= 2
+n is odd.
+
+
+
+# java
+
+
+class Solution {
+  public int minimumOperationsToWriteY(int[][] grid) {
+    return Math.min(Math.min(Math.min(getOperations(grid, 0, 1), getOperations(grid, 0, 2)),
+                             Math.min(getOperations(grid, 1, 0), getOperations(grid, 1, 2))),
+                    Math.min(getOperations(grid, 2, 0), getOperations(grid, 2, 1)));
+  }
+
+  // Returns the number of operations to turn Y into a and non-Y into b.
+  private int getOperations(int[][] grid, int a, int b) {
+    final int n = grid.length;
+    final int mid = n / 2;
+    int operations = 0;
+    for (int i = 0; i < n; i++)
+      for (int j = 0; j < n; j++)
+        // For the 'Y' pattern, before the midpoint, check the diagonal and
+        // anti-diagonal. After the midpoint, check the middle column.
+        if ((i < mid && (i == j || i + j == n - 1)) || (i >= mid && j == mid)) {
+          if (grid[i][j] != a)
+            ++operations;
+        } else if (grid[i][j] != b) {
+          ++operations;
+        }
+    return operations;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public int minimumOperationsToWriteY(int[][] grid) {
+        int n = grid.length;
+        int[] cnt1 = new int[3];
+        int[] cnt2 = new int[3];
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+                boolean a = i == j && i <= n / 2;
+                boolean b = i + j == n - 1 && i <= n / 2;
+                boolean c = j == n / 2 && i >= n / 2;
+                if (a || b || c) {
+                    ++cnt1[grid[i][j]];
+                } else {
+                    ++cnt2[grid[i][j]];
+                }
+            }
+        }
+        int ans = n * n;
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
+                if (i != j) {
+                    ans = Math.min(ans, n * n - cnt1[i] - cnt2[j]);
+                }
+            }
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    int getOperationCount(int[][] grid, int y, int notY){
+    int ans = 0, n = grid.length;
+    for(int i = 0; i < n; ++i){
+        for(int j = 0; j < n; ++j){
+            if((i <= n/2 && (i == j || i + j == n - 1)) || (i > n/2 && j == n/2)){
+                if(y != grid[i][j]) ans++;
+            }else{
+                if(notY != grid[i][j]) ans++;
+            }
+        }
+    }
+    return ans;
+}
+    
+public int minimumOperationsToWriteY(int[][] grid) {
+    int ans = Integer.MAX_VALUE;
+    for(int i = 0; i < 3; ++i){
+        for(int j = 0; j < 3; ++j){
+            if(i != j) ans = Math.min(ans, getOperationCount(grid, i,j));
+        }
+    }
+    return ans;
+}
+}
+
+
+or
+
+
+class Solution {
+    public int minimumOperationsToWriteY(int[][] grid) {
+        int n = grid.length;
+        int center = n/2;
+
+        int[] yFreq = new int[3]; // Store frequency of 0, 1, and 2
+        int[] nonYFreq = new int[3];
+        int totalY = 0; // Total elements on Y.
+        int totalNonY = 0;
+
+        for(int i=0; i<n; i++) {
+            for(int j=0; j<n; j++) {
+                if(isOnY(n,center,i,j)) {
+                    yFreq[grid[i][j]]++;
+                    totalY++;
+                } else {
+                    nonYFreq[grid[i][j]]++;
+                    totalNonY++;
+                }
+            }
+        }
+
+        // Now that we have freq of all, we can just try differetn combination of y and non-y between 0,1,2.
+        int minOp = Integer.MAX_VALUE;
+        for(int y = 0; y < 3; y++) {
+            for(int nonY = 0; nonY < 3; nonY++) {
+                if(y == nonY)
+                    continue;
+                int yModifyCost = totalY - yFreq[y]; //Cost of changing all items on Y to y
+                int nonYModifyCost = totalNonY - nonYFreq[nonY]; //Cost of changing all items on NonY to nonY
+                minOp = Math.min(minOp, yModifyCost + nonYModifyCost);
+            }
+        }
+        return minOp;
+    }
+
+    public boolean isOnY(int n, int center, int r, int c) {
+        return (r==c && r<=center ) || ( (r+c+1) == n && r<=center) || (r > center && c == center);
+    }
+}
+
+
+or
+
+
+
+
+import java.util.Arrays;
+
+class Solution {
+    void fill(int[][] vis, int[][] v) {
+        int n = v.length;
+        int i = 0, j = 0;
+        while (i <= n / 2) {
+            vis[i][j] = 1;
+            i++;
+            j++;
+        }
+        i = 0;
+        j = n - 1;
+        while (i < n / 2) {
+            vis[i][j] = 1;
+            i++;
+            j--;
+        }
+        i = n / 2 + 1;
+        j = n / 2;
+        while (i < n) {
+            vis[i][j] = 1;
+            i++;
+        }
+    }
+
+    public int minimumOperationsToWriteY(int[][] v) {
+        int n = v.length;
+        int[][] vis = new int[n][n];
+        fill(vis, v);
+        int[] v1 = new int[3];
+        int[] v2 = new int[3];
+
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (vis[i][j] == 1) {
+                    if (v[i][j] == 0)
+                        v1[0]++;
+                    else if (v[i][j] == 1)
+                        v1[1]++;
+                    else
+                        v1[2]++;
+                }
+            }
+        }
+
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (vis[i][j] == 0) {
+                    if (v[i][j] == 0)
+                        v2[0]++;
+                    else if (v[i][j] == 1)
+                        v2[1]++;
+                    else
+                        v2[2]++;
+                }
+            }
+        }
+
+        int ans = Integer.MAX_VALUE;
+        for (int i = 0; i <= 2; i++) {
+            int costY = v1[0] + v1[1] + v1[2] - v1[i];
+            int costRem = Integer.MAX_VALUE;
+            for (int j = 0; j <= 2; j++) {
+                if (i == j)
+                    continue;
+                int t = v2[0] + v2[1] + v2[2] - v2[j];
+                costRem = Math.min(costRem, t);
+            }
+            ans = Math.min(ans, costY + costRem);
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minimumOperationsToWriteY(int[][] grid) {
+       int y[] = new int[3];
+       int mat[] = new int[3];
+        int m = grid.length;
+    
+        for(int i=0 ; i<m ; i++){
+            for(int j =0 ; j<m ; j++){
+                int num =0;
+                if(grid[i][j]==1) num=1; 
+                if(grid[i][j]==2) num=2;
+                if(isY(i , j , m)) y[num]++;
+                else mat[num]++;
+            }
+        }
+
+            int xsum=mat[0]+mat[1]+mat[2]; 
+            int ysum=y[0]+y[1]+y[2];
+
+          int ans = Integer.MAX_VALUE;
+
+
+           for(int i=0 ; i< 3 ; i++){
+               int out=0 ;
+               out +=xsum-mat[i];
+               int in =ysum;
+               in -=y[(i+1)%3];
+               if(ans>out+ in) ans=out+in;
+               in = ysum;
+               in -=y[(i+2)%3];
+               if(ans>out+ in) ans=out+in;
+           }
+        
+       return ans;
+// BATANE KA TARIKA TODA KEZUAL HAI 
+// PLEASE UPVOTE IF YOU LIKE IT
+    }
+    boolean isY(int i , int j  , int m  ){
+        return (i<=m/2 && i==j) || (i<m/2 && j==m-i-1) || (i>=m/2 && j==m/2) ;
+    }
+}
+
+
