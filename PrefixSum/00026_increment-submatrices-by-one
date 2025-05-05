@@ -1,0 +1,292 @@
+https://leetcode.com/problems/increment-submatrices-by-one/description/
+
+2536. Increment Submatrices by One
+Medium
+Topics
+Companies
+Hint
+You are given a positive integer n, indicating that we initially have an n x n 0-indexed integer matrix mat filled with zeroes.
+
+You are also given a 2D integer array query. For each query[i] = [row1i, col1i, row2i, col2i], you should do the following operation:
+
+Add 1 to every element in the submatrix with the top left corner (row1i, col1i) and the bottom right corner (row2i, col2i). That is, add 1 to mat[x][y] for all row1i <= x <= row2i and col1i <= y <= col2i.
+Return the matrix mat after performing every query.
+
+ 
+
+Example 1:
+
+
+Input: n = 3, queries = [[1,1,2,2],[0,0,1,1]]
+Output: [[1,1,0],[1,2,1],[0,1,1]]
+Explanation: The diagram above shows the initial matrix, the matrix after the first query, and the matrix after the second query.
+- In the first query, we add 1 to every element in the submatrix with the top left corner (1, 1) and bottom right corner (2, 2).
+- In the second query, we add 1 to every element in the submatrix with the top left corner (0, 0) and bottom right corner (1, 1).
+Example 2:
+
+
+Input: n = 2, queries = [[0,0,1,1]]
+Output: [[1,1],[1,1]]
+Explanation: The diagram above shows the initial matrix and the matrix after the first query.
+- In the first query we add 1 to every element in the matrix.
+ 
+
+Constraints:
+
+1 <= n <= 500
+1 <= queries.length <= 104
+0 <= row1i <= row2i < n
+0 <= col1i <= col2i < n
+
+
+
+# java
+
+
+class Solution {
+    public int[][] rangeAddQueries(int n, int[][] queries) {
+        int[][] mat = new int[n][n];
+        for (var q : queries) {
+            int x1 = q[0], y1 = q[1], x2 = q[2], y2 = q[3];
+            mat[x1][y1]++;
+            if (x2 + 1 < n) {
+                mat[x2 + 1][y1]--;
+            }
+            if (y2 + 1 < n) {
+                mat[x1][y2 + 1]--;
+            }
+            if (x2 + 1 < n && y2 + 1 < n) {
+                mat[x2 + 1][y2 + 1]++;
+            }
+        }
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (i > 0) {
+                    mat[i][j] += mat[i - 1][j];
+                }
+                if (j > 0) {
+                    mat[i][j] += mat[i][j - 1];
+                }
+                if (i > 0 && j > 0) {
+                    mat[i][j] -= mat[i - 1][j - 1];
+                }
+            }
+        }
+        return mat;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int[][] rangeAddQueries(int n, int[][] queries) {
+        int[][] res = new int[n][n];
+        for (var q : queries) {
+            int r0 = q[0], c0 = q[1], r1 = q[2]+1, c1 = q[3]+1;
+            for (int i = r0; i < r1; i++) {
+                res[i][c0]++;
+                if (c1 < n) res[i][c1]--;
+            }
+        }
+
+        for (var row : res)
+            for (int j = 1; j < n; j++)
+                row[j] += row[j-1];
+
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int[][] rangeAddQueries(int n, int[][] Q) {
+        int[][] res = new int[n][n];
+        for (var q : Q) {
+            int r0 = q[0], c0 = q[1], r1 = q[2]+1, c1 = q[3]+1;
+            res[r0][c0]++;
+            if (c1 < n) res[r0][c1]--;
+            if (r1 < n) {
+                res[r1][c0]--;
+                if (c1 < n) res[r1][c1]++;
+            }
+        }
+
+        for (int i = 0; i < n; i++) for (int j = 1; j < n; j++)
+            res[i][j] += res[i][j-1];
+
+        for (int i = 1; i < n; i++) for (int j = 0; j < n; j++)
+            res[i][j] += res[i-1][j];
+
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution {
+    record Row (int d, int c0, int c1) {}
+    public int[][] rangeAddQueries(int n, int[][] Q) {
+        List<Row>[] rows = new List[n];
+        for (int i = 0; i < n; i++) rows[i] = new ArrayList<>();
+
+        for (var q : Q) {
+            int r0 = q[0], c0 = q[1], r1 = q[2]+1, c1 = q[3]+1;
+            rows[r0].add(new Row(1, c0, c1));
+            if (r1 < n) rows[r1].add(new Row(-1, c0, c1));
+        }
+
+        int[][] res = new int[n][n];
+        int[] diff = new int[n];
+        for (int i = 0; i < n; i++) {
+            for (var r : rows[i]) {
+                diff[r.c0] += r.d;
+                if (r.c1 < n) diff[r.c1] -= r.d;
+            }
+
+            res[i][0] = diff[0];
+            for (int j = 1; j < n; j++) res[i][j] += res[i][j-1] + diff[j];
+        }
+
+        return res;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int[][] rangeAddQueries(int n, int[][] queries) {
+        int [][]mat = new int[n][n];
+        int[][] prefix = new int[n+1][n+1];
+        
+        for(int[] query : queries) {
+            int row1 = query[0], col1 = query[1], row2 = query[2], col2 = query[3];
+            prefix[row1][col1] += 1;
+            prefix[row2 + 1][col2 + 1] += 1;
+            prefix[row1][col2 + 1] -= 1;
+            prefix[row2 + 1][col1] -= 1;
+        }
+        
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < n; j++) {
+                prefix[i][j+1] += prefix[i][j];
+            }
+        }
+        
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < n; j++) {
+                prefix[i+1][j] += prefix[i][j];
+                mat[i][j] = prefix[i][j];
+            }
+        }
+        return mat;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int[][] rangeAddQueries(int n, int[][] queries) {
+        int[][] a = new int[n][n];
+        for (int[] q : queries) {
+            int r1 = q[0], r2 = q[2];
+            int c1 = q[1], c2 = q[3];
+            for (int i = r1; i <= r2; i++) {
+                a[i][c1]++;
+            }
+            if (c2 + 1 < n) {
+                for (int i = r1; i <= r2; i++) {
+                    a[i][c2 + 1]--;
+                }
+            }
+        }
+        
+        for (int i = 0; i < n; i++) {
+            for (int j = 1; j < n; j++) {
+                a[i][j] += a[i][j - 1];
+            }
+        }
+        
+        return a;
+    }
+}
+
+// TC: O(m * n) + O(n ^ 2), SC: O(n ^ 2)
+
+
+
+or
+
+
+
+class Solution {
+    public int[][] rangeAddQueries(int n, int[][] queries) {   
+        
+        int[][] answer = new int[n][n];
+        
+        for (int[] A : queries) {
+		
+            int row1 = A[0], row2 = A[2];
+			int col1 = A[1], col2 = A[3];
+            
+            for (int row = row1; row <= row2; row++) {
+                for (int col = col1; col <= col2; col++) {
+                    answer[row][col] += 1;
+                }
+            }
+        }
+        return answer;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int[][] rangeAddQueries(int n, int[][] queries) {
+        int[][] arr = new int[n][n];
+        for(int k=0; k<queries.length; k++){
+            for(int i=queries[k][0]; i<=queries[k][2]; i++){
+                for(int j=queries[k][1]; j<=queries[k][3]; j++){
+                    arr[i][j] += 1;
+                }
+            }
+        }
+        return arr;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int[][] rangeAddQueries(int n, int[][] queries) {
+        int[][] arr = new int[n][n];
+        for(int k=0; k<queries.length; k++){
+            for(int i=queries[k][0]; i<=queries[k][2]; i++){
+                for(int j=queries[k][1]; j<=queries[k][3]; j++){
+                    arr[i][j] += 1;
+                }
+            }
+        }
+        return arr;
+    }
+}
