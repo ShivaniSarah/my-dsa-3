@@ -1,0 +1,151 @@
+https://leetcode.com/problems/remove-duplicate-letters/description/
+
+316. Remove Duplicate Letters
+Medium
+Topics
+Companies
+Hint
+Given a string s, remove duplicate letters so that every letter appears once and only once. You must make sure your result is the smallest in lexicographical order among all possible results.
+
+ 
+
+Example 1:
+
+Input: s = "bcabc"
+Output: "abc"
+Example 2:
+
+Input: s = "cbacdcbc"
+Output: "acdb"
+ 
+
+Constraints:
+
+1 <= s.length <= 104
+s consists of lowercase English letters.
+ 
+
+Note: This question is the same as 1081: https://leetcode.com/problems/smallest-subsequence-of-distinct-characters/
+
+
+
+# java
+
+
+
+class Solution {
+    public String removeDuplicateLetters(String s) {
+        int[] lastIndex = new int[26];
+        for (int i = 0; i < s.length(); i++){
+            lastIndex[s.charAt(i) - 'a'] = i; // track the lastIndex of character presence
+        }
+        
+        boolean[] seen = new boolean[26]; // keep track seen
+        Stack<Integer> st = new Stack();
+        
+        for (int i = 0; i < s.length(); i++) {
+            int curr = s.charAt(i) - 'a';
+            if (seen[curr]) continue; // if seen continue as we need to pick one char only
+            while (!st.isEmpty() && st.peek() > curr && i < lastIndex[st.peek()]){
+                seen[st.pop()] = false; // pop out and mark unseen
+            }
+            st.push(curr); // add into stack
+            seen[curr] = true; // mark seen
+        }
+
+        StringBuilder sb = new StringBuilder();
+        while (!st.isEmpty())
+            sb.append((char) (st.pop() + 'a'));
+        return sb.reverse().toString();
+    }
+}
+
+
+
+or
+
+
+public class Solution {
+    public String removeDuplicateLetters(String s) {
+        int[] cnt = new int[26];
+        int pos = 0; // the position for the smallest s[i]
+        for (int i = 0; i < s.length(); i++) cnt[s.charAt(i) - 'a']++;
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) < s.charAt(pos)) pos = i;
+            if (--cnt[s.charAt(i) - 'a'] == 0) break;
+        }
+        return s.length() == 0 ? "" : s.charAt(pos) + removeDuplicateLetters(s.substring(pos + 1).replaceAll("" + s.charAt(pos), ""));
+    }
+}
+
+
+or
+
+
+class Solution {
+    public String removeDuplicateLetters(String s) {
+        int n = s.length();
+        int[] last = new int[26];
+        for (int i = 0; i < n; ++i) {
+            last[s.charAt(i) - 'a'] = i;
+        }
+        Deque<Character> stk = new ArrayDeque<>();
+        int mask = 0;
+        for (int i = 0; i < n; ++i) {
+            char c = s.charAt(i);
+            if (((mask >> (c - 'a')) & 1) == 1) {
+                continue;
+            }
+            while (!stk.isEmpty() && stk.peek() > c && last[stk.peek() - 'a'] > i) {
+                mask ^= 1 << (stk.pop() - 'a');
+            }
+            stk.push(c);
+            mask |= 1 << (c - 'a');
+        }
+        StringBuilder ans = new StringBuilder();
+        for (char c : stk) {
+            ans.append(c);
+        }
+        return ans.reverse().toString();
+    }
+}
+
+
+
+or
+
+
+class Solution {
+  public String removeDuplicateLetters(String s) {
+    StringBuilder sb = new StringBuilder();
+    int[] count = new int[128];
+    boolean[] used = new boolean[128];
+
+    for (final char c : s.toCharArray())
+      ++count[c];
+
+    for (final char c : s.toCharArray()) {
+      --count[c];
+      if (used[c])
+        continue;
+      while (sb.length() > 0 && last(sb) > c && count[last(sb)] > 0) {
+        used[last(sb)] = false;
+        sb.setLength(sb.length() - 1);
+      }
+      used[c] = true;
+      sb.append(c);
+    }
+
+    return sb.toString();
+  }
+
+  private char last(StringBuilder sb) {
+    return sb.charAt(sb.length() - 1);
+  }
+}
+
+
+
+or
+
+
