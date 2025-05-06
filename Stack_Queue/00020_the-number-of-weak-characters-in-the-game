@@ -1,0 +1,174 @@
+https://leetcode.com/problems/the-number-of-weak-characters-in-the-game/description/
+
+
+1996. The Number of Weak Characters in the Game
+Medium
+Topics
+Companies
+Hint
+You are playing a game that contains multiple characters, and each of the characters has two main properties: attack and defense. You are given a 2D integer array properties where properties[i] = [attacki, defensei] represents the properties of the ith character in the game.
+
+A character is said to be weak if any other character has both attack and defense levels strictly greater than this character's attack and defense levels. More formally, a character i is said to be weak if there exists another character j where attackj > attacki and defensej > defensei.
+
+Return the number of weak characters.
+
+ 
+
+Example 1:
+
+Input: properties = [[5,5],[6,3],[3,6]]
+Output: 0
+Explanation: No character has strictly greater attack and defense than the other.
+Example 2:
+
+Input: properties = [[2,2],[3,3]]
+Output: 1
+Explanation: The first character is weak because the second character has a strictly greater attack and defense.
+Example 3:
+
+Input: properties = [[1,5],[10,4],[4,3]]
+Output: 1
+Explanation: The third character is weak because the second character has a strictly greater attack and defense.
+ 
+
+Constraints:
+
+2 <= properties.length <= 105
+properties[i].length == 2
+1 <= attacki, defensei <= 105
+
+
+
+
+# java
+
+class Solution {
+  public int numberOfWeakCharacters(int[][] properties) {
+    // Sort properties by `attack` in descending order, then by `defense` in
+    // ascending order.
+    Arrays.sort(properties, Comparator.comparingInt((int[] property) -> - property[0])
+                                .thenComparingInt((int[] property) -> property[1]));
+
+    int ans = 0;
+    int maxDefense = 0;
+
+    for (int[] property : properties) {
+      final int defense = property[1];
+      if (defense < maxDefense)
+        ++ans;
+      maxDefense = Math.max(maxDefense, defense);
+    }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+  public int numberOfWeakCharacters(int[][] properties) {
+    int ans = 0;
+    final int maxAttack = Arrays.stream(properties).mapToInt(p -> p[0]).max().getAsInt();
+    // maxDefenses[i] := the maximum defense for the i-th attack
+    int[] maxDefenses = new int[maxAttack + 2];
+
+    for (int[] property : properties) {
+      final int attack = property[0];
+      final int defense = property[1];
+      maxDefenses[attack] = Math.max(maxDefenses[attack], defense);
+    }
+
+    for (int i = maxAttack; i >= 1; --i)
+      maxDefenses[i] = Math.max(maxDefenses[i], maxDefenses[i + 1]);
+
+    for (int[] property : properties) {
+      final int attack = property[0];
+      final int defense = property[1];
+      if (maxDefenses[attack + 1] > defense)
+        ++ans;
+    }
+
+    return ans;
+  }
+}
+
+
+
+
+
+or
+
+
+
+class Solution {
+    public int numberOfWeakCharacters(int[][] properties) {
+        Arrays.sort(properties, (a, b) -> b[0] - a[0] == 0 ? a[1] - b[1] : b[0] - a[0]);
+        int ans = 0, mx = 0;
+        for (var x : properties) {
+            if (x[1] < mx) {
+                ++ans;
+            }
+            mx = Math.max(mx, x[1]);
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int numberOfWeakCharacters(int[][] properties) {
+        
+        // if we sort only by 1st indexes, there could be values where 1st index is the same 
+        // Arrays.sort(properties, (a,b) -> Integer.compare(a[0], b[0]));
+        
+        // b[1], a[1] because we need the 2nd values in descending order
+        Arrays.sort(properties, (a,b) -> (a[0] == b[0]) ? Integer.compare(b[1], a[1]) : Integer.compare(a[0], b[0]));
+        
+        int noOfWeakCharacters = 0;
+        int len = properties.length;
+       // improvization here - // we need to keep track of the max value
+        int max = properties[len-1][1];
+        
+        for(int i = len-2; i>=0 ;i--) {
+            
+            if(properties[i][1] < max) {
+                noOfWeakCharacters++;
+            } else {
+                max = properties[i][1];
+            }
+        }
+        return noOfWeakCharacters;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int numberOfWeakCharacters(int[][] pro) {
+        int res = 0;
+        // Sorting by above explained approach
+        Arrays.sort(pro, (a,b) -> (a[0]!=b[0]) ? b[0]-a[0] : a[1]-b[1]);
+        
+		// Compare the defense of character with previous characters' defense 
+		// and count weak characters accordingly 
+        int max = Integer.MIN_VALUE;
+        for(int[] e : pro){
+            if(e[1] < max) res++;
+            max = Math.max(max,e[1]);
+        }
+        
+        return res;
+    }
+}
+
+
+or
+
+
