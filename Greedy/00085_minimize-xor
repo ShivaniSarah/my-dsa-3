@@ -1,0 +1,185 @@
+https://leetcode.com/problems/minimize-xor/
+
+2429. Minimize XOR
+Medium
+Topics
+Companies
+Hint
+Given two positive integers num1 and num2, find the positive integer x such that:
+
+x has the same number of set bits as num2, and
+The value x XOR num1 is minimal.
+Note that XOR is the bitwise XOR operation.
+
+Return the integer x. The test cases are generated such that x is uniquely determined.
+
+The number of set bits of an integer is the number of 1's in its binary representation.
+
+ 
+
+Example 1:
+
+Input: num1 = 3, num2 = 5
+Output: 3
+Explanation:
+The binary representations of num1 and num2 are 0011 and 0101, respectively.
+The integer 3 has the same number of set bits as num2, and the value 3 XOR 3 = 0 is minimal.
+Example 2:
+
+Input: num1 = 1, num2 = 12
+Output: 3
+Explanation:
+The binary representations of num1 and num2 are 0001 and 1100, respectively.
+The integer 3 has the same number of set bits as num2, and the value 3 XOR 1 = 2 is minimal.
+ 
+
+Constraints:
+
+1 <= num1, num2 <= 109
+
+
+# java
+
+
+class Solution {
+    public int minimizeXor(int num1, int num2) {
+        int cnt = Integer.bitCount(num2);
+        int x = 0;
+        for (int i = 30; i >= 0 && cnt > 0; --i) {
+            if ((num1 >> i & 1) == 1) {
+                x |= 1 << i;
+                --cnt;
+            }
+        }
+        for (int i = 0; cnt > 0; ++i) {
+            if ((num1 >> i & 1) == 0) {
+                x |= 1 << i;
+                --cnt;
+            }
+        }
+        return x;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int minimizeXor(int num1, int num2) {
+        int a = Integer.bitCount(num1);
+        int b = Integer.bitCount(num2);
+        int res = num1;
+        for (int i = 0; i < 32; i++) {
+            if (a > b && ((1 << i) & num1) > 0) {
+                res ^= 1 << i;
+                a--;
+            }
+            if (a < b && ((1 << i) & num1) == 0) {
+                res ^= 1 << i;
+                a++;
+            }
+        }
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution {
+    private int countSetBits(int num) {
+        int count = 0;
+        while (num != 0) {
+            count += num & 1;
+            num >>= 1;
+        }
+        return count;
+    }
+
+    private int addSetBits(int num, int bitsToAdd) {
+        int bitPos = 0;
+        while (bitsToAdd > 0) {
+            while ((num >> bitPos & 1) == 1) bitPos++;
+            num |= 1 << bitPos;
+            bitsToAdd--;
+        }
+        return num;
+    }
+
+    private int removeSetBits(int num, int bitsToRemove) {
+        while (bitsToRemove > 0) {
+            num &= (num - 1);
+            bitsToRemove--;
+        }
+        return num;
+    }
+
+    public int minimizeXor(int num1, int num2) {
+        int setBitsNum1 = countSetBits(num1);
+        int setBitsNum2 = countSetBits(num2);
+
+        if (setBitsNum1 == setBitsNum2) return num1;
+        if (setBitsNum1 < setBitsNum2) return addSetBits(num1, setBitsNum2 - setBitsNum1);
+        return removeSetBits(num1, setBitsNum1 - setBitsNum2);
+    }
+}
+
+
+or
+
+
+
+class Solution {
+        public int minimizeXor(int num1, int num2) {
+        int a = Integer.bitCount(num1), b = Integer.bitCount(num2), res = num1;
+        for (int i = 0; i < 32; ++i) {
+            if (a > b && ((1 << i) & num1) > 0) {
+                res ^= 1 << i;
+                a--;
+            }
+            if (a < b && ((1 << i) & num1) == 0) {
+                res ^= 1 << i;
+                a++;
+            }
+        }
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minimizeXor(int num1, int num2) {
+        if(num1 == num2) return num1;
+		
+        int bit = Integer.bitCount(num2);
+		
+        int ans = 0;
+
+        for(int i=31;i>=0;i--) {
+			int currBit = (num1 >> i) & 1;
+            if(currBit == 1 && bit > 0) {
+				ans |= (1 << i);
+                bit--;
+            }
+        }
+        
+		// if bits to set are remaining, set the `LSB`
+        for(int i=0;i<32;i++) {
+            if(bit == 0) break;
+			int currBit = (ans >> i) & 1;
+            if(currBit != 1) {
+                ans |= (1 << i);
+                bit--;
+            }
+        }
+        return ans;
+    }
+}
+
+
