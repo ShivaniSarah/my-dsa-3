@@ -1,0 +1,173 @@
+https://leetcode.com/problems/maximum-ice-cream-bars/description/
+
+1833. Maximum Ice Cream Bars
+Medium
+Topics
+Companies
+Hint
+It is a sweltering summer day, and a boy wants to buy some ice cream bars.
+
+At the store, there are n ice cream bars. You are given an array costs of length n, where costs[i] is the price of the ith ice cream bar in coins. The boy initially has coins coins to spend, and he wants to buy as many ice cream bars as possible. 
+
+Note: The boy can buy the ice cream bars in any order.
+
+Return the maximum number of ice cream bars the boy can buy with coins coins.
+
+You must solve the problem by counting sort.
+
+ 
+
+Example 1:
+
+Input: costs = [1,3,2,4,1], coins = 7
+Output: 4
+Explanation: The boy can buy ice cream bars at indices 0,1,2,4 for a total price of 1 + 3 + 2 + 1 = 7.
+Example 2:
+
+Input: costs = [10,6,8,7,7,8], coins = 5
+Output: 0
+Explanation: The boy cannot afford any of the ice cream bars.
+Example 3:
+
+Input: costs = [1,6,3,1,2,5], coins = 20
+Output: 6
+Explanation: The boy can buy all the ice cream bars for a total price of 1 + 6 + 3 + 1 + 2 + 5 = 18.
+ 
+
+Constraints:
+
+costs.length == n
+1 <= n <= 105
+1 <= costs[i] <= 105
+1 <= coins <= 108
+
+
+# java
+
+
+class Solution {
+  public int maxIceCream(int[] costs, int coins) {
+    Arrays.sort(costs);
+
+    for (int i = 0; i < costs.length; ++i)
+      if (coins >= costs[i])
+        coins -= costs[i];
+      else
+        return i;
+
+    return costs.length;
+  }
+}
+
+or
+
+
+class Solution {
+    public int maxIceCream(int[] costs, int coins) {
+        Arrays.sort(costs);
+        int n = costs.length;
+        for (int i = 0; i < n; ++i) {
+            if (coins < costs[i]) {
+                return i;
+            }
+            coins -= costs[i];
+        }
+        return n;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int maxIceCream(int[] costs, int coins) {
+        // Store ice cream costs in increasing order.
+        Arrays.sort(costs);
+        int n = costs.length;
+        int answer = 0;
+        // Pick ice creams till we can.
+        while (answer < n && costs[answer] <= coins) {
+            // We can buy this icecream, reduce the cost from the coins. 
+            coins -= costs[answer];
+            answer += 1;
+        }
+        return answer;
+    }
+}
+
+
+or
+
+// best
+class Solution {
+    public int maxIceCream(int[] costs, int coins) {
+        
+        // get the maximum cost available
+        int max = costs[0];
+        for (int i = 0; i < costs.length; i++) {
+            max = Math.max(costs[i], max);
+        }
+        // create the bucket array of size of maximum_cost + 1
+            // and keep the frequencies of the cost
+        int[] buckets = new int[max + 1];
+        for (int p : costs) {
+            buckets[p]++;
+        }
+
+        // keep the track of maximum ice-creams can be bought
+        int ans = 0;
+        for (int i = 0; i < buckets.length; i++) {
+            if (coins < i) {
+                break;
+            }
+            if (buckets[i] > 0) {
+                ans += Math.min(buckets[i], coins/i);
+                coins -= Math.min(coins, i * buckets[i]);
+            }
+        }
+        return ans;
+    }
+}
+
+
+or
+
+class Solution {
+    public int maxIceCream(int[] costs, int coins) {
+        int maxc = 0;
+
+        for(int i = 0; i < costs.length; i++){
+            if(costs[i] > maxc){
+                maxc = costs[i];
+            }
+        }
+
+        int[] cc = new int[maxc + 1];
+
+        for(int i = 0; i < costs.length; i++){
+            cc[costs[i]]++;
+        }
+
+        int c = 0;
+
+        for(int i = 1; i <= maxc; i++){
+            if(cc[i] == 0){
+                continue;
+            }
+            if(coins < i){
+                break;
+            }
+
+            for(int j = 0; j < cc[i]; j++){
+                if(coins >= i){
+                    coins -= i;
+                    c++;
+                }
+            }
+        }
+        return c;
+    }
+}
+
+
