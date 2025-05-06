@@ -336,3 +336,116 @@ public class Solution {
 }
 
 
+or
+
+
+
+public class Solution {
+        public ListNode doubleIt(ListNode head) {
+        if (head.val > 4)
+            head = new ListNode(0, head);
+        for(ListNode node = head; node != null; node = node.next) {
+            node.val = (node.val * 2) % 10;
+            if (node.next != null && node.next.val > 4)
+                node.val++;
+        }
+        return head;
+    }
+}
+
+or
+
+
+public class Solution {
+    public ListNode doubleIt(ListNode head) {
+        // Reverse the linked list
+        ListNode reversedList = reverseList(head);
+        // Initialize variables to track carry and previous node
+        int carry = 0;
+        ListNode current = reversedList, previous = null;
+
+        // Traverse the reversed linked list
+        while (current != null) {
+            // Calculate the new value for the current node
+            int newValue = current.val * 2 + carry;
+            // Update the current node's value
+            current.val = newValue % 10;
+            // Update carry for the next iteration
+            if (newValue > 9) {
+                carry = 1;
+            } else {
+                carry = 0;
+            }
+            // Move to the next node
+            previous = current;
+            current = current.next;
+        }
+
+        // If there's a carry after the loop, add an extra node
+        if (carry != 0) {
+            ListNode extraNode = new ListNode(carry);
+            previous.next = extraNode;
+        }
+
+        // Reverse the list again to get the original order
+        ListNode result = reverseList(reversedList);
+
+        return result;
+    }
+
+    // Method to reverse the linked list
+    public ListNode reverseList(ListNode node) {
+        ListNode previous = null, current = node, nextNode;
+
+        // Traverse the original linked list
+        while (current != null) {
+            // Store the next node
+            nextNode = current.next;
+            // Reverse the link
+            current.next = previous;
+            // Move to the next nodes
+            previous = current;
+            current = nextNode;
+        }
+        // Previous becomes the new head of the reversed list
+        return previous;
+    }
+}
+
+
+or
+
+public class Solution {
+    public ListNode doubleIt(ListNode head) {
+        // Initialize a stack to store the values of the linked list
+        Stack<Integer> values = new Stack<>();
+        int val = 0;
+
+        // Traverse the linked list and push its values onto the stack
+        while (head != null) {
+            values.push(head.val);
+            head = head.next;
+        }
+
+        ListNode newTail = null;
+
+        // Iterate over the stack of values and the carryover
+        while (!values.isEmpty() || val != 0) {
+            // Create a new ListNode with value 0 and the previous tail as its next node
+            newTail = new ListNode(0, newTail);
+
+            // Calculate the new value for the current node
+            // by doubling the last digit, adding carry, and getting the remainder
+            if (!values.isEmpty()) {
+                val += values.pop() * 2;
+            }
+            newTail.val = val % 10;
+            val /= 10;
+        }
+
+        // Return the tail of the new linked list
+        return newTail;
+    }
+}
+
+
