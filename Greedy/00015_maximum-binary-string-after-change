@@ -1,0 +1,124 @@
+https://leetcode.com/problems/maximum-binary-string-after-change/description/
+
+
+1702. Maximum Binary String After Change
+Medium
+Topics
+Companies
+Hint
+You are given a binary string binary consisting of only 0's or 1's. You can apply each of the following operations any number of times:
+
+Operation 1: If the number contains the substring "00", you can replace it with "10".
+For example, "00010" -> "10010"
+Operation 2: If the number contains the substring "10", you can replace it with "01".
+For example, "00010" -> "00001"
+Return the maximum binary string you can obtain after any number of operations. Binary string x is greater than binary string y if x's decimal representation is greater than y's decimal representation.
+
+ 
+
+Example 1:
+
+Input: binary = "000110"
+Output: "111011"
+Explanation: A valid transformation sequence can be:
+"000110" -> "000101" 
+"000101" -> "100101" 
+"100101" -> "110101" 
+"110101" -> "110011" 
+"110011" -> "111011"
+Example 2:
+
+Input: binary = "01"
+Output: "01"
+Explanation: "01" cannot be transformed any further.
+ 
+
+Constraints:
+
+1 <= binary.length <= 105
+binary consist of '0' and '1'.
+
+
+# java
+
+
+class Solution {
+  public String maximumBinaryString(String binary) {
+    //     e.g. binary = "100110"
+    // Do Operation 2 -> "100011"
+    // Do Operation 1 -> "111011"
+    // So, the index of the only '0' is prefixOnes + zeros - 1.
+    final int zeros = (int) binary.chars().filter(c -> c == '0').count();
+    final int prefixOnes = binary.indexOf('0');
+
+    // Make the entire String as 1s.
+    StringBuilder sb = new StringBuilder("1".repeat(binary.length()));
+
+    // Make the only '0' if necessary.
+    if (prefixOnes != -1)
+      sb.setCharAt(prefixOnes + zeros - 1, '0');
+    return sb.toString();
+  }
+}
+
+or
+
+
+class Solution {
+    public String maximumBinaryString(String binary) {
+        int k = binary.indexOf('0');
+        if (k == -1) {
+            return binary;
+        }
+        int n = binary.length();
+        for (int i = k + 1; i < n; ++i) {
+            if (binary.charAt(i) == '0') {
+                ++k;
+            }
+        }
+        char[] ans = binary.toCharArray();
+        Arrays.fill(ans, '1');
+        ans[k] = '0';
+        return String.valueOf(ans);
+    }
+}
+
+
+or
+
+
+
+class Solution {
+
+    // taken some help
+
+
+    // First i get the index of  first "0", if it is not present then we will return the string itself
+    // otherwise we will count the number of "0" after that index;
+    // now we will shift that "0" by count number of times and fill all the place with "1"
+    // this is because we can always make the string that contains only one "0";
+    
+    public String maximumBinaryString(String s){
+
+        int n = s.length();
+
+        int a = s.indexOf("0");
+        if(a==-1) return s;
+
+        int zero = 0;
+
+        for(int i=a+1; i<n; i++){
+            if(s.charAt(i)=='0') zero++;
+        } 
+
+        StringBuilder ans = new StringBuilder();
+        ans.append("1".repeat(n));
+
+        int x = a+zero;
+
+        ans.replace(x,x+1,"0");
+        return ans.toString();
+    }
+}
+
+
