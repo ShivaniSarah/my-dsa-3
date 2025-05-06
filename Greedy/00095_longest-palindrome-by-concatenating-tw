@@ -1,0 +1,171 @@
+https://leetcode.com/problems/longest-palindrome-by-concatenating-two-letter-words/description/
+
+2131. Longest Palindrome by Concatenating Two Letter Words
+Medium
+Topics
+Companies
+Hint
+You are given an array of strings words. Each element of words consists of two lowercase English letters.
+
+Create the longest possible palindrome by selecting some elements from words and concatenating them in any order. Each element can be selected at most once.
+
+Return the length of the longest palindrome that you can create. If it is impossible to create any palindrome, return 0.
+
+A palindrome is a string that reads the same forward and backward.
+
+ 
+
+Example 1:
+
+Input: words = ["lc","cl","gg"]
+Output: 6
+Explanation: One longest palindrome is "lc" + "gg" + "cl" = "lcggcl", of length 6.
+Note that "clgglc" is another longest palindrome that can be created.
+Example 2:
+
+Input: words = ["ab","ty","yt","lc","cl","ab"]
+Output: 8
+Explanation: One longest palindrome is "ty" + "lc" + "cl" + "yt" = "tylcclyt", of length 8.
+Note that "lcyttycl" is another longest palindrome that can be created.
+Example 3:
+
+Input: words = ["cc","ll","xx"]
+Output: 2
+Explanation: One longest palindrome is "cc", of length 2.
+Note that "ll" is another longest palindrome that can be created, and so is "xx".
+ 
+
+Constraints:
+
+1 <= words.length <= 105
+words[i].length == 2
+words[i] consists of lowercase English letters.
+
+
+# jvaa
+
+
+class Solution {
+    public int longestPalindrome(String[] words) {
+        Map<String, Integer> cnt = new HashMap<>();
+        for (var w : words) {
+            cnt.put(w, cnt.getOrDefault(w, 0) + 1);
+        }
+        int ans = 0, x = 0;
+        for (var e : cnt.entrySet()) {
+            var k = e.getKey();
+            var rk = new StringBuilder(k).reverse().toString();
+            int v = e.getValue();
+            if (k.charAt(0) == k.charAt(1)) {
+                x += v & 1;
+                ans += v / 2 * 2 * 2;
+            } else {
+                ans += Math.min(v, cnt.getOrDefault(rk, 0)) * 2;
+            }
+        }
+        ans += x > 0 ? 2 : 0;
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+  public int longestPalindrome(String[] words) {
+    int ans = 0;
+    int[][] count = new int[26][26];
+
+    for (final String word : words) {
+      final int i = word.charAt(0) - 'a';
+      final int j = word.charAt(1) - 'a';
+      if (count[j][i] > 0) {
+        ans += 4;
+        --count[j][i];
+      } else {
+        ++count[i][j];
+      }
+    }
+
+    for (int i = 0; i < 26; ++i)
+      if (count[i][i] > 0)
+        return ans + 2;
+
+    return ans;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public int longestPalindrome(String[] words) {
+    HashMap<String, Integer> m = new HashMap();
+    int unpaired = 0, ans = 0;
+    for (String w: words) {
+        if (!m.containsKey(w)) m.put(w, 0);
+        if (w.charAt(0) == w.charAt(1)) {
+            if (m.get(w) > 0) {
+                unpaired--;
+                m.put(w, m.get(w) - 1);
+                ans += 4;
+            }
+            else {
+                m.put(w, m.get(w) + 1);
+                unpaired++;
+            }
+        }
+        else {
+            String rev = Character.toString(w.charAt(1)) + 
+                Character.toString(w.charAt(0));
+            if (m.containsKey(rev) && m.get(rev) > 0) {
+                ans += 4;
+                m.put(rev, m.get(rev) - 1);
+            }
+            else m.put(w, m.get(w) + 1);
+        }
+
+    }
+    if (unpaired > 0) ans += 2;
+    return ans;
+}
+}
+
+
+or
+
+
+
+class Solution {
+   public int longestPalindrome(String[] words) {
+    int counter[][] = new int[26][26];
+    int ans = 0;
+    for (String w: words) {
+        int a = w.charAt(0) - 'a', b = w.charAt(1) - 'a';
+        if (counter[b][a] > 0) {
+            ans += 4; 
+            counter[b][a]--; 
+        }
+        else counter[a][b]++;
+    }
+    for (int i = 0; i < 26; i++) {
+        if (counter[i][i] > 0) {
+            ans += 2;
+            break;
+        }
+    }
+    return ans;
+}
+}
+
+
+
+or
+
+
+
