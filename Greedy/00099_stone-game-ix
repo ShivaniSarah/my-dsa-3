@@ -1,0 +1,234 @@
+https://leetcode.com/problems/stone-game-ix/description/
+
+2029. Stone Game IX
+Medium
+Topics
+Companies
+Hint
+Alice and Bob continue their games with stones. There is a row of n stones, and each stone has an associated value. You are given an integer array stones, where stones[i] is the value of the ith stone.
+
+Alice and Bob take turns, with Alice starting first. On each turn, the player may remove any stone from stones. The player who removes a stone loses if the sum of the values of all removed stones is divisible by 3. Bob will win automatically if there are no remaining stones (even if it is Alice's turn).
+
+Assuming both players play optimally, return true if Alice wins and false if Bob wins.
+
+ 
+
+Example 1:
+
+Input: stones = [2,1]
+Output: true
+Explanation: The game will be played as follows:
+- Turn 1: Alice can remove either stone.
+- Turn 2: Bob removes the remaining stone. 
+The sum of the removed stones is 1 + 2 = 3 and is divisible by 3. Therefore, Bob loses and Alice wins the game.
+Example 2:
+
+Input: stones = [2]
+Output: false
+Explanation: Alice will remove the only stone, and the sum of the values on the removed stones is 2. 
+Since all the stones are removed and the sum of values is not divisible by 3, Bob wins the game.
+Example 3:
+
+Input: stones = [5,1,2,4,3]
+Output: false
+Explanation: Bob will always win. One possible way for Bob to win is shown below:
+- Turn 1: Alice can remove the second stone with value 1. Sum of removed stones = 1.
+- Turn 2: Bob removes the fifth stone with value 3. Sum of removed stones = 1 + 3 = 4.
+- Turn 3: Alices removes the fourth stone with value 4. Sum of removed stones = 1 + 3 + 4 = 8.
+- Turn 4: Bob removes the third stone with value 2. Sum of removed stones = 1 + 3 + 4 + 2 = 10.
+- Turn 5: Alice removes the first stone with value 5. Sum of removed stones = 1 + 3 + 4 + 2 + 5 = 15.
+Alice loses the game because the sum of the removed stones (15) is divisible by 3. Bob wins the game.
+ 
+
+Constraints:
+
+1 <= stones.length <= 105
+1 <= stones[i] <= 104
+
+
+
+# jvaa
+
+
+
+class Solution {
+  public boolean stoneGameIX(int[] stones) {
+    int[] count = new int[3];
+
+    for (final int stone : stones)
+      ++count[stone % 3];
+
+    if (count[0] % 2 == 0)
+      return Math.min(count[1], count[2]) > 0;
+    return Math.abs(count[1] - count[2]) > 2;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public boolean stoneGameIX(int[] stones) {
+        int[] c = new int[3];
+        for (int s : stones) {
+            ++c[s % 3];
+        }
+        int[] t = new int[] {c[0], c[2], c[1]};
+        return check(c) || check(t);
+    }
+
+    private boolean check(int[] c) {
+        if (c[1] == 0) {
+            return false;
+        }
+        --c[1];
+        int turn = 1 + Math.min(c[1], c[2]) * 2 + c[0];
+        if (c[1] > c[2]) {
+            --c[1];
+            ++turn;
+        }
+        return turn % 2 == 1 && c[1] != c[2];
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public boolean stoneGameIX(int[] stones) {
+        Map<Integer, Integer> div3 = new HashMap<>();
+        div3.put(0, 0);
+        div3.put(1, 0);
+        div3.put(2, 0);
+        
+        for(int stone : stones){
+            div3.put(stone%3, div3.get(stone%3)+1);
+        }
+		// the count of 3's don't matter, only whether it is even or odd
+        div3.put(0, div3.get(0)%2);
+        
+        
+        if(div3.get(1) == 0 && div3.get(2) == 0){
+            return false;
+        }
+        
+        int smaller = Math.min(div3.get(1), div3.get(2));
+        int larger = Math.max(div3.get(2), div3.get(1));
+		// the combinations of 1's and 2's will work with each other in a complementary way. 
+		// A pair of 1 and 2 makes modulo 3 to be 0
+		// Three counts of 1 or 2 makes modulo 3 to be 0
+		// so, we need only relative counts
+        
+        // if there are even 3's, then bob can't reverse alice's win
+        // so, if all three digits chosen are the same then bob wins, but if there is another option then alice wins
+        // [1,2,2,2] -> alice picks 1 and wins
+        // [1,3,3,2] -> alice picks 1 or two and wins
+        // [2,2,2] -> alice has to pick the third 2 and loses
+
+        if(div3.get(0) == 0){
+            return smaller != 0;
+        }
+        
+        // all cases now have odd number of 3's, so result can be reversed
+        
+        // [1,1,1,1,3] -> 1,1,3,1 picked or 1,3,1,1 picked means alice wins
+        // similar for 2 because the other number doesn't exist to make a %3 pair
+        
+        // if the difference of number counts is more than 2 then alice can always force bob
+        // [3,1,2,2,2] -> 
+		// [3,1,2,2,2,2] ->
+        if(larger > smaller + 2){
+            return true;
+        }
+        
+        return false;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public boolean stoneGameIX(int[] stones) {
+        if (stones.length == 1) {
+            return false;
+        }
+        int one = 0;
+        int two = 0;
+        int three = 0;
+        for (int stone : stones) {
+            if (stone % 3 == 1) {
+                one++;
+            } else if (stone % 3 == 2) {
+                two++;
+            } else {
+                three++;
+            }
+        }
+        if (three % 2 == 0) {
+            return one != 0 && two != 0;
+        } else {
+            return (one >= 3 && two == 0) || (two >= 3 && one == 0)
+                    || (Math.abs(one - two) >= 3);
+        }
+    }
+}
+
+
+or
+
+
+class Solution {
+    private int len;
+    private Map<String, Boolean> cache;
+    public boolean stoneGameIX(int[] stones) {
+        cache = new HashMap<>();
+        len = stones.length;
+        int zeros = 0, ones = 0, twos = 0;
+        for(int stone : stones){
+            zeros += (stone % 3 == 0 ? 1 : 0);
+            ones += (stone % 3 == 1 ? 1 : 0);
+            twos += (stone % 3 == 2 ? 1 : 0);
+        }
+        //zeros % 2, duplicate zeros doesn't change the result
+        return helper(3, zeros % 2, ones, twos);
+    }
+    private boolean helper(int num, int zeros, int ones, int twos){
+        if(num == 0){
+            return true;
+        }
+        String key = zeros + "," + ones +"," + twos + "," + num;
+        if(cache.containsKey(key)){
+            return cache.get(key);
+        }
+        if(zeros == 0 && ones == 0 && twos == 0){
+            return len % 2 != 0; 
+        }
+        boolean canWin = false;
+        //try pick zero, one or two
+        if(!canWin && zeros > 0 && num % 3 != 0){ 
+            if(!helper((num + 0) % 3, zeros - 1, ones, twos)){
+                canWin = true;
+            }
+        }
+        if(!canWin && ones > 0 && num % 3 != 2){
+            if(!helper((num + 1) % 3, zeros, ones - 1, twos)){
+                canWin = true;
+            }
+        }
+        if(!canWin && twos > 0 && num % 3 != 1){
+            if(!helper((num + 2) % 3, zeros, ones, twos - 1)){
+                canWin = true;
+            }
+        }
+        cache.put(key, canWin);
+        return canWin;
+    }
+}
+
+
