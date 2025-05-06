@@ -1,0 +1,118 @@
+https://leetcode.com/problems/optimal-partition-of-string/description/
+
+2405. Optimal Partition of String
+Medium
+Topics
+Companies
+Hint
+Given a string s, partition the string into one or more substrings such that the characters in each substring are unique. That is, no letter appears in a single substring more than once.
+
+Return the minimum number of substrings in such a partition.
+
+Note that each character should belong to exactly one substring in a partition.
+
+ 
+
+Example 1:
+
+Input: s = "abacaba"
+Output: 4
+Explanation:
+Two possible partitions are ("a","ba","cab","a") and ("ab","a","ca","ba").
+It can be shown that 4 is the minimum number of substrings needed.
+Example 2:
+
+Input: s = "ssssss"
+Output: 6
+Explanation:
+The only valid partition is ("s","s","s","s","s","s").
+ 
+
+Constraints:
+
+1 <= s.length <= 105
+s consists of only English lowercase letters.
+
+
+# java
+
+
+class Solution {
+    public int partitionString(String s) {
+        Set<Character> ss = new HashSet<>();
+        int ans = 1;
+        for (char c : s.toCharArray()) {
+            if (ss.contains(c)) {
+                ++ans;
+                ss.clear();
+            }
+            ss.add(c);
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+  public int partitionString(String s) {
+    int ans = 1;
+    int used = 0;
+
+    for (final char c : s.toCharArray()) {
+      final int i = c - 'a';
+      if ((used >> i & 1) == 1) {
+        used = 1 << i;
+        ++ans;
+      } else {
+        used |= 1 << i;
+      }
+    }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+
+public class Solution {
+    public int partitionString(String s) {
+        int i = 0, ans = 1, flag = 0;
+        while(i < s.length()) {
+            int val = s.charAt(i) - 'a';
+            if ((flag & (1 << val)) != 0) {
+                flag = 0;
+                ans++;
+            }
+            flag = flag | (1 << val);
+            i++;
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int partitionString(String s) {
+        int xr=0;
+        int ans=1;
+        for(char c : s.toCharArray()){
+            if((xr & (1<<c))!=0){
+                xr=0;
+                ans++;
+            }
+            xr^=(1<<c);
+        }
+        return ans;
+    }
+}
+
+
