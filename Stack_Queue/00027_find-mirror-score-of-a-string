@@ -1,0 +1,224 @@
+https://leetcode.com/problems/find-mirror-score-of-a-string/description/
+
+
+3412. Find Mirror Score of a String
+Medium
+Topics
+Companies
+Hint
+You are given a string s.
+
+We define the mirror of a letter in the English alphabet as its corresponding letter when the alphabet is reversed. For example, the mirror of 'a' is 'z', and the mirror of 'y' is 'b'.
+
+Initially, all characters in the string s are unmarked.
+
+You start with a score of 0, and you perform the following process on the string s:
+
+Iterate through the string from left to right.
+At each index i, find the closest unmarked index j such that j < i and s[j] is the mirror of s[i]. Then, mark both indices i and j, and add the value i - j to the total score.
+If no such index j exists for the index i, move on to the next index without making any changes.
+Return the total score at the end of the process.
+
+ 
+
+Example 1:
+
+Input: s = "aczzx"
+
+Output: 5
+
+Explanation:
+
+i = 0. There is no index j that satisfies the conditions, so we skip.
+i = 1. There is no index j that satisfies the conditions, so we skip.
+i = 2. The closest index j that satisfies the conditions is j = 0, so we mark both indices 0 and 2, and then add 2 - 0 = 2 to the score.
+i = 3. There is no index j that satisfies the conditions, so we skip.
+i = 4. The closest index j that satisfies the conditions is j = 1, so we mark both indices 1 and 4, and then add 4 - 1 = 3 to the score.
+Example 2:
+
+Input: s = "abcdef"
+
+Output: 0
+
+Explanation:
+
+For each index i, there is no index j that satisfies the conditions.
+
+ 
+
+Constraints:
+
+1 <= s.length <= 105
+s consists only of lowercase English letters.
+
+
+# jva
+
+
+class Solution {
+  public long calculateScore(String s) {
+    long ans = 0;
+    Deque<Integer>[] indices = new ArrayDeque[26];
+
+    for (int i = 0; i < 26; ++i)
+      indices[i] = new ArrayDeque<>();
+
+    for (int i = 0; i < s.length(); ++i) {
+      final int index = s.charAt(i) - 'a';
+      final int oppositeIndex = 25 - index;
+      if (!indices[oppositeIndex].isEmpty())
+        ans += i - indices[oppositeIndex].poll();
+      else
+        indices[index].push(i);
+    }
+
+    return ans;
+  }
+}
+
+
+
+
+or
+
+
+
+class Solution {
+    public long calculateScore(String s) {
+        Map<Character, List<Integer>> d = new HashMap<>(26);
+        int n = s.length();
+        long ans = 0;
+        for (int i = 0; i < n; ++i) {
+            char x = s.charAt(i);
+            char y = (char) ('a' + 'z' - x);
+            if (d.containsKey(y)) {
+                var ls = d.get(y);
+                int j = ls.remove(ls.size() - 1);
+                if (ls.isEmpty()) {
+                    d.remove(y);
+                }
+                ans += i - j;
+            } else {
+                d.computeIfAbsent(x, k -> new ArrayList<>()).add(i);
+            }
+        }
+        return ans;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+  long calculateScore(String s) {
+    long ans = 0;
+    Map<Integer, List<Integer>> mp = new HashMap<>();
+    for(int i= 0; i < s.length(); ++i){
+        int cur = s.charAt(i) - 'a';
+        int mirror = 25 - cur;
+        if(mp.containsKey(mirror) && mp.get(mirror).size() > 0){
+            ans += (long)i - (long)mp.get(mirror).get(mp.get(mirror).size() - 1);
+            mp.get(mirror).remove(mp.get(mirror).size() - 1);
+        }else mp.computeIfAbsent(cur, key -> new ArrayList<>()).add(i);
+    }
+    return ans;
+}
+}
+
+
+or
+
+// bet
+
+class Solution {
+      public long calculateScore(String s) {
+        LinkedList<Integer>[] seen = new LinkedList[26];
+        for (int i = 0; i < 26; ++i) {
+            seen[i] = new LinkedList<>();
+        }
+        long res = 0;
+        for (int i = 0; i < s.length(); ++i) {
+            int a = s.charAt(i) - 'a';
+            if (seen[25 - a].isEmpty()) {
+                seen[a].add(i);
+            } else {
+                int j = seen[25 - a].pollLast();
+                res += i - j;
+            }
+        }
+        return res;
+    }
+}
+
+or
+
+
+class Solution {
+    public long calculateScore(String s) {
+        int n = s.length();
+        long score = 0;
+        
+        int[] mirror = new int[26];        
+        for(int i=0; i<26; i++){
+            mirror[i]=25-i;
+        }
+  
+        Map<Integer, Stack<Integer>> map=new HashMap<>();
+        for(int i=0; i<26; i++){
+            map.put(i, new Stack<>());
+        }
+        
+        for(int i=0; i<n; i++){
+            int chIdx=s.charAt(i)-'a';
+
+            if(!map.get(mirror[chIdx]).isEmpty()){
+                int j=map.get(mirror[chIdx]).pop();
+                score+=i-j;   
+            }
+            else{
+                Stack<Integer> stk=map.get(chIdx);
+                stk.push(i); 
+                map.put(chIdx, stk);
+            }
+        }
+        
+        return score;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public long calculateScore(String s) {
+        int n = s.length();
+        long score = 0;
+        
+        Map<Integer, Stack<Integer>> map=new HashMap<>();
+        for(int i=0; i<26; i++){
+            map.put(i, new Stack<>());
+        }
+        
+        for(int i=0; i<n; i++){
+            int chIdx=s.charAt(i)-'a';
+            int mrIdx=25-chIdx;  //Mirror Character INT
+
+            if(!map.get(mrIdx).isEmpty()){
+                score+=i-map.get(mrIdx).pop();   
+            }
+            else{
+                map.get(chIdx).push(i);
+            }
+        }
+        
+        return score;
+    }
+}
+
+
+
+
