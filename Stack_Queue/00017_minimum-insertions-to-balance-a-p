@@ -1,0 +1,296 @@
+https://leetcode.com/problems/minimum-insertions-to-balance-a-parentheses-string/description/
+
+
+1541. Minimum Insertions to Balance a Parentheses String
+Medium
+Topics
+Companies
+Hint
+Given a parentheses string s containing only the characters '(' and ')'. A parentheses string is balanced if:
+
+Any left parenthesis '(' must have a corresponding two consecutive right parenthesis '))'.
+Left parenthesis '(' must go before the corresponding two consecutive right parenthesis '))'.
+In other words, we treat '(' as an opening parenthesis and '))' as a closing parenthesis.
+
+For example, "())", "())(())))" and "(())())))" are balanced, ")()", "()))" and "(()))" are not balanced.
+You can insert the characters '(' and ')' at any position of the string to balance it if needed.
+
+Return the minimum number of insertions needed to make s balanced.
+
+ 
+
+Example 1:
+
+Input: s = "(()))"
+Output: 1
+Explanation: The second '(' has two matching '))', but the first '(' has only ')' matching. We need to add one more ')' at the end of the string to be "(())))" which is balanced.
+Example 2:
+
+Input: s = "())"
+Output: 0
+Explanation: The string is already balanced.
+Example 3:
+
+Input: s = "))())("
+Output: 3
+Explanation: Add '(' to match the first '))', Add '))' to match the last '('.
+ 
+
+Constraints:
+
+1 <= s.length <= 105
+s consists of '(' and ')' only.
+
+
+# java
+
+class Solution {
+  public int minInsertions(String s) {
+    int neededRight = 0;  // Increment by 2 for each '('.
+    int missingLeft = 0;  // Increment by 1 for each missing '('.
+    int missingRight = 0; // Increment by 1 for each missing ')'.
+
+    for (final char c : s.toCharArray())
+      if (c == '(') {
+        if (neededRight % 2 == 1) {
+          // e.g. "()(..."
+          ++missingRight;
+          --neededRight;
+        }
+        neededRight += 2;
+      } else if (--neededRight < 0) { // c == ')'
+        // e.g. "()))..."
+        ++missingLeft;
+        neededRight += 2;
+      }
+
+    return neededRight + missingLeft + missingRight;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int minInsertions(String s) {
+        int ans = 0, x = 0;
+        int n = s.length();
+        for (int i = 0; i < n; ++i) {
+            if (s.charAt(i) == '(') {
+                ++x;
+            } else {
+                if (i < n - 1 && s.charAt(i + 1) == ')') {
+                    ++i;
+                } else {
+                    ++ans;
+                }
+                if (x == 0) {
+                    ++ans;
+                } else {
+                    --x;
+                }
+            }
+        }
+        ans += x << 1;
+        return ans;
+    }
+}
+
+
+or
+
+
+
+
+class Solution {
+    public int minInsertions(String s) {
+        Stack<Character> stack=new Stack<>();
+        int count=0;
+        for(int i=0;i<s.length();i++){
+            char c = s.charAt(i);
+            if(c == '('){
+                stack.push(c);
+            }
+            else{
+                if(i+1<s.length()&& s.charAt(i+1)==')'){
+                    i++;
+                }
+                else {
+                    count++;
+                }
+                
+                if(!stack.isEmpty()){
+                    stack.pop();
+                }
+                else{
+                    count++;
+                }
+            }
+        }
+        count += 2*stack.size();
+        return count;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int minInsertions(String s) {
+        Stack<Character> stack=new Stack<>();
+        int count=0;
+        for(int i=0;i<s.length();i++){
+            char c = s.charAt(i);
+            if(c == '('){
+                stack.push(c);
+            }
+            else{
+                if(i+1<s.length()&& s.charAt(i+1)==')'){
+                    i++;
+                }
+                else {
+                    count++;
+                }
+                
+                if(!stack.isEmpty()){
+                    stack.pop();
+                }
+                else{
+                    count++;
+                }
+            }
+        }
+        count += 2*stack.size();
+        return count;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public int minInsertions(String s) {
+        int countBraces = 0;
+        int ans = 0;
+        for(int i = 0;i<s.length();i++){
+            if(s.charAt(i) == '('){
+                countBraces += 1;
+            }
+            else{
+                //Case 1-> Whenever a closing bracket is encountered, one case can be it is followed by another closing bracket and preceeded/not preceeded by an opening bracket(handled in this following if block)
+                if(i+1<s.length() && s.charAt(i+1) == ')'){
+                    if(countBraces > 0){
+                        countBraces--; // It's balanced only.. Just decrement the opening bracket
+                    }
+                    else{
+                        //This is the case for --> "))" It means we need to add 1 opening bracket --> "("
+                        ans += 1;
+                    }
+                    i++;
+                }
+                else{
+                    //Case 2 -> Whenever a closing bracket is encountered, another case can be it is not followed by another closing bracket and preceeded/not preceeded by an opening bracket(handled in this following if block)
+                    if(countBraces > 0){
+                        countBraces--;
+                        ans += 1;//Add the last closing bracket to balance
+                    }
+                    else{
+                        
+                        ans += 2;//Add the last closing bracket and first opening bracket(eg.test case-> ")")
+                    }
+                }
+                //Finally we should return the 2times the number of countBraces(opening brackets remaining in excess)
+            }
+        }
+        return ans+countBraces*2;
+    }
+}
+
+
+or
+
+// bets
+
+class Solution {
+    public int minInsertions(String s) {
+        int open=0;
+        int ans=0;
+        
+        for(int i=0;i<s.length();i++){
+            if(s.charAt(i)=='('){
+                open++;
+            }
+            else{
+                if(i+1<s.length() && s.charAt(i+1)==')'){
+                    i++;
+                    if(open>0){
+                        open--;
+                    }
+                    else{
+                        ans++;
+                    }
+                }
+                else{
+                    if(open>0){
+                        open--;
+                        ans++;
+                    }
+                    else{
+                        ans+=2;
+                    }
+                }
+            }
+        }
+        ans+=2*open;
+        return ans;
+    }  
+}
+
+or
+
+
+
+import java.util.Stack;
+
+class Solution {
+    public int minInsertions(String s) {
+        Stack<Character> stack = new Stack<>();
+        int count = 0;
+
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == '(') {
+                stack.push('('); // Push opening bracket
+            } else {
+                if (stack.isEmpty()) {
+                    // No matching '(' found
+                    if (i != s.length() - 1 && s.charAt(i + 1) == ')') {
+                        count++; // One insertion needed
+                        i++; // Skip next ')'
+                    } else {
+                        count += 2; // Need two insertions
+                    }
+                } else {
+                    // Matching '(' found
+                    if (i != s.length() - 1 && s.charAt(i + 1) == ')') {
+                        stack.pop();
+                        i++; // Skip next ')'
+                    } else {
+                        count++; // Need one more ')'
+                        stack.pop();
+                    }
+                }
+            }
+        }
+
+        return count + stack.size() * 2; // Each unmatched '(' needs two ')'
+    }
+}
+
+
