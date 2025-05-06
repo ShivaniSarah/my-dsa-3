@@ -1,0 +1,202 @@
+https://leetcode.com/problems/removing-minimum-and-maximum-from-array/
+
+
+2091. Removing Minimum and Maximum From Array
+Medium
+Topics
+Companies
+Hint
+You are given a 0-indexed array of distinct integers nums.
+
+There is an element in nums that has the lowest value and an element that has the highest value. We call them the minimum and maximum respectively. Your goal is to remove both these elements from the array.
+
+A deletion is defined as either removing an element from the front of the array or removing an element from the back of the array.
+
+Return the minimum number of deletions it would take to remove both the minimum and maximum element from the array.
+
+ 
+
+Example 1:
+
+Input: nums = [2,10,7,5,4,1,8,6]
+Output: 5
+Explanation: 
+The minimum element in the array is nums[5], which is 1.
+The maximum element in the array is nums[1], which is 10.
+We can remove both the minimum and maximum by removing 2 elements from the front and 3 elements from the back.
+This results in 2 + 3 = 5 deletions, which is the minimum number possible.
+Example 2:
+
+Input: nums = [0,-4,19,1,8,-2,-3,5]
+Output: 3
+Explanation: 
+The minimum element in the array is nums[1], which is -4.
+The maximum element in the array is nums[2], which is 19.
+We can remove both the minimum and maximum by removing 3 elements from the front.
+This results in only 3 deletions, which is the minimum number possible.
+Example 3:
+
+Input: nums = [101]
+Output: 1
+Explanation:  
+There is only one element in the array, which makes it both the minimum and maximum element.
+We can remove it with 1 deletion.
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+-105 <= nums[i] <= 105
+The integers in nums are distinct.
+
+
+# jvaa
+
+
+class Solution {
+  public int minimumDeletions(int[] nums) {
+    final int n = nums.length;
+
+    int mn = Integer.MAX_VALUE;
+    int mx = Integer.MIN_VALUE;
+    int minIndex = -1;
+    int maxIndex = -1;
+
+    for (int i = 0; i < n; ++i) {
+      if (nums[i] < mn) {
+        mn = nums[i];
+        minIndex = i;
+      }
+      if (nums[i] > mx) {
+        mx = nums[i];
+        maxIndex = i;
+      }
+    }
+
+    final int a = Math.min(minIndex, maxIndex);
+    final int b = Math.max(minIndex, maxIndex);
+
+    // min(delete from front and back,
+    //     delete from front,
+    //     delete from back)
+    return Math.min(a + 1 + n - b, Math.min(b + 1, n - a));
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public int minimumDeletions(int[] nums) {
+        int mi = 0, mx = 0, n = nums.length;
+        for (int i = 0; i < n; ++i) {
+            if (nums[i] < nums[mi]) {
+                mi = i;
+            }
+            if (nums[i] > nums[mx]) {
+                mx = i;
+            }
+        }
+        if (mi > mx) {
+            int t = mx;
+            mx = mi;
+            mi = t;
+        }
+        return Math.min(Math.min(mx + 1, n - mi), mi + 1 + n - mx);
+    }
+}
+
+
+or
+
+
+
+class Solution {
+       public int minimumDeletions(int[] A) {
+        int i = 0, j = 0, n = A.length;
+        for (int k = 0; k < n; ++k) {
+            if (A[i] < A[k]) i = k;
+            if (A[j] > A[k]) j = k;
+        }
+        return Math.min(Math.min(Math.max(i + 1, j + 1), Math.max(n - i, n - j)), Math.min(i + 1 + n - j, j + 1 + n - i));
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public int minimumDeletions(int[] nums) {
+        int max = Integer.MIN_VALUE;
+        int min = Integer.MAX_VALUE;
+        int minInd = 0;
+        int maxInd = 0;
+        int n = nums.length;
+        
+        //First Find out the max and min element index
+        for(int i=0;i<n;i++){
+            if(nums[i]>max){
+                max = nums[i];
+                maxInd = i;
+            }
+            
+            if(nums[i]<min){
+                min = nums[i];
+                minInd = i;
+            }
+        }
+        
+        //if both index are same then return the part in which less number of elements are there
+        if(maxInd==minInd){
+            return Math.min(maxInd+1,n-maxInd);
+        }
+        
+        //max element is right side of min element
+        if(maxInd>minInd){
+            int count = Math.min(maxInd+1,n-minInd); // min of all the elements till max element and all the elements to the right of min element
+            int count1 = minInd+1+(n-maxInd); // all elements to the left of min and right of max
+            return Math.min(count,count1); // min of both
+        }
+        // min element is right side of the max element
+        else{
+            int count = Math.min(minInd+1,n-maxInd);
+            int count1 = maxInd+1+(n-minInd);
+            return Math.min(count,count1);
+        }
+        
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minimumDeletions(int[] nums) {
+        
+        int n = nums.length;
+        if(n==1) return 1;
+        
+        int minId = 0, maxId = 0;
+		
+        // first find max & min element index        
+        for(int i=0; i<n; i++){
+            if(nums[i] > nums[maxId])
+                maxId = i;
+            if(nums[i] < nums[minId])
+                minId = i;
+        }
+        
+        int numOfDelFromLeft = Math.max(maxId, minId) + 1;
+        int numOfDelFromRight = n - Math.min(maxId, minId);
+        int numOfDelFromLeftAndRight = (Math.min(maxId, minId) + 1) + (n - Math.max(maxId, minId)) ;
+        
+        return Math.min(numOfDelFromLeftAndRight , ( Math.min(numOfDelFromLeft, numOfDelFromRight) ));
+    }
+}
+
+
