@@ -1,0 +1,149 @@
+https://leetcode.com/problems/break-a-palindrome/description/
+
+1328. Break a Palindrome
+Medium
+Topics
+Companies
+Hint
+Given a palindromic string of lowercase English letters palindrome, replace exactly one character with any lowercase English letter so that the resulting string is not a palindrome and that it is the lexicographically smallest one possible.
+
+Return the resulting string. If there is no way to replace a character to make it not a palindrome, return an empty string.
+
+A string a is lexicographically smaller than a string b (of the same length) if in the first position where a and b differ, a has a character strictly smaller than the corresponding character in b. For example, "abcc" is lexicographically smaller than "abcd" because the first position they differ is at the fourth character, and 'c' is smaller than 'd'.
+
+ 
+
+Example 1:
+
+Input: palindrome = "abccba"
+Output: "aaccba"
+Explanation: There are many ways to make "abccba" not a palindrome, such as "zbccba", "aaccba", and "abacba".
+Of all the ways, "aaccba" is the lexicographically smallest.
+Example 2:
+
+Input: palindrome = "a"
+Output: ""
+Explanation: There is no way to replace a single character to make "a" not a palindrome, so return an empty string.
+ 
+
+Constraints:
+
+1 <= palindrome.length <= 1000
+palindrome consists of only lowercase English letters.
+
+
+# java
+
+
+class Solution {
+  public String breakPalindrome(String palindrome) {
+    if (palindrome.length() == 1)
+      return "";
+
+    StringBuilder sb = new StringBuilder(palindrome);
+
+    for (int i = 0; i < palindrome.length() / 2; ++i)
+      if (palindrome.charAt(i) != 'a') {
+        sb.setCharAt(i, 'a');
+        return sb.toString();
+      }
+
+    sb.setCharAt(sb.length() - 1, 'b');
+    return sb.toString();
+  }
+}
+
+
+or
+
+
+class Solution {
+    public String breakPalindrome(String palindrome) {
+        int n = palindrome.length();
+        if (n == 1) {
+            return "";
+        }
+        char[] cs = palindrome.toCharArray();
+        int i = 0;
+        while (i < n / 2 && cs[i] == 'a') {
+            ++i;
+        }
+        if (i == n / 2) {
+            cs[n - 1] = 'b';
+        } else {
+            cs[i] = 'a';
+        }
+        return String.valueOf(cs);
+    }
+}
+
+
+
+or
+
+
+
+// Time Complexity: O(N)
+// Space Complexity: O(N) since we need to convert the string to char array
+class Solution {
+    public String breakPalindrome(String palindrome) {
+        int n = palindrome.length();
+        // there is no way to replace a single character to make "a" not a palindrome
+        // because no matter what we change, it is still a palindrome
+        if (n == 1) return "";
+        
+        char[] p = palindrome.toCharArray();
+        
+        // let's think about n = 2 case, e.g. "bb"
+        // in this case, to acheive the lexicographically smallest one
+        // we should replace from the left and the best character to use is "a"
+        // for "bb", we replace the first "b" to "a" to become "ab"
+        
+        // let's think about another n = 2 case, e.g. "aa"
+        // in this case, to acheive the lexicographically smallest one
+        // we should replace from the left and the best character to use is "a"
+        // however, for "aa", we cannot use "a" here and the best character to use is "b" now
+        // for "aa", we replace the second "a" to "b" to become "ab"
+        // why not replace the first "a"? because "ba" is not smallest.
+        
+        for (int i = 0; i < n / 2; i++) {
+            //  here we know that as long as palindrome[i] is "a", we skip it
+            if (p[i] != 'a') {
+                // otherwise, we replace the first character that is not "a"
+                p[i] = 'a';
+                // replaced -> we can return the result here
+                return new String(p);
+            }
+        }
+        // by the time it reaches here, the possible cases would be like "aaa", "aba" etc. 
+        // so that we haven't changed anything in above logic
+        // in this case, as mentioned above, the best character to use is "b"
+        // and we should replace the last character to achieve the smallest one possible
+        p[n - 1] = 'b';
+        return new String(p);
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public String breakPalindrome(String palindrome) {
+        if(palindrome.length()<=1)
+           return "";
+        char[] arr = palindrome.toCharArray();
+        
+        for(int i=0; i<arr.length/2;i++){ 
+           if(arr[i] != 'a'){ // if not a then change it to be lexographically smallest
+               arr[i] = 'a';
+               return String.valueOf(arr);
+           }
+        }
+        // if we reach here, there are ONLY 'a' in palindrome string, so we should change the last character to a b
+        arr[arr.length-1] = 'b';
+        return String.valueOf(arr);
+    }
+}
+
