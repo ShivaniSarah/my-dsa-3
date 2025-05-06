@@ -45,3 +45,73 @@ All the elements in verticalCuts are distinct.
 
 # java
 
+
+
+class Solution {
+  public int maxArea(int h, int w, int[] horizontalCuts, int[] verticalCuts) {
+    final int MOD = 1_000_000_007;
+    Arrays.sort(horizontalCuts);
+    Arrays.sort(verticalCuts);
+
+    // the maximum gap of each direction
+    int maxGapX = Math.max(verticalCuts[0], w - verticalCuts[verticalCuts.length - 1]);
+    int maxGapY = Math.max(horizontalCuts[0], h - horizontalCuts[horizontalCuts.length - 1]);
+
+    for (int i = 1; i < verticalCuts.length; ++i)
+      maxGapX = Math.max(maxGapX, verticalCuts[i] - verticalCuts[i - 1]);
+
+    for (int i = 1; i < horizontalCuts.length; ++i)
+      maxGapY = Math.max(maxGapY, horizontalCuts[i] - horizontalCuts[i - 1]);
+
+    return (int) ((long) maxGapX * maxGapY % MOD);
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int maxArea(int h, int w, int[] horizontalCuts, int[] verticalCuts) {
+        final int mod = (int) 1e9 + 7;
+        Arrays.sort(horizontalCuts);
+        Arrays.sort(verticalCuts);
+        int m = horizontalCuts.length;
+        int n = verticalCuts.length;
+        long x = Math.max(horizontalCuts[0], h - horizontalCuts[m - 1]);
+        long y = Math.max(verticalCuts[0], w - verticalCuts[n - 1]);
+        for (int i = 1; i < m; ++i) {
+            x = Math.max(x, horizontalCuts[i] - horizontalCuts[i - 1]);
+        }
+        for (int i = 1; i < n; ++i) {
+            y = Math.max(y, verticalCuts[i] - verticalCuts[i - 1]);
+        }
+        return (int) ((x * y) % mod);
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int maxArea(int h, int w, int[] hc, int[] vc) {
+        Arrays.sort(hc);
+        Arrays.sort(vc);
+        int maxh = Math.max(hc[0], h - hc[hc.length-1]),
+            maxv = Math.max(vc[0], w - vc[vc.length-1]);
+        for (int i = 1; i < hc.length; i++)
+            maxh = Math.max(maxh, hc[i] - hc[i-1]);
+        for (int i = 1; i < vc.length; i++)
+            maxv = Math.max(maxv, vc[i] - vc[i-1]);
+        return (int)((long)maxh * maxv % 1000000007);
+    }
+}
+
+
+
+or
+
+
