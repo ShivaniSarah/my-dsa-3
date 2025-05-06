@@ -52,3 +52,219 @@ Constraints:
 
 # java
 
+
+class Solution {
+  public int minDifference(int[] nums) {
+    final int n = nums.length;
+    if (n < 5)
+      return 0;
+
+    int ans = Integer.MAX_VALUE;
+
+    Arrays.sort(nums);
+
+    // 1. Change nums[0..i) to nums[i].
+    // 2. Change nums[n - 3 + i..n) to nums[n - 4 + i].
+    for (int i = 0; i <= 3; ++i)
+      ans = Math.min(ans, nums[n - 4 + i] - nums[i]);
+
+    return ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int minDifference(int[] nums) {
+        int n = nums.length;
+        if (n < 5) {
+            return 0;
+        }
+        Arrays.sort(nums);
+        long ans = 1L << 60;
+        for (int l = 0; l <= 3; ++l) {
+            int r = 3 - l;
+            ans = Math.min(ans, (long) nums[n - 1 - r] - nums[l]);
+        }
+        return (int) ans;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+
+    public int minDifference(int[] nums) {
+        int numsSize = nums.length;
+
+        // If the array has 4 or fewer elements, return 0
+        if (numsSize <= 4) return 0;
+
+        Arrays.sort(nums);
+
+        int minDiff = Integer.MAX_VALUE;
+
+        // Four scenarios to compute the minimum difference
+        for (int left = 0, right = numsSize - 4; left < 4; left++, right++) {
+            minDiff = Math.min(minDiff, nums[right] - nums[left]);
+        }
+
+        return minDiff;
+    }
+}
+
+
+
+or
+
+public class Solution {
+
+    public int minDifference(int[] nums) {
+        int numsSize = nums.length;
+        if (numsSize <= 4) {
+            return 0;
+        }
+
+        // Find the four smallest elements using a fixed-size max heap
+        PriorityQueue<Integer> maxHeap = new PriorityQueue<>(
+            Collections.reverseOrder()
+        );
+        for (int num : nums) {
+            maxHeap.offer(num);
+            if (maxHeap.size() > 4) {
+                maxHeap.poll();
+            }
+        }
+        List<Integer> smallestFour = new ArrayList<>(maxHeap);
+        Collections.sort(smallestFour);
+
+        // Find the four largest elements using a fixed-size min heap
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+        for (int num : nums) {
+            minHeap.offer(num);
+            if (minHeap.size() > 4) {
+                minHeap.poll();
+            }
+        }
+        List<Integer> largestFour = new ArrayList<>(minHeap);
+        Collections.sort(largestFour);
+
+        int minDiff = Integer.MAX_VALUE;
+        // Four scenarios to compute the minimum difference
+        for (int i = 0; i < 4; i++) {
+            minDiff = Math.min(
+                minDiff,
+                largestFour.get(i) - smallestFour.get(i)
+            );
+        }
+
+        return minDiff;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minDifference(int[] nums) {
+        if(nums.length <= 4) {
+            return 0;
+        }
+        Arrays.sort(nums);
+        int ans = nums[nums.length - 1] - nums[0];
+        for(int i = 0; i <= 3; i++) {
+            ans = Math.min(ans, nums[nums.length - (3 - i) - 1] - nums[i]);
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minDifference(int[] nums) {
+        if (nums.length <= 4) {
+            return 0;
+        }
+        Arrays.sort(nums);
+        int k = nums.length - 3;
+        int ans = nums[nums.length - 1] - nums[0];
+        for (int i = k - 1; i < nums.length; i++) {
+            ans = Math.min(ans, nums[i] - nums[i - k + 1]);
+        }
+        return ans;
+    }
+}
+
+
+or
+
+class Solution {
+    public int minDifference(int[] nums) {
+        if (nums.length <= 4) {
+            return 0;
+        }
+        
+        int[] min4 = new int[4];
+        int[] max4 = new int[4];
+        
+        Arrays.fill(min4, Integer.MAX_VALUE);
+        Arrays.fill(max4, Integer.MIN_VALUE);
+        
+        for (int num : nums) {
+            boolean added = false;
+            for (int j = 0; j < min4.length; j++) {
+                if (num < min4[j]) {
+                    shift(min4, j);
+                    min4[j] = num;
+                    added = true;
+                    break;
+                }
+            }
+            if (!added && min4[min4.length - 1] == Integer.MAX_VALUE) {
+                min4[min4.length - 1] = num;
+            }
+        }
+        
+        for (int num : nums) {
+            boolean added = false;
+            for (int j = 0; j < max4.length; j++) {
+                if (num > max4[j]) {
+                    shift(max4, j);
+                    max4[j] = num;
+                    added = true;
+                    break;
+                }
+            }
+            if (!added && max4[max4.length - 1] == Integer.MIN_VALUE) {
+                max4[max4.length - 1] = num;
+            }
+        }
+        
+        int ans = max4[0] - min4[0];
+        for (int i = 0; i <= 3; i++) {
+            ans = Math.min(ans, max4[3 - i] - min4[i]);
+        }
+        return ans;
+    }
+    private void shift(int[] a, int start) {
+        int last = a[a.length - 1];
+        for (int j = a.length - 1; j > start; j--) {
+            a[j] = a[j - 1];
+        }
+        if (a.length < 4) {
+            a[a.length - 1] = last;
+        }
+    }
+}
+
+
+
