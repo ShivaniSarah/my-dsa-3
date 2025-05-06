@@ -1,0 +1,198 @@
+https://leetcode.com/problems/largest-palindromic-number/description/
+
+2384. Largest Palindromic Number
+Medium
+Topics
+Companies
+Hint
+You are given a string num consisting of digits only.
+
+Return the largest palindromic integer (in the form of a string) that can be formed using digits taken from num. It should not contain leading zeroes.
+
+Notes:
+
+You do not need to use all the digits of num, but you must use at least one digit.
+The digits can be reordered.
+ 
+
+Example 1:
+
+Input: num = "444947137"
+Output: "7449447"
+Explanation: 
+Use the digits "4449477" from "444947137" to form the palindromic integer "7449447".
+It can be shown that "7449447" is the largest palindromic integer that can be formed.
+Example 2:
+
+Input: num = "00009"
+Output: "9"
+Explanation: 
+It can be shown that "9" is the largest palindromic integer that can be formed.
+Note that the integer returned should not contain leading zeroes.
+ 
+
+Constraints:
+
+1 <= num.length <= 105
+num consists of digits.
+
+
+# java
+
+
+class Solution {
+  public String largestPalindromic(String num) {
+    Map<Character, Integer> count = new HashMap<>();
+
+    for (final char c : num.toCharArray())
+      count.merge(c, 1, Integer::sum);
+
+    final String firstHalf = getFirstHalf(count);
+    final String mid = getMid(count);
+    final String ans = firstHalf + mid + reversed(firstHalf);
+    return ans.isEmpty() ? "0" : ans;
+  }
+
+  private String getFirstHalf(Map<Character, Integer> count) {
+    StringBuilder sb = new StringBuilder();
+    for (char c = '9'; c >= '0'; --c) {
+      final int freq = count.getOrDefault(c, 0);
+      sb.append(String.valueOf(c).repeat(freq / 2));
+    }
+    final int index = firstNotZeroIndex(sb);
+    return index == -1 ? "" : sb.substring(index);
+  }
+
+  private int firstNotZeroIndex(StringBuilder sb) {
+    for (int i = 0; i < sb.length(); ++i)
+      if (sb.charAt(i) != '0')
+        return i;
+    return -1;
+  }
+
+  private String getMid(Map<Character, Integer> count) {
+    StringBuilder sb = new StringBuilder();
+    for (char c = '9'; c >= '0'; --c) {
+      final int freq = count.getOrDefault(c, 0);
+      if (freq % 2 == 1)
+        return String.valueOf(c);
+    }
+    return "";
+  }
+
+  private String reversed(final String s) {
+    return new StringBuilder(s).reverse().toString();
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    public String largestPalindromic(String num) {
+        int[] cnt = new int[10];
+        for (char c : num.toCharArray()) {
+            ++cnt[c - '0'];
+        }
+        String mid = "";
+        for (int i = 9; i >= 0; --i) {
+            if (cnt[i] % 2 == 1) {
+                mid += i;
+                --cnt[i];
+                break;
+            }
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 10; ++i) {
+            if (cnt[i] > 0) {
+                cnt[i] >>= 1;
+                sb.append(("" + i).repeat(cnt[i]));
+            }
+        }
+        while (sb.length() > 0 && sb.charAt(sb.length() - 1) == '0') {
+            sb.deleteCharAt(sb.length() - 1);
+        }
+        String t = sb.toString();
+        String ans = sb.reverse().toString() + mid + t;
+        return "".equals(ans) ? "0" : ans;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+    public String largestPalindromic(String s) {
+        int[] v=new int[10];
+        for(int i=0;i<s.length();i++){
+            v[(int)s.charAt(i)-48]++;
+        }
+        StringBuffer ans = new StringBuffer();
+        int single = -1;
+        for(int i=9;i>=0;i--){
+            if(ans.length()==0 && i==0)continue;
+            while(v[i]>1){
+                ans.append((char)(i+48));
+                v[i]-=2;
+            }
+            if(v[i]==1 && single == -1)single = i;
+        }
+        if(ans.length()==0 && single==-1)return "0";
+        int i = ans.length()-1;
+        if(single!=-1)ans.append((char)(single+48));
+        for(;i>=0;i--){
+            ans.append(ans.charAt(i));
+        }
+        return ans.toString();
+    }
+}
+
+
+or
+
+
+class Solution {
+    public String largestPalindromic(String num) {
+        char[] ch = num.toCharArray();
+        int n = ch.length;
+        int[] hash = new int[10];
+        for(int i = 0 ; i < n ; i++){
+            hash[ch[i] - '0']++;
+        }
+        if(hash[0] == n){
+            return "0";
+        }
+        StringBuilder first = new StringBuilder();
+        char middle = 'a';
+        boolean middle_flag = true;
+        for(int i = 9 ; i >= 0 ; i--){
+            if(middle_flag && hash[i] % 2 != 0){
+                middle_flag = false;
+                middle = (char)(i + '0');
+            }
+            int freq = hash[i] / 2;
+            while(freq-- > 0){
+                first.append(i);
+            }
+        }
+        if(first.length() > 0 && first.charAt(0) == '0'){
+            return String.valueOf(middle);
+        }
+        StringBuilder last = new StringBuilder(first);
+        if(!middle_flag){
+            first.append(middle);
+        }
+        first.append(last.reverse());
+        return new String(first);
+    }
+}
+
+
+or
+
+
+
