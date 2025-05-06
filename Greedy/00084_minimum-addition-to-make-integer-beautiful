@@ -1,0 +1,157 @@
+https://leetcode.com/problems/minimum-addition-to-make-integer-beautiful/description/
+
+2457. Minimum Addition to Make Integer Beautiful
+Medium
+Topics
+Companies
+Hint
+You are given two positive integers n and target.
+
+An integer is considered beautiful if the sum of its digits is less than or equal to target.
+
+Return the minimum non-negative integer x such that n + x is beautiful. The input will be generated such that it is always possible to make n beautiful.
+
+ 
+
+Example 1:
+
+Input: n = 16, target = 6
+Output: 4
+Explanation: Initially n is 16 and its digit sum is 1 + 6 = 7. After adding 4, n becomes 20 and digit sum becomes 2 + 0 = 2. It can be shown that we can not make n beautiful with adding non-negative integer less than 4.
+Example 2:
+
+Input: n = 467, target = 6
+Output: 33
+Explanation: Initially n is 467 and its digit sum is 4 + 6 + 7 = 17. After adding 33, n becomes 500 and digit sum becomes 5 + 0 + 0 = 5. It can be shown that we can not make n beautiful with adding non-negative integer less than 33.
+Example 3:
+
+Input: n = 1, target = 1
+Output: 0
+Explanation: Initially n is 1 and its digit sum is 1, which is already smaller than or equal to target.
+ 
+
+Constraints:
+
+1 <= n <= 1012
+1 <= target <= 150
+The input will be generated such that it is always possible to make n beautiful.
+
+
+
+# java
+
+
+class Solution {
+    public long makeIntegerBeautiful(long n, int target) {
+        long x = 0;
+        while (f(n + x) > target) {
+            long y = n + x;
+            long p = 10;
+            while (y % 10 == 0) {
+                y /= 10;
+                p *= 10;
+            }
+            x = (y / 10 + 1) * p - n;
+        }
+        return x;
+    }
+
+    private int f(long x) {
+        int y = 0;
+        while (x > 0) {
+            y += x % 10;
+            x /= 10;
+        }
+        return y;
+    }
+}
+
+
+or
+
+
+class Solution {
+        private int sum(long n) {
+        int res = 0;
+        while (n > 0) {
+            res += n % 10;
+            n /= 10;
+        }
+        return res;
+    }
+
+    public long makeIntegerBeautiful(long n, int target) {
+        long n0 = n, base = 1;
+        while (sum(n) > target) {
+            n = n / 10 + 1;
+            base *= 10;
+        }
+        return n * base - n0;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public long makeIntegerBeautiful(long n, int target) {
+        long x = n, mul = 1;
+
+        while (sum(x) > target) {
+            x = x / 10 + 1;
+            mul *= 10;
+        }
+
+        return x * mul - n;
+    }
+
+    public long sum(long n) {
+        long sum = 0;
+
+        while (n != 0) {
+            sum += n % 10;
+            n /= 10;
+        }
+
+        return sum;
+    }
+}
+
+// TC: O(logn * logn), SC: O(1)
+
+
+or
+
+
+class Solution {
+    public long makeIntegerBeautiful(long n, int target) {
+        long result = 0, nCopy = n, beautyNumber = n;
+        int digitSum = getDigitSum(nCopy), round = 1;
+        if (digitSum <= target){
+            return result;
+        }
+
+        while (digitSum > target){
+            nCopy /= 10;
+            beautyNumber = (long) ((nCopy + 1) * Math.pow(10, round));
+            digitSum = getDigitSum(beautyNumber);
+            round++;
+        }
+        return beautyNumber - n;
+    }
+
+    private static int getDigitSum(long n){
+        int result = 0;
+        while (n > 0){
+            result += n % 10;
+            n /= 10;
+        }
+        return result;
+    }
+}
+
+
+or
+
+
