@@ -1,0 +1,153 @@
+https://leetcode.com/problems/append-k-integers-with-minimal-sum/description/
+
+
+2195. Append K Integers With Minimal Sum
+Medium
+Topics
+Companies
+Hint
+You are given an integer array nums and an integer k. Append k unique positive integers that do not appear in nums to nums such that the resulting total sum is minimum.
+
+Return the sum of the k integers appended to nums.
+
+ 
+
+Example 1:
+
+Input: nums = [1,4,25,10,25], k = 2
+Output: 5
+Explanation: The two unique positive integers that do not appear in nums which we append are 2 and 3.
+The resulting sum of nums is 1 + 4 + 25 + 10 + 25 + 2 + 3 = 70, which is the minimum.
+The sum of the two integers appended is 2 + 3 = 5, so we return 5.
+Example 2:
+
+Input: nums = [5,6], k = 6
+Output: 25
+Explanation: The six unique positive integers that do not appear in nums which we append are 1, 2, 3, 4, 7, and 8.
+The resulting sum of nums is 5 + 6 + 1 + 2 + 3 + 4 + 7 + 8 = 36, which is the minimum. 
+The sum of the six integers appended is 1 + 2 + 3 + 4 + 7 + 8 = 25, so we return 25.
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+1 <= nums[i] <= 109
+1 <= k <= 108
+
+
+# java
+
+
+
+class Solution {
+  public long minimalKSum(int[] nums, int k) {
+    long ans = 0;
+    Arrays.sort(nums);
+
+    if (nums[0] > 1) {
+      final int l = 1;
+      final int r = Math.min(k, nums[0] - 1);
+      ans += (long) (l + r) * (r - l + 1) / 2;
+      k -= r - l + 1;
+      if (k == 0)
+        return ans;
+    }
+
+    for (int i = 0; i + 1 < nums.length; ++i) {
+      if (nums[i] == nums[i + 1])
+        continue;
+      final int l = nums[i] + 1;
+      final int r = Math.min(nums[i] + k, nums[i + 1] - 1);
+      ans += (long) (l + r) * (r - l + 1) / 2;
+      k -= r - l + 1;
+      if (k == 0)
+        return ans;
+    }
+
+    if (k > 0) {
+      final int l = nums[nums.length - 1] + 1;
+      final int r = nums[nums.length - 1] + k;
+      ans += (long) (l + r) * (r - l + 1) / 2;
+    }
+
+    return ans;
+  }
+}
+
+
+or
+
+class Solution {
+    public long minimalKSum(int[] nums, int k) {
+        int[] arr = new int[nums.length + 2];
+        arr[arr.length - 1] = (int) 2e9;
+        for (int i = 0; i < nums.length; ++i) {
+            arr[i + 1] = nums[i];
+        }
+        Arrays.sort(arr);
+        long ans = 0;
+        for (int i = 1; i < arr.length; ++i) {
+            int a = arr[i - 1], b = arr[i];
+            int n = Math.min(k, b - a - 1);
+            if (n <= 0) {
+                continue;
+            }
+            k -= n;
+            ans += (long) (a + 1 + a + n) * n / 2;
+            if (k == 0) {
+                break;
+            }
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+    public long minimalKSum(int[] nums, int k) {
+        Arrays.sort(nums);
+        Set<Integer> set = new HashSet<>();
+        long sum = 0;
+
+        for (int num : nums) {
+            if (!set.contains(num) && num <= k) {
+                k++;
+                sum += num;
+            }
+            set.add(num);
+        }
+
+        long res = (long) (1 + k) * k / 2 - sum;
+        return res;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+        public long minimalKSum(int[] nums, int k) {
+        long ans = k * (k + 1L) / 2;
+        TreeSet<Integer> unique = new TreeSet<>();
+        for (int num : nums) {
+            unique.add(num);
+        }
+        while (!unique.isEmpty()) {
+            int first = unique.pollFirst();
+            if (k >= first) {
+                ans += ++k - first;
+            }
+        }
+        return ans;
+    }
+}
+
+
+or
+
