@@ -89,4 +89,41 @@ class Solution {
     }
 }
 
+or
+
+
+class Solution {
+     public int getMaximumConsecutive(int[] coins) {
+        Arrays.sort(coins);
+        int result=1;
+        
+        int idx=0;
+        while(idx<coins.length && result>=coins[idx]){
+            result+=coins[idx];
+            idx++;
+        }
+        return result;
+    }
+}
+
+
+
+or
+
+
+class Solution {
+        public int getMaximumConsecutive(int[] A) {
+        Arrays.sort(A);
+        int res = 1;
+        for (int a: A) {
+            if (a > res) break;
+            res += a;
+        }
+        return res;
+    }
+}
+
+
+or
+
 
