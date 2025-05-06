@@ -1,0 +1,314 @@
+https://leetcode.com/problems/next-greater-node-in-linked-list/description/
+
+1019. Next Greater Node In Linked List
+Medium
+Topics
+Companies
+Hint
+You are given the head of a linked list with n nodes.
+
+For each node in the list, find the value of the next greater node. That is, for each node, find the value of the first node that is next to it and has a strictly larger value than it.
+
+Return an integer array answer where answer[i] is the value of the next greater node of the ith node (1-indexed). If the ith node does not have a next greater node, set answer[i] = 0.
+
+ 
+
+Example 1:
+
+
+Input: head = [2,1,5]
+Output: [5,5,0]
+Example 2:
+
+
+Input: head = [2,7,4,3,5]
+Output: [7,0,5,5,0]
+ 
+
+Constraints:
+
+The number of nodes in the list is n.
+1 <= n <= 104
+1 <= Node.val <= 109
+
+
+
+# jvaa
+
+
+
+class Solution {
+  public int[] nextLargerNodes(ListNode head) {
+    List<Integer> ans = new ArrayList<>();
+    Deque<Integer> stack = new ArrayDeque<>();
+
+    for (; head != null; head = head.next) {
+      while (!stack.isEmpty() && head.val > ans.get(stack.peek())) {
+        int index = stack.pop();
+        ans.set(index, head.val);
+      }
+      stack.push(ans.size());
+      ans.add(head.val);
+    }
+
+    while (!stack.isEmpty())
+      ans.set(stack.pop(), 0);
+
+    return ans.stream().mapToInt(Integer::intValue).toArray();
+  }
+}
+
+
+or
+
+
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    public int[] nextLargerNodes(ListNode head) {
+        List<Integer> nums = new ArrayList<>();
+        for (; head != null; head = head.next) {
+            nums.add(head.val);
+        }
+        Deque<Integer> stk = new ArrayDeque<>();
+        int n = nums.size();
+        int[] ans = new int[n];
+        for (int i = n - 1; i >= 0; --i) {
+            while (!stk.isEmpty() && stk.peek() <= nums.get(i)) {
+                stk.pop();
+            }
+            if (!stk.isEmpty()) {
+                ans[i] = stk.peek();
+            }
+            stk.push(nums.get(i));
+        }
+        return ans;
+    }
+}
+
+
+or
+
+
+
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+
+class Solution {
+    public int[] nextLargerNodes(ListNode head) {
+        List<Integer> values = new ArrayList<>();
+        while (head != null) {
+            values.add(head.val);
+            head = head.next;
+        }
+        
+        int n = values.size();
+        int[] answer = new int[n];
+        Stack<Integer> stack = new Stack<>();
+        
+        for (int i = 0; i < n; ++i) {
+            while (!stack.isEmpty() && values.get(stack.peek()) < values.get(i)) {
+                answer[stack.peek()] = values.get(i);
+                stack.pop();
+            }
+            stack.add(i);
+        }
+        return answer;
+    }
+}
+
+
+
+or
+
+
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+
+class Solution {
+    public int[] nextLargerNodes(ListNode head) {
+        List<Integer> answer = new ArrayList<>();
+        Stack<int[]> stack = new Stack<>();
+        // We use an integer 'cnt' to represent the index.
+        int cnt = 0;
+
+        while (head != null) {
+            // Set the next greater value of the current value 'head.val' as 0 by default.
+            answer.add(0);
+            while (!stack.isEmpty() && head.val > stack.peek()[1]) {
+                int[] curr = stack.peek();
+                int id = curr[0], val = curr[1];
+                stack.pop();
+                answer.set(id, head.val);
+            }
+             // Add both the index and the value to stack.
+            stack.add(new int[]{cnt++, head.val});
+            head = head.next;
+        }
+    
+        return answer.stream().mapToInt(i -> i).toArray();
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int[] nextLargerNodes(ListNode head) {
+        // decreasing stack
+        Deque<int[]> stack = new ArrayDeque<>(); // index of elements
+        
+        int n = getSize(head); // get the length of linked list
+        int[] res = new int[n];
+        int i = 0;
+        ListNode cur = head;
+        while(cur != null){
+            while(!stack.isEmpty() && cur.val > stack.peekFirst()[1]){
+                int[] prev = stack.pollFirst();
+                res[prev[0]] = cur.val;
+            }
+            stack.offerFirst(new int[]{i, cur.val});
+            i++;
+            cur = cur.next;
+        }
+        
+        return res;
+    }
+    
+    public int getSize(ListNode head){
+        ListNode cur = head;
+        int size = 0;
+        while(cur != null){
+            cur = cur.next;
+            size++;
+        }
+        return size;
+    }
+}
+
+
+
+or
+
+
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+        public int[] nextLargerNodes(ListNode head) {
+        List<Integer> l = new ArrayList<>();
+        Deque<Integer> s = new ArrayDeque<>();
+        for (ListNode n = head; n != null; n = n.next) {
+            while (!s.isEmpty() && n.val > l.get(s.peek())) { // see 3. for details.
+                l.set(s.pop(), n.val); 
+            }
+            s.push(l.size()); // push into stack the index of the element that has not found next greater node yet.
+            l.add(n.val); // add the new node value.
+        }
+        for (int i : s) {// now stack contains only indices of nodes without next greater node.
+            l.set(i, 0); 
+        } 
+        return l.stream().mapToInt(i -> i).toArray(); // convert ArrayList to int[].
+    }
+}
+
+or
+
+class Solution {
+    public int[] nextLargerNodes(ListNode head) {
+        int[] arr = new int[listLength(head)];
+        int i = 0;
+        while(head != null) {
+            arr[i++] = findNextLargeNode(head, head.val);
+            head = head.next;
+        }
+        return arr;
+    }
+    public static int findNextLargeNode(ListNode node, int val){
+        int nodeVal = 0;
+        while(node != null) {
+            if(node.val > val) {
+                nodeVal = node.val;
+                break;
+            }
+            node = node.next;
+        }
+        return nodeVal;
+    }
+    public static int listLength(ListNode node) {
+        int length = 0;
+        while(node != null) {
+            node = node.next;
+            length++;
+        }
+        return length;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int[] nextLargerNodes(ListNode head) {
+    Stack<Integer> st = new Stack<>(); // Stack to hold indices of the nodes
+    ArrayList<Integer> list = new ArrayList<>(); // ArrayList to store node values
+    ListNode temp = head; // Temporary pointer to traverse the linked list
+    
+    // Step 1: Convert the linked list to an ArrayList for easy access by index
+    while (temp != null) {
+        list.add(temp.val); // Add the node's value to the list
+        temp = temp.next; // Move to the next node
+    }
+    
+    int[] ans = new int[list.size()]; // Array to store the answer
+    for (int i = 0; i < list.size(); i++) { // Step 2: Traverse the list by index
+        // Step 3: Pop elements from the stack if the current element is larger
+        while (!st.isEmpty() && list.get(i) > list.get(st.peek())) {
+            ans[st.pop()] = list.get(i); // Set the answer for the popped index
+        }
+        st.push(i); // Push the current index onto the stack
+    }
+    
+    // Step 4: Return the final answer array
+    return ans;
+}
+}
+
+
