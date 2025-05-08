@@ -1,0 +1,191 @@
+https://leetcode.com/problems/minimum-operations-to-make-subarray-elements-equal/description/
+
+3422. Minimum Operations to Make Subarray Elements Equal 🔒
+Description
+You are given an integer array nums and an integer k. You can perform the following operation any number of times:
+
+Increase or decrease any element of nums by 1.
+Return the minimum number of operations required to ensure that at least one subarray of size k in nums has all elements equal.
+
+ 
+
+Example 1:
+
+Input: nums = [4,-3,2,1,-4,6], k = 3
+
+Output: 5
+
+Explanation:
+
+Use 4 operations to add 4 to nums[1]. The resulting array is [4, 1, 2, 1, -4, 6].
+Use 1 operation to subtract 1 from nums[2]. The resulting array is [4, 1, 1, 1, -4, 6].
+The array now contains a subarray [1, 1, 1] of size k = 3 with all elements equal. Hence, the answer is 5.
+Example 2:
+
+Input: nums = [-2,-2,3,1,4], k = 2
+
+Output: 0
+
+Explanation:
+
+The subarray [-2, -2] of size k = 2 already contains all equal elements, so no operations are needed. Hence, the answer is 0.
+
+ 
+
+Constraints:
+
+2 <= nums.length <= 105
+-106 <= nums[i] <= 106
+2 <= k <= nums.length
+
+
+# java
+
+
+
+class SumMultiset {
+  public TreeMap<Integer, Integer> nums = new TreeMap<>();
+  public long sum = 0;
+  public int size = 0;
+
+  public void insert(int val) {
+    nums.merge(val, 1, Integer::sum);
+    sum += val;
+    ++size;
+  }
+
+  public void erase(int val) {
+    nums.merge(val, -1, Integer::sum);
+    if (nums.get(val) == 0)
+      nums.remove(val);
+    sum -= val;
+    --size;
+  }
+}
+
+class MedianTracker {
+  public MedianTracker(int k) {
+    this.k = k;
+  }
+
+  public void add(int val) {
+    below.insert(val);
+    balance();
+  }
+
+  public void remove(int val) {
+    if (below.nums.containsKey(val))
+      below.erase(val);
+    else
+      above.erase(val);
+  }
+
+  public long getCost() {
+    return above.sum - below.sum - (k % 2 == 1 ? above.nums.firstKey() : 0L);
+  }
+
+  private SumMultiset below = new SumMultiset();
+  private SumMultiset above = new SumMultiset();
+  private int k;
+
+  private void balance() {
+    // Move excessive numbers from `below` to `above`.
+    while (below.size > k / 2) {
+      final int mx = below.nums.lastKey();
+      below.erase(mx);
+      above.insert(mx);
+    }
+
+    // Balance `below` and `above`.
+    while (!above.nums.isEmpty()) {
+      final int mx = below.nums.lastKey();
+      final int mn = above.nums.firstKey();
+      if (mx <= mn)
+        break;
+      below.erase(mx);
+      above.erase(mn);
+      below.insert(mn);
+      above.insert(mx);
+    }
+  }
+}
+
+class Solution {
+  public long minOperations(int[] nums, int k) {
+    MedianTracker tracker = new MedianTracker(k);
+
+    for (int i = 0; i < k; ++i)
+      tracker.add(nums[i]);
+
+    long ans = tracker.getCost();
+
+    for (int i = k; i < nums.length; ++i) {
+      tracker.remove(nums[i - k]);
+      tracker.add(nums[i]);
+      ans = Math.min(ans, tracker.getCost());
+    }
+
+    return ans;
+  }
+}
+
+
+
+
+or
+
+
+class Solution {
+    public long minOperations(int[] nums, int k) {
+        TreeMap<Integer, Integer> l = new TreeMap<>();
+        TreeMap<Integer, Integer> r = new TreeMap<>();
+        long s1 = 0, s2 = 0;
+        int sz1 = 0, sz2 = 0;
+        long ans = Long.MAX_VALUE;
+        for (int i = 0; i < nums.length; ++i) {
+            l.merge(nums[i], 1, Integer::sum);
+            s1 += nums[i];
+            ++sz1;
+            int y = l.lastKey();
+            if (l.merge(y, -1, Integer::sum) == 0) {
+                l.remove(y);
+            }
+            s1 -= y;
+            --sz1;
+            r.merge(y, 1, Integer::sum);
+            s2 += y;
+            ++sz2;
+            if (sz2 - sz1 > 1) {
+                y = r.firstKey();
+                if (r.merge(y, -1, Integer::sum) == 0) {
+                    r.remove(y);
+                }
+                s2 -= y;
+                --sz2;
+                l.merge(y, 1, Integer::sum);
+                s1 += y;
+                ++sz1;
+            }
+            if (i >= k - 1) {
+                ans = Math.min(ans, s2 - r.firstKey() * sz2 + r.firstKey() * sz1 - s1);
+                int j = i - k + 1;
+                if (r.containsKey(nums[j])) {
+                    if (r.merge(nums[j], -1, Integer::sum) == 0) {
+                        r.remove(nums[j]);
+                    }
+                    s2 -= nums[j];
+                    --sz2;
+                } else {
+                    if (l.merge(nums[j], -1, Integer::sum) == 0) {
+                        l.remove(nums[j]);
+                    }
+                    s1 -= nums[j];
+                    --sz1;
+                }
+            }
+        }
+        return ans;
+    }
+}
+
+
