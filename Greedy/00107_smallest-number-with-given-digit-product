@@ -1,0 +1,81 @@
+https://leetcode.com/problems/smallest-number-with-given-digit-product/description/
+
+
+2847. Smallest Number With Given Digit Product
+Description
+Given a positive integer n, return a string representing the smallest positive integer such that the product of its digits is equal to n, or "-1" if no such number exists.
+
+ 
+
+Example 1:
+
+Input: n = 105
+Output: "357"
+Explanation: 3 * 5 * 7 = 105. It can be shown that 357 is the smallest number with a product of digits equal to 105. So the answer would be "105".
+Example 2:
+
+Input: n = 7
+Output: "7"
+Explanation: Since 7 has only one digit, its product of digits would be 7. We will show that 7 is the smallest number with a product of digits equal to 7. Since the product of numbers 1 to 6 is 1 to 6 respectively, so "7" would be the answer.
+Example 3:
+
+Input: n = 44
+Output: "-1"
+Explanation: It can be shown that there is no number such that its product of digits is equal to 44. So the answer would be "-1".
+ 
+
+Constraints:
+
+1 <= n <= 1018
+
+
+# java
+
+
+
+class Solution {
+  public String smallestNumber(long n) {
+    if (n <= 9)
+      return Long.toString(n);
+
+    StringBuilder ans = new StringBuilder();
+
+    for (int divisor = 9; divisor > 1; --divisor)
+      while (n % divisor == 0) {
+        ans.append(Integer.toString(divisor));
+        n /= divisor;
+      }
+
+    return n > 1 ? "-1" : ans.reverse().toString();
+  }
+}
+
+
+or
+
+
+class Solution {
+    public String smallestNumber(long n) {
+        int[] cnt = new int[10];
+        for (int i = 9; i > 1; --i) {
+            while (n % i == 0) {
+                ++cnt[i];
+                n /= i;
+            }
+        }
+        if (n > 1) {
+            return "-1";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 2; i < 10; ++i) {
+            while (cnt[i] > 0) {
+                sb.append(i);
+                --cnt[i];
+            }
+        }
+        String ans = sb.toString();
+        return ans.isEmpty() ? "1" : ans;
+    }
+}
+
+
