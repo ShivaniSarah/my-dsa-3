@@ -1,0 +1,117 @@
+https://leetcode.com/problems/number-of-equal-count-substrings/description/
+
+2067. Number of Equal Count Substrings
+Description
+You are given a 0-indexed string s consisting of only lowercase English letters, and an integer count. A substring of s is said to be an equal count substring if, for each unique letter in the substring, it appears exactly count times in the substring.
+
+Return the number of equal count substrings in s.
+
+A substring is a contiguous non-empty sequence of characters within a string.
+
+ 
+
+Example 1:
+
+Input: s = "aaabcbbcc", count = 3
+Output: 3
+Explanation:
+The substring that starts at index 0 and ends at index 2 is "aaa".
+The letter 'a' in the substring appears exactly 3 times.
+The substring that starts at index 3 and ends at index 8 is "bcbbcc".
+The letters 'b' and 'c' in the substring appear exactly 3 times.
+The substring that starts at index 0 and ends at index 8 is "aaabcbbcc".
+The letters 'a', 'b', and 'c' in the substring appear exactly 3 times.
+Example 2:
+
+Input: s = "abcd", count = 2
+Output: 0
+Explanation:
+The number of times each letter appears in s is less than count.
+Therefore, no substrings in s are equal count substrings, so return 0.
+Example 3:
+
+Input: s = "a", count = 5
+Output: 0
+Explanation:
+The number of times each letter appears in s is less than count.
+Therefore, no substrings in s are equal count substrings, so return 0
+ 
+
+Constraints:
+
+1 <= s.length <= 3 * 104
+1 <= count <= 3 * 104
+s consists only of lowercase English letters.
+
+
+
+# java
+
+
+class Solution {
+  public int equalCountSubstrings(String s, int count) {
+    final int maxUnique = s.chars().mapToObj(c -> (char) c).collect(Collectors.toSet()).size();
+    int ans = 0;
+
+    for (int unique = 1; unique <= maxUnique; ++unique) {
+      final int windowSize = unique * count;
+      int[] lettersCount = new int[26];
+      int uniqueCount = 0;
+      for (int i = 0; i < s.length(); ++i) {
+        if (++lettersCount[s.charAt(i) - 'a'] == count)
+          ++uniqueCount;
+        if (i >= windowSize && --lettersCount[s.charAt(i - windowSize) - 'a'] == count - 1)
+          --uniqueCount;
+        ans += uniqueCount == unique ? 1 : 0;
+      }
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int equalCountSubstrings(String s, int count) {
+        int ans = 0;
+        int n = s.length();
+        for (int x = 1; x < 27 && count * x <= n; ++x) {
+            int m = count * x;
+            int[] cnt = new int[26];
+            int y = 0;
+            for (int i = 0; i < n; ++i) {
+                int a = s.charAt(i) - 'a';
+                ++cnt[a];
+                if (cnt[a] == count) {
+                    ++y;
+                }
+                if (cnt[a] == count + 1) {
+                    --y;
+                }
+                int j = i - m;
+                if (j >= 0) {
+                    int b = s.charAt(j) - 'a';
+                    --cnt[b];
+                    if (cnt[b] == count) {
+                        ++y;
+                    }
+                    if (cnt[b] == count - 1) {
+                        --y;
+                    }
+                }
+                if (x == y) {
+                    ++ans;
+                }
+            }
+        }
+        return ans;
+    }
+}
+
+
+
