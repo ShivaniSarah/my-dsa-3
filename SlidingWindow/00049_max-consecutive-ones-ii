@@ -1,0 +1,132 @@
+https://leetcode.com/problems/max-consecutive-ones-ii/description/
+
+
+
+487. Max Consecutive Ones II
+Description
+Given a binary array nums, return the maximum number of consecutive 1's in the array if you can flip at most one 0.
+
+ 
+
+Example 1:
+
+Input: nums = [1,0,1,1,0]
+Output: 4
+Explanation: 
+- If we flip the first zero, nums becomes [1,1,1,1,0] and we have 4 consecutive ones.
+- If we flip the second zero, nums becomes [1,0,1,1,1] and we have 3 consecutive ones.
+The max number of consecutive ones is 4.
+Example 2:
+
+Input: nums = [1,0,1,1,0,1]
+Output: 4
+Explanation: 
+- If we flip the first zero, nums becomes [1,1,1,1,0,1] and we have 4 consecutive ones.
+- If we flip the second zero, nums becomes [1,0,1,1,1,1] and we have 4 consecutive ones.
+The max number of consecutive ones is 4.
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+nums[i] is either 0 or 1.
+ 
+
+Follow up: What if the input numbers come in one by one as an infinite stream? In other words, you can't store all numbers coming from the stream as it's too large to hold in memory. Could you solve it efficiently?
+
+
+
+# java
+
+
+class Solution {
+  public int findMaxConsecutiveOnes(int[] nums) {
+    int ans = 0;
+    int zeros = 0;
+
+    for (int l = 0, r = 0; r < nums.length; ++r) {
+      if (nums[r] == 0)
+        ++zeros;
+      while (zeros == 2)
+        if (nums[l++] == 0)
+          --zeros;
+      ans = Math.max(ans, r - l + 1);
+    }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+  public int findMaxConsecutiveOnes(int[] nums) {
+    final int maxZeros = 1;
+    int ans = 0;
+    // Store indices of zero.
+    Queue<Integer> q = new ArrayDeque<>();
+
+    for (int l = 0, r = 0; r < nums.length; ++r) {
+      if (nums[r] == 0)
+        q.offer(r);
+      if (q.size() > maxZeros)
+        l = q.poll() + 1;
+      ans = Math.max(ans, r - l + 1);
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+class Solution {
+  public int findMaxConsecutiveOnes(int[] nums) {
+    int ans = 0;
+    int lastZeroIndex = -1;
+
+    for (int l = 0, r = 0; r < nums.length; ++r) {
+      if (nums[r] == 0) {
+        l = lastZeroIndex + 1;
+        lastZeroIndex = r;
+      }
+      ans = Math.max(ans, r - l + 1);
+    }
+
+    return ans;
+  }
+}
+
+
+
+
+or
+
+
+
+
+class Solution {
+    public int findMaxConsecutiveOnes(int[] nums) {
+        int l = 0, r = 0;
+        int k = 1;
+        while (r < nums.length) {
+            if (nums[r++] == 0) {
+                --k;
+            }
+            if (k < 0 && nums[l++] == 0) {
+                ++k;
+            }
+        }
+        return r - l;
+    }
+}
+
+
+
+
