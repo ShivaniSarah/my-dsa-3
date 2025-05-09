@@ -1,0 +1,137 @@
+https://leetcode.com/problems/maximum-sized-array/description/
+
+3344. Maximum Sized Array 🔒
+Description
+Given a positive integer s, let A be a 3D array of dimensions n × n × n, where each element A[i][j][k] is defined as:
+
+A[i][j][k] = i * (j OR k), where 0 <= i, j, k < n.
+Return the maximum possible value of n such that the sum of all elements in array A does not exceed s.
+
+ 
+
+Example 1:
+
+Input: s = 10
+
+Output: 2
+
+Explanation:
+
+Elements of the array A for n = 2:
+A[0][0][0] = 0 * (0 OR 0) = 0
+A[0][0][1] = 0 * (0 OR 1) = 0
+A[0][1][0] = 0 * (1 OR 0) = 0
+A[0][1][1] = 0 * (1 OR 1) = 0
+A[1][0][0] = 1 * (0 OR 0) = 0
+A[1][0][1] = 1 * (0 OR 1) = 1
+A[1][1][0] = 1 * (1 OR 0) = 1
+A[1][1][1] = 1 * (1 OR 1) = 1
+The total sum of the elements in array A is 3, which does not exceed 10, so the maximum possible value of n is 2.
+Example 2:
+
+Input: s = 0
+
+Output: 1
+
+Explanation:
+
+Elements of the array A for n = 1:
+A[0][0][0] = 0 * (0 OR 0) = 0
+The total sum of the elements in array A is 0, which does not exceed 0, so the maximum possible value of n is 1.
+ 
+
+Constraints:
+
+0 <= s <= 1015
+
+
+
+# java
+
+
+class Solution {
+  public int maxSizedArray(long s) {
+    if (s == 0)
+      return 1;
+
+    int l = 0;
+    int r = 1196; // when s = 10^15, n = 1196
+
+    while (l < r) {
+      final int m = (l + r + 1) / 2;
+      if (getArraySum(m) <= s)
+        l = m;
+      else
+        r = m - 1;
+    }
+
+    return l;
+  }
+
+  // Returns the number of integers in [0, n - 1] with the i-th bit set.
+  //
+  // For the i-th bit, numbers in the range [0, n - 1] can be divided into
+  // groups of 2^(i + 1) numbers. In each group, exactly half of the numbers
+  // have the i-th bit set.
+  private int getNumbersWithBitSet(int n, int i) {
+    final int groupSize = 1 << (i + 1);
+    final int halfGroupSize = 1 << i;
+    final int fullGroups = n / groupSize;
+    final int remaining = Math.max(0, (n % groupSize) - halfGroupSize);
+    return fullGroups * halfGroupSize + remaining;
+  }
+
+  // Returns the sum of all i * (j OR k) values in 3D arrays of size n^3.
+  //
+  //   sum(i * (j OR k)), where 0 <= i, j, k < n
+  // = 0 * (j OR k) + 1 * (j OR k) + ... + (n - 1) * (j OR k)
+  // = (0 + 1 + ... + n - 1) * sum(j OR k)
+  // = (n * (n - 1) / 2) * sum(j OR k)
+  private long getArraySum(int n) {
+    final int arithmeticSum = n * (n - 1) / 2;
+    long orSum = 0;
+    for (int i = 0; i < bitLength(n); i++) {
+      int numbersWithoutBit = n - getNumbersWithBitSet(n, i);
+      long pairsWithBit = (long) n * n - (long) numbersWithoutBit * numbersWithoutBit;
+      orSum += pairsWithBit * (1L << i);
+    }
+    return arithmeticSum * orSum;
+  }
+
+  private int bitLength(int n) {
+    return 32 - Integer.numberOfLeadingZeros(n);
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    private static final int MX = 1330;
+    private static final long[] f = new long[MX];
+    static {
+        for (int i = 1; i < MX; ++i) {
+            f[i] = f[i - 1] + i;
+            for (int j = 0; j < i; ++j) {
+                f[i] += 2 * (i | j);
+            }
+        }
+    }
+    public int maxSizedArray(long s) {
+        int l = 1, r = MX;
+        while (l < r) {
+            int m = (l + r + 1) >> 1;
+            if (f[m - 1] * (m - 1) * m / 2 <= s) {
+                l = m;
+            } else {
+                r = m - 1;
+            }
+        }
+        return l;
+    }
+}
+
+
+
