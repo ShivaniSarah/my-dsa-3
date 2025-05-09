@@ -1,14 +1,14 @@
-https://leetcode.com/problems/nested-list-weight-sum-ii/description/
+https://leetcode.com/problems/nested-list-weight-sum/description/
 
-364. Nested List Weight Sum II
+
+
+339. Nested List Weight Sum
 Description
 You are given a nested list of integers nestedList. Each element is either an integer or a list whose elements may also be integers or other lists.
 
-The depth of an integer is the number of lists that it is inside of. For example, the nested list [1,[2,2],[[3],2],1] has each integer's value set to its depth. Let maxDepth be the maximum depth of any integer.
+The depth of an integer is the number of lists that it is inside of. For example, the nested list [1,[2,2],[[3],2],1] has each integer's value set to its depth.
 
-The weight of an integer is maxDepth - (the depth of the integer) + 1.
-
-Return the sum of each integer in nestedList multiplied by its weight.
+Return the sum of each integer in nestedList multiplied by its depth.
 
  
 
@@ -17,17 +17,19 @@ Example 1:
 
 
 Input: nestedList = [[1,1],2,[1,1]]
-Output: 8
-Explanation: Four 1's with a weight of 1, one 2 with a weight of 2.
-1*1 + 1*1 + 2*2 + 1*1 + 1*1 = 8
+Output: 10
+Explanation: Four 1's at depth 2, one 2 at depth 1. 1*2 + 1*2 + 2*1 + 1*2 + 1*2 = 10.
 Example 2:
 
 
 
 Input: nestedList = [1,[4,[6]]]
-Output: 17
-Explanation: One 1 at depth 3, one 4 at depth 2, and one 6 at depth 1.
-1*3 + 4*2 + 6*1 = 17
+Output: 27
+Explanation: One 1 at depth 1, one 4 at depth 2, and one 6 at depth 3. 1*1 + 4*2 + 6*3 = 27.
+Example 3:
+
+Input: nestedList = [0]
+Output: 0
  
 
 Constraints:
@@ -38,33 +40,8 @@ The maximum depth of any integer is less than or equal to 50.
 
 
 
- #java
 
-
-
-class Solution {
-  public int depthSumInverse(List<NestedInteger> nestedList) {
-    int ans = 0;
-    int prevSum = 0;
-    Queue<NestedInteger> q = new ArrayDeque<>(nestedList);
-
-    while (!q.isEmpty()) {
-      for (int sz = q.size(); sz > 0; --sz) {
-        final NestedInteger ni = q.poll();
-        if (ni.isInteger())
-          prevSum += ni.getInteger();
-        else
-          q.addAll(ni.getList());
-      }
-      ans += prevSum;
-    }
-
-    return ans;
-  }
-}
-
-
-or
+# java
 
 
 
@@ -97,20 +74,8 @@ or
  * }
  */
 class Solution {
-    public int depthSumInverse(List<NestedInteger> nestedList) {
-        int depth = maxDepth(nestedList);
-        return dfs(nestedList, depth);
-    }
-
-    private int maxDepth(List<NestedInteger> nestedList) {
-        int depth = 1;
-        for (NestedInteger item : nestedList) {
-            if (item.isInteger()) {
-                continue;
-            }
-            depth = Math.max(depth, 1 + maxDepth(item.getList()));
-        }
-        return depth;
+    public int depthSum(List<NestedInteger> nestedList) {
+        return dfs(nestedList, 1);
     }
 
     private int dfs(List<NestedInteger> nestedList, int depth) {
@@ -119,12 +84,65 @@ class Solution {
             if (item.isInteger()) {
                 depthSum += item.getInteger() * depth;
             } else {
-                depthSum += dfs(item.getList(), depth - 1);
+                depthSum += dfs(item.getList(), depth + 1);
             }
         }
         return depthSum;
     }
 }
 
+
+
+or
+
+
+class Solution {
+  public int depthSum(List<NestedInteger> nestedList) {
+    int ans = 0;
+    int depth = 0;
+    Queue<NestedInteger> q = new ArrayDeque<>();
+
+    addIntegers(q, nestedList);
+
+    while (!q.isEmpty()) {
+      ++depth;
+      for (int sz = q.size(); sz > 0; --sz) {
+        final NestedInteger ni = q.poll();
+        if (ni.isInteger())
+          ans += ni.getInteger() * depth;
+        else
+          addIntegers(q, ni.getList());
+      }
+    }
+
+    return ans;
+  }
+
+  private void addIntegers(Queue<NestedInteger> q, List<NestedInteger> nestedList) {
+    for (final NestedInteger ni : nestedList)
+      q.offer(ni);
+  }
+}
+
+
+or
+
+
+class Solution {
+  public int depthSum(List<NestedInteger> nestedList) {
+    dfs(nestedList, 1);
+    return ans;
+  }
+
+  private int ans = 0;
+
+  private void dfs(final List<NestedInteger> nestedList, int depth) {
+    for (final NestedInteger ni : nestedList)
+      if (ni.isInteger())
+        ans += ni.getInteger() * depth;
+      else
+        dfs(ni.getList(), depth + 1);
+  }
+}
 
 
