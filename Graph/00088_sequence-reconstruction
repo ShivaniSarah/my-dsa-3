@@ -1,0 +1,152 @@
+https://leetcode.com/problems/sequence-reconstruction/description/
+
+444. Sequence Reconstruction
+Description
+You are given an integer array nums of length n where nums is a permutation of the integers in the range [1, n]. You are also given a 2D integer array sequences where sequences[i] is a subsequence of nums.
+
+Check if nums is the shortest possible and the only supersequence. The shortest supersequence is a sequence with the shortest length and has all sequences[i] as subsequences. There could be multiple valid supersequences for the given array sequences.
+
+For example, for sequences = [[1,2],[1,3]], there are two shortest supersequences, [1,2,3] and [1,3,2].
+While for sequences = [[1,2],[1,3],[1,2,3]], the only shortest supersequence possible is [1,2,3]. [1,2,3,4] is a possible supersequence but not the shortest.
+Return true if nums is the only shortest supersequence for sequences, or false otherwise.
+
+A subsequence is a sequence that can be derived from another sequence by deleting some or no elements without changing the order of the remaining elements.
+
+ 
+
+Example 1:
+
+Input: nums = [1,2,3], sequences = [[1,2],[1,3]]
+Output: false
+Explanation: There are two possible supersequences: [1,2,3] and [1,3,2].
+The sequence [1,2] is a subsequence of both: [1,2,3] and [1,3,2].
+The sequence [1,3] is a subsequence of both: [1,2,3] and [1,3,2].
+Since nums is not the only shortest supersequence, we return false.
+Example 2:
+
+Input: nums = [1,2,3], sequences = [[1,2]]
+Output: false
+Explanation: The shortest possible supersequence is [1,2].
+The sequence [1,2] is a subsequence of it: [1,2].
+Since nums is not the shortest supersequence, we return false.
+Example 3:
+
+Input: nums = [1,2,3], sequences = [[1,2],[1,3],[2,3]]
+Output: true
+Explanation: The shortest possible supersequence is [1,2,3].
+The sequence [1,2] is a subsequence of it: [1,2,3].
+The sequence [1,3] is a subsequence of it: [1,2,3].
+The sequence [2,3] is a subsequence of it: [1,2,3].
+Since nums is the only shortest supersequence, we return true.
+ 
+
+Constraints:
+
+n == nums.length
+1 <= n <= 104
+nums is a permutation of all the integers in the range [1, n].
+1 <= sequences.length <= 104
+1 <= sequences[i].length <= 104
+1 <= sum(sequences[i].length) <= 105
+1 <= sequences[i][j] <= n
+All the arrays of sequences are unique.
+sequences[i] is a subsequence of nums.
+
+
+
+
+#  java
+
+
+class Solution {
+  public boolean sequenceReconstruction(int[] org, List<List<Integer>> seqs) {
+    if (seqs.isEmpty())
+      return false;
+
+    final int n = org.length;
+    List<Integer>[] graph = new List[n];
+    int[] inDegrees = new int[n];
+
+    for (int i = 0; i < n; ++i)
+      graph[i] = new ArrayList<>();
+
+    // Build the graph.
+    for (List<Integer> seq : seqs) {
+      if (seq.size() == 1 && seq.get(0) < 1 || seq.get(0) > n)
+        return false;
+      for (int i = 0; i + 1 < seq.size(); ++i) {
+        final int u = seq.get(i);
+        final int v = seq.get(i + 1);
+        if (u < 1 || u > n || v < 1 || v > n)
+          return false;
+        graph[u - 1].add(v - 1);
+        ++inDegrees[v - 1];
+      }
+    }
+
+    // Perform topological sorting.
+    Queue<Integer> q = IntStream.range(0, n)
+                           .filter(i -> inDegrees[i] == 0)
+                           .boxed()
+                           .collect(Collectors.toCollection(ArrayDeque::new));
+
+    int i = 0; // org's index
+
+    while (!q.isEmpty()) {
+      if (q.size() > 1)
+        return false;
+      final int u = q.poll();
+      if (u != org[i] - 1)
+        return false;
+      ++i;
+      for (final int v : graph[u])
+        if (--inDegrees[v] == 0)
+          q.offer(v);
+    }
+
+    return i == n;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public boolean sequenceReconstruction(int[] nums, List<List<Integer>> sequences) {
+        int n = nums.length;
+        int[] indeg = new int[n];
+        List<Integer>[] g = new List[n];
+        Arrays.setAll(g, k -> new ArrayList<>());
+        for (var seq : sequences) {
+            for (int i = 1; i < seq.size(); ++i) {
+                int a = seq.get(i - 1) - 1, b = seq.get(i) - 1;
+                g[a].add(b);
+                indeg[b]++;
+            }
+        }
+        Deque<Integer> q = new ArrayDeque<>();
+        for (int i = 0; i < n; ++i) {
+            if (indeg[i] == 0) {
+                q.offer(i);
+            }
+        }
+        while (!q.isEmpty()) {
+            if (q.size() > 1) {
+                return false;
+            }
+            int i = q.poll();
+            for (int j : g[i]) {
+                if (--indeg[j] == 0) {
+                    q.offer(j);
+                }
+            }
+        }
+        return true;
+    }
+}
+
+
+
