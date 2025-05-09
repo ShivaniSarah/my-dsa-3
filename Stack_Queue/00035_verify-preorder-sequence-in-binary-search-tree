@@ -1,0 +1,170 @@
+https://leetcode.com/problems/verify-preorder-sequence-in-binary-search-tree/description/
+
+255. Verify Preorder Sequence in Binary Search Tree
+Given an array of numbers, verify whether it is the correct preorder traversal sequence of a binary search tree.
+
+You may assume each number in the sequence is unique.
+
+Consider the following binary search tree: 
+
+     5
+    / \
+   2   6
+  / \
+ 1   3
+Example 1:
+
+Input: [5,2,6,1,3]
+Output: false
+Example 2:
+
+Input: [5,2,1,3,6]
+Output: true
+
+Constraints:
+
+1 <= preorder.length <= 104
+1 <= preorder[i] <= 104
+All the elements of preorder are unique.
+ 
+
+Follow up: Could you do it using only constant space complexity?
+
+
+
+# java
+
+
+class Solution {
+  public boolean verifyPreorder(int[] preorder) {
+    dfs(preorder, Integer.MIN_VALUE, Integer.MAX_VALUE);
+    return i == preorder.length;
+  }
+
+  private int i = 0;
+
+  private void dfs(int[] preorder, int mn, int mx) {
+    if (i == preorder.length)
+      return;
+    if (preorder[i] < mn || preorder[i] > mx)
+      return;
+
+    final int val = preorder[i++];
+    dfs(preorder, mn, val);
+    dfs(preorder, val, mx);
+  }
+}
+
+
+or
+
+
+class Solution {
+  public boolean verifyPreorder(int[] preorder) {
+    int low = Integer.MIN_VALUE;
+    Deque<Integer> stack = new ArrayDeque<>();
+
+    for (final int p : preorder) {
+      if (p < low)
+        return false;
+      while (!stack.isEmpty() && stack.peek() < p)
+        low = stack.pop();
+      stack.push(p);
+    }
+
+    return true;
+  }
+}
+
+
+or
+
+
+class Solution {
+  public boolean verifyPreorder(int[] preorder) {
+    int low = Integer.MIN_VALUE;
+    int i = -1;
+
+    for (final int p : preorder) {
+      if (p < low)
+        return false;
+      while (i >= 0 && preorder[i] < p)
+        low = preorder[i--];
+      preorder[++i] = p;
+    }
+
+    return true;
+  }
+}
+
+
+or
+
+
+  public class Solution {
+        public boolean verifyPreorder(int[] preorder) {
+            int lowBound = Integer.MIN_VALUE;
+            Stack<Integer> sk = new Stack<>();
+            for (int each : preorder) {
+                if (each < lowBound) {
+                    return false;
+                }
+
+                while (!sk.empty() && each > sk.peek()) { // s>peek => right value
+                    lowBound = sk.pop();
+                }
+                sk.push(each);
+            }
+            return true;
+        }
+    }
+
+
+or
+
+
+  public class Solution {
+        public boolean verifyPreorder(int[] preorder) {
+            return dfs(preorder, 0, preorder.length - 1, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        }
+
+        boolean dfs(int[] preorder, int start, int end, int lower, int upper) {
+            if (start > end) return true;
+
+            int val = preorder[start];
+            if (val <= lower || val >= upper) return false;
+
+            int i = 0;
+            for (i = start + 1; i <= end; ++i) {
+                if (preorder[i] >= val) break; // @note: i stops at root's first right child, same as above "if (each < lowBound) {"
+            }
+
+            return dfs(preorder, start + 1, i - 1, lower, val) && dfs(preorder, i, end, val, upper);
+        }
+
+    }
+
+
+or
+
+
+
+class Solution {
+    public boolean verifyPreorder(int[] preorder) {
+        Deque<Integer> stk = new ArrayDeque<>();
+        int last = Integer.MIN_VALUE;
+        for (int x : preorder) {
+            if (x < last) {
+                return false;
+            }
+            while (!stk.isEmpty() && stk.peek() < x) {
+                last = stk.poll();
+            }
+            stk.push(x);
+        }
+        return true;
+    }
+}
+
+
+
