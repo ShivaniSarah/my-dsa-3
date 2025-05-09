@@ -1,0 +1,110 @@
+https://leetcode.com/problems/maximum-number-of-integers-to-choose-from-a-range-ii/description/
+
+
+Choose From a Range II
+Description
+You are given an integer array banned and two integers n and maxSum. You are choosing some number of integers following the below rules:
+
+The chosen integers have to be in the range [1, n].
+Each integer can be chosen at most once.
+The chosen integers should not be in the array banned.
+The sum of the chosen integers should not exceed maxSum.
+Return the maximum number of integers you can choose following the mentioned rules.
+
+ 
+
+Example 1:
+
+Input: banned = [1,4,6], n = 6, maxSum = 4
+Output: 1
+Explanation: You can choose the integer 3.
+3 is in the range [1, 6], and do not appear in banned. The sum of the chosen integers is 3, which does not exceed maxSum.
+Example 2:
+
+Input: banned = [4,3,5,6], n = 7, maxSum = 18
+Output: 3
+Explanation: You can choose the integers 1, 2, and 7.
+All these integers are in the range [1, 7], all do not appear in banned, and their sum is 18, which does not exceed maxSum.
+ 
+
+Constraints:
+
+1 <= banned.length <= 105
+1 <= banned[i] <= n <= 109
+1 <= maxSum <= 1015
+
+
+# java
+
+
+
+
+class Solution {
+  public int maxCount(int[] banned, int n, long maxSum) {
+    Set<Integer> bannedSet = Arrays.stream(banned).boxed().collect(Collectors.toSet());
+    int l = 1;
+    int r = n;
+
+    while (l < r) {
+      final int m = (l + r + 1) / 2;
+      if (getSum(bannedSet, m) > maxSum)
+        r = m - 1;
+      else
+        l = m;
+    }
+
+    int ans = l;
+    for (final int b : bannedSet)
+      if (b <= l)
+        --ans;
+    return ans;
+  }
+
+  // Returns sum([1..m]) - sum(bannedSet).
+  private long getSum(Set<Integer> bannedSet, long m) {
+    long sum = m * (m + 1) / 2; // sum([1..m])
+    for (final int b : bannedSet)
+      if (b <= m)
+        sum -= b;
+    return sum;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public int maxCount(int[] banned, int n, long maxSum) {
+        Set<Integer> black = new HashSet<>();
+        black.add(0);
+        black.add(n + 1);
+        for (int x : banned) {
+            black.add(x);
+        }
+        List<Integer> ban = new ArrayList<>(black);
+        Collections.sort(ban);
+        int ans = 0;
+        for (int k = 1; k < ban.size(); ++k) {
+            int i = ban.get(k - 1), j = ban.get(k);
+            int left = 0, right = j - i - 1;
+            while (left < right) {
+                int mid = (left + right + 1) >>> 1;
+                if ((i + 1 + i + mid) * 1L * mid / 2 <= maxSum) {
+                    left = mid;
+                } else {
+                    right = mid - 1;
+                }
+            }
+            ans += left;
+            maxSum -= (i + 1 + i + left) * 1L * left / 2;
+            if (maxSum <= 0) {
+                break;
+            }
+        }
+        return ans;
+    }
+}
+
+
