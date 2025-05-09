@@ -1,0 +1,166 @@
+https://leetcode.com/problems/graph-valid-tree/description/
+
+261. Graph Valid Tree
+Description
+You have a graph of n nodes labeled from 0 to n - 1. You are given an integer n and a list of edges where edges[i] = [ai, bi] indicates that there is an undirected edge between nodes ai and bi in the graph.
+
+Return true if the edges of the given graph make up a valid tree, and false otherwise.
+
+ 
+
+Example 1:
+
+
+
+Input: n = 5, edges = [[0,1],[0,2],[0,3],[1,4]]
+Output: true
+Example 2:
+
+
+
+Input: n = 5, edges = [[0,1],[1,2],[2,3],[1,3],[1,4]]
+Output: false
+ 
+
+Constraints:
+
+1 <= n <= 2000
+0 <= edges.length <= 5000
+edges[i].length == 2
+0 <= ai, bi < n
+ai != bi
+There are no self-loops or repeated edges.
+
+
+
+# java
+
+
+
+class Solution {
+  public boolean validTree(int n, int[][] edges) {
+    if (n == 0 || edges.length != n - 1)
+      return false;
+
+    List<Integer>[] graph = new List[n];
+    Queue<Integer> q = new ArrayDeque<>(List.of(0));
+    Set<Integer> seen = new HashSet<>(Arrays.asList(0));
+
+    for (int i = 0; i < n; ++i)
+      graph[i] = new ArrayList<>();
+
+    for (int[] edge : edges) {
+      final int u = edge[0];
+      final int v = edge[1];
+      graph[u].add(v);
+      graph[v].add(u);
+    }
+
+    while (!q.isEmpty()) {
+      final int u = q.poll();
+      for (final int v : graph[u])
+        if (!seen.contains(v)) {
+          q.offer(v);
+          seen.add(v);
+        }
+    }
+
+    return seen.size() == n;
+  }
+}
+
+
+
+or
+
+
+
+
+class UnionFind {
+  public UnionFind(int n) {
+    count = n;
+    id = new int[n];
+    rank = new int[n];
+    for (int i = 0; i < n; ++i)
+      id[i] = i;
+  }
+
+  public void unionByRank(int u, int v) {
+    final int i = find(u);
+    final int j = find(v);
+    if (i == j)
+      return;
+    if (rank[i] < rank[j]) {
+      id[i] = j;
+    } else if (rank[i] > rank[j]) {
+      id[j] = i;
+    } else {
+      id[i] = j;
+      ++rank[j];
+    }
+    --count;
+  }
+
+  public int getCount() {
+    return count;
+  }
+
+  private int count;
+  private int[] id;
+  private int[] rank;
+
+  private int find(int u) {
+    return id[u] == u ? u : (id[u] = find(id[u]));
+  }
+}
+
+class Solution {
+  public boolean validTree(int n, int[][] edges) {
+    if (n == 0 || edges.length != n - 1)
+      return false;
+
+    UnionFind uf = new UnionFind(n);
+
+    for (int[] edge : edges) {
+      final int u = edge[0];
+      final int v = edge[1];
+      uf.unionByRank(u, v);
+    }
+
+    return uf.getCount() == 1;
+  }
+}
+
+
+
+
+or
+
+
+
+class Solution {
+    private int[] p;
+
+    public boolean validTree(int n, int[][] edges) {
+        p = new int[n];
+        for (int i = 0; i < n; ++i) {
+            p[i] = i;
+        }
+        for (int[] e : edges) {
+            int a = e[0], b = e[1];
+            if (find(a) == find(b)) {
+                return false;
+            }
+            p[find(a)] = find(b);
+            --n;
+        }
+        return n == 1;
+    }
+
+    private int find(int x) {
+        if (p[x] != x) {
+            p[x] = find(p[x]);
+        }
+        return p[x];
+    }
+}
