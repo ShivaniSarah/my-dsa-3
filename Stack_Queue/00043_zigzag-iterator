@@ -1,0 +1,238 @@
+https://leetcode.com/problems/zigzag-iterator/description/
+
+281 - Zigzag Iterator
+
+
+Given two vectors of integers v1 and v2, implement an iterator to return their elements alternately.
+
+Implement the ZigzagIterator class:
+
+ZigzagIterator(List<int> v1, List<int> v2) initializes the object with the two vectors v1 and v2.
+boolean hasNext() returns true if the iterator still has elements, and false otherwise.
+int next() returns the current element of the iterator and moves the iterator to the next element.
+ 
+
+Example 1:
+
+Input: v1 = [1,2], v2 = [3,4,5,6]
+Output: [1,3,2,4,5,6]
+Explanation: By calling next repeatedly until hasNext returns false, the order of elements returned by next should be: [1,3,2,4,5,6].
+Example 2:
+
+Input: v1 = [1], v2 = []
+Output: [1]
+Example 3:
+
+Input: v1 = [], v2 = [1]
+Output: [1]
+ 
+
+Constraints:
+
+0 <= v1.length, v2.length <= 1000
+1 <= v1.length + v2.length <= 2000
+-231 <= v1[i], v2[i] <= 231 - 1
+ 
+
+Follow up: What if you are given k vectors? How well can your code be extended to such cases?
+
+Clarification for the follow-up question:
+
+The "Zigzag" order is not clearly defined and is ambiguous for k > 2 cases. If "Zigzag" does not look right to you, replace "Zigzag" with "Cyclic".
+
+Follow-up Example:
+
+Input: v1 = [1,2,3], v2 = [4,5,6,7], v3 = [8,9]
+Output: [1,4,8,2,5,9,3,6,7]
+
+
+
+# java
+
+
+
+public class ZigzagIterator {
+    private int cur;
+    private int size;
+    private List<Integer> indexes = new ArrayList<>();
+    private List<List<Integer>> vectors = new ArrayList<>();
+
+    public ZigzagIterator(List<Integer> v1, List<Integer> v2) {
+        cur = 0;
+        size = 2;
+        indexes.add(0);
+        indexes.add(0);
+        vectors.add(v1);
+        vectors.add(v2);
+    }
+
+    public int next() {
+        List<Integer> vector = vectors.get(cur);
+        int index = indexes.get(cur);
+        int res = vector.get(index);
+        indexes.set(cur, index + 1);
+        cur = (cur + 1) % size;
+        return res;
+    }
+
+    public boolean hasNext() {
+        int start = cur;
+        while (indexes.get(cur) == vectors.get(cur).size()) {
+            cur = (cur + 1) % size;
+            if (start == cur) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+/**
+ * Your ZigzagIterator object will be instantiated and called as such:
+ * ZigzagIterator i = new ZigzagIterator(v1, v2);
+ * while (i.hasNext()) v[f()] = i.next();
+ */
+
+
+
+or
+
+
+public class ZigzagIterator {
+
+        List<Integer> result = new ArrayList<>(); // this is extra o(N) space solution, can just maintain a boolean variable
+        int index = 0;
+
+        public ZigzagIterator(List<Integer> v1, List<Integer> v2) {
+
+            for (int i = 0; i < Math.max(v1.size(), v2.size()); i++) {
+                if (i < v1.size()) {
+                    result.add(v1.get(i));
+                }
+                if (i < v2.size()) {
+                    result.add(v2.get(i));
+                }
+            }
+        }
+
+        public int next() {
+            return result.get(index++);
+        }
+
+        public boolean hasNext() {
+            return index < result.size();
+        }
+    }
+
+
+or
+
+
+
+public class ZigzagIterator {
+        List<Iterator<Integer>> iters = new ArrayList<Iterator<Integer> >();
+
+        int count = 0;
+
+        public ZigzagIterator_builtinIterator(List<Integer> v1, List<Integer> v2) {
+            if( !v1.isEmpty() ) {
+                iters.add(v1.iterator());
+            }
+            if( !v2.isEmpty() ) {
+                iters.add(v2.iterator());
+            }
+        }
+
+        public int next() {
+            int x = iters.get(count).next();
+            if(!iters.get(count).hasNext()) { // remove iterator from list
+                iters.remove(count);
+            } else {
+                count++;
+            }
+
+            if(iters.size() != 0) {
+                count %= iters.size(); // mod to decide which iterator to get value
+            }
+            return x;
+        }
+
+        public boolean hasNext() {
+            return !iters.isEmpty();
+        }
+    }
+
+
+or
+
+
+
+ public class ZigzagIterator_K {
+
+        // int[0] is index of vector of vectors list, int[1] is start of a vector, int[2] is end
+        Queue<int[]> q = new LinkedList<>();
+
+//        Map<Integer, List<Integer>> vectorsIndexMap = new HashMap<>(); // no map needed, if move 'vectors' a class variable
+        List<List<Integer>> vectors;
+
+        public ZigzagIteratorK(List<List<Integer>> vectors) {
+            this.vectors = vectors;
+            for (int i = 0; i < vectors.size(); i++) {
+                q.offer(new int[]{i, 0, vectors.get(i).size()});
+//                vectorsIndexMap.put(i, vectors.get(i));
+            }
+        }
+
+        public int next() {
+            int[] current = q.poll();
+
+            int i = current[0];
+            int start = current[1];
+            int end = current[2];
+
+            if (start + 1 < end) {
+                q.offer(new int[]{i, start + 1, end});
+            }
+
+//            return vectorsIndexMap.get(i).get(start);
+            return vectors.get(i).get(start);
+        }
+
+        public boolean hasNext() {
+            return !q.isEmpty();
+        }
+
+
+
+
+or
+
+
+
+public class ZigzagIterator {
+  public ZigzagIterator(List<Integer> v1, List<Integer> v2) {
+    if (!v1.isEmpty())
+      q.offer(v1.iterator());
+    if (!v2.isEmpty())
+      q.offer(v2.iterator());
+  }
+
+  public int next() {
+    final Iterator it = q.poll();
+    final int next = (int) it.next();
+    if (it.hasNext())
+      q.offer(it);
+    return next;
+  }
+
+  public boolean hasNext() {
+    return !q.isEmpty();
+  }
+
+  private Queue<Iterator> q = new ArrayDeque<>();
+}
+
+
+
+
+
