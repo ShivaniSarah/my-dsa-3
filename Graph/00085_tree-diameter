@@ -1,0 +1,127 @@
+https://leetcode.com/problems/tree-diameter/description/
+
+
+1245. Tree Diameter
+Description
+The diameter of a tree is the number of edges in the longest path in that tree.
+
+There is an undirected tree of n nodes labeled from 0 to n - 1. You are given a 2D array edges where edges.length == n - 1 and edges[i] = [ai, bi] indicates that there is an undirected edge between nodes ai and bi in the tree.
+
+Return the diameter of the tree.
+
+ 
+
+Example 1:
+
+
+
+Input: edges = [[0,1],[0,2]]
+Output: 2
+Explanation: The longest path of the tree is the path 1 - 0 - 2.
+Example 2:
+
+
+
+Input: edges = [[0,1],[1,2],[2,3],[1,4],[4,5]]
+Output: 4
+Explanation: The longest path of the tree is the path 3 - 2 - 1 - 4 - 5.
+ 
+
+Constraints:
+
+n == edges.length + 1
+1 <= n <= 104
+0 <= ai, bi < n
+ai != bi
+
+
+# java
+
+
+class Solution {
+  public int treeDiameter(int[][] edges) {
+    final int n = edges.length;
+    List<Integer>[] tree = new List[n + 1];
+
+    for (int i = 0; i < tree.length; ++i)
+      tree[i] = new ArrayList<>();
+
+    for (int[] edge : edges) {
+      final int u = edge[0];
+      final int v = edge[1];
+      tree[u].add(v);
+      tree[v].add(u);
+    }
+
+    maxDepth(tree, 0, -1);
+    return ans;
+  }
+
+  private int ans = 0;
+
+  private int maxDepth(List<Integer>[] tree, int u, int prev) {
+    int maxDepth1 = 0;  // the maximum depth
+    int maxDepth2 = -1; // the second maximum depth
+
+    for (final int v : tree[u]) {
+      if (v == prev)
+        continue;
+      final int depth = maxDepth(tree, v, u);
+      if (depth > maxDepth1) {
+        maxDepth2 = maxDepth1;
+        maxDepth1 = depth;
+      } else if (depth > maxDepth2) {
+        maxDepth2 = depth;
+      }
+    }
+
+    ans = Math.max(ans, maxDepth1 + maxDepth2);
+    return 1 + maxDepth1;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    private Map<Integer, Set<Integer>> g;
+    private boolean[] vis;
+    private int next;
+    private int ans;
+
+    public int treeDiameter(int[][] edges) {
+        int n = edges.length;
+        ans = 0;
+        g = new HashMap<>();
+        for (int[] e : edges) {
+            g.computeIfAbsent(e[0], k -> new HashSet<>()).add(e[1]);
+            g.computeIfAbsent(e[1], k -> new HashSet<>()).add(e[0]);
+        }
+        vis = new boolean[n + 1];
+        next = edges[0][0];
+        dfs(next, 0);
+        vis = new boolean[n + 1];
+        dfs(next, 0);
+        return ans;
+    }
+
+    private void dfs(int u, int t) {
+        if (vis[u]) {
+            return;
+        }
+        vis[u] = true;
+        if (ans < t) {
+            ans = t;
+            next = u;
+        }
+        for (int v : g.get(u)) {
+            dfs(v, t + 1);
+        }
+    }
+}
+
+
+
