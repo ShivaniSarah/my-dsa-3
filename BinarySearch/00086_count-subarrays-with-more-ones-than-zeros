@@ -1,0 +1,143 @@
+https://leetcode.com/problems/count-subarrays-with-more-ones-than-zeros/description/
+
+2031. Count Subarrays With More Ones Than Zeros
+Description
+You are given a binary array nums containing only the integers 0 and 1. Return the number of subarrays in nums that have more 1's than 0's. Since the answer may be very large, return it modulo 109 + 7.
+
+A subarray is a contiguous sequence of elements within an array.
+
+ 
+
+Example 1:
+
+Input: nums = [0,1,1,0,1]
+Output: 9
+Explanation:
+The subarrays of size 1 that have more ones than zeros are: [1], [1], [1]
+The subarrays of size 2 that have more ones than zeros are: [1,1]
+The subarrays of size 3 that have more ones than zeros are: [0,1,1], [1,1,0], [1,0,1]
+The subarrays of size 4 that have more ones than zeros are: [1,1,0,1]
+The subarrays of size 5 that have more ones than zeros are: [0,1,1,0,1]
+Example 2:
+
+Input: nums = [0]
+Output: 0
+Explanation:
+No subarrays have more ones than zeros.
+Example 3:
+
+Input: nums = [1]
+Output: 1
+Explanation:
+The subarrays of size 1 that have more ones than zeros are: [1]
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+0 <= nums[i] <= 1
+
+
+
+# java
+
+
+class FenwickTree {
+  public FenwickTree(int n) {
+    sums = new int[n + 1];
+  }
+
+  public void add(int i, int delta) {
+    while (i < sums.length) {
+      sums[i] += delta;
+      i += lowbit(i);
+    }
+  }
+
+  public int get(int i) {
+    int sum = 0;
+    while (i > 0) {
+      sum += sums[i];
+      i -= lowbit(i);
+    }
+    return sum;
+  }
+
+  private int[] sums;
+
+  private static int lowbit(int i) {
+    return i & -i;
+  }
+}
+
+class Solution {
+  public int subarraysWithMoreZerosThanOnes(int[] nums) {
+    final int MOD = 1_000_000_007;
+    final int n = nums.length;
+    int ans = 0;
+    int prefix = 0;
+    FenwickTree tree = new FenwickTree(2 * n + 1);
+    tree.add(remap(0, n), 1);
+
+    for (final int num : nums) {
+      prefix += num == 0 ? -1 : 1;
+      ans += tree.get(remap(prefix - 1, n));
+      ans %= MOD;
+      tree.add(remap(prefix, n), 1);
+    }
+
+    return ans;
+  }
+
+  private int remap(int i, int n) {
+    return i + n + 1;
+  }
+}
+
+
+
+or
+
+
+
+class BinaryIndexedTree {
+    private int n;
+    private int[] c;
+
+    public BinaryIndexedTree(int n) {
+        this.n = n;
+        c = new int[n + 1];
+    }
+
+    public void update(int x, int v) {
+        for (; x <= n; x += x & -x) {
+            c[x] += v;
+        }
+    }
+
+    public int query(int x) {
+        int s = 0;
+        for (; x > 0; x -= x & -x) {
+            s += c[x];
+        }
+        return s;
+    }
+}
+
+class Solution {
+    public int subarraysWithMoreZerosThanOnes(int[] nums) {
+        int n = nums.length;
+        int base = n + 1;
+        BinaryIndexedTree tree = new BinaryIndexedTree(n + base);
+        tree.update(base, 1);
+        final int mod = (int) 1e9 + 7;
+        int ans = 0, s = 0;
+        for (int x : nums) {
+            s += x == 0 ? -1 : 1;
+            ans += tree.query(s - 1 + base);
+            ans %= mod;
+            tree.update(s + base, 1);
+        }
+        return ans;
+    }
+}
