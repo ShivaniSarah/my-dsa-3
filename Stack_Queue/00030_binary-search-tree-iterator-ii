@@ -1,0 +1,162 @@
+https://leetcode.com/problems/binary-search-tree-iterator-ii/description/
+
+1586. Binary Search Tree Iterator II
+Description
+Implement the BSTIterator class that represents an iterator over the in-order traversal of a binary search tree (BST):
+
+BSTIterator(TreeNode root) Initializes an object of the BSTIterator class. The root of the BST is given as part of the constructor. The pointer should be initialized to a non-existent number smaller than any element in the BST.
+boolean hasNext() Returns true if there exists a number in the traversal to the right of the pointer, otherwise returns false.
+int next() Moves the pointer to the right, then returns the number at the pointer.
+boolean hasPrev() Returns true if there exists a number in the traversal to the left of the pointer, otherwise returns false.
+int prev() Moves the pointer to the left, then returns the number at the pointer.
+Notice that by initializing the pointer to a non-existent smallest number, the first call to next() will return the smallest element in the BST.
+
+You may assume that next() and prev() calls will always be valid. That is, there will be at least a next/previous number in the in-order traversal when next()/prev() is called.
+
+ 
+
+Example 1:
+
+
+
+Input
+["BSTIterator", "next", "next", "prev", "next", "hasNext", "next", "next", "next", "hasNext", "hasPrev", "prev", "prev"]
+[[[7, 3, 15, null, null, 9, 20]], [null], [null], [null], [null], [null], [null], [null], [null], [null], [null], [null], [null]]
+Output
+[null, 3, 7, 3, 7, true, 9, 15, 20, false, true, 15, 9]
+
+Explanation
+// The underlined element is where the pointer currently is.
+BSTIterator bSTIterator = new BSTIterator([7, 3, 15, null, null, 9, 20]); // state is   [3, 7, 9, 15, 20]
+bSTIterator.next(); // state becomes [3, 7, 9, 15, 20], return 3
+bSTIterator.next(); // state becomes [3, 7, 9, 15, 20], return 7
+bSTIterator.prev(); // state becomes [3, 7, 9, 15, 20], return 3
+bSTIterator.next(); // state becomes [3, 7, 9, 15, 20], return 7
+bSTIterator.hasNext(); // return true
+bSTIterator.next(); // state becomes [3, 7, 9, 15, 20], return 9
+bSTIterator.next(); // state becomes [3, 7, 9, 15, 20], return 15
+bSTIterator.next(); // state becomes [3, 7, 9, 15, 20], return 20
+bSTIterator.hasNext(); // return false
+bSTIterator.hasPrev(); // return true
+bSTIterator.prev(); // state becomes [3, 7, 9, 15, 20], return 15
+bSTIterator.prev(); // state becomes [3, 7, 9, 15, 20], return 9
+ 
+
+Constraints:
+
+The number of nodes in the tree is in the range [1, 105].
+0 <= Node.val <= 106
+At most 105 calls will be made to hasNext, next, hasPrev, and prev.
+ 
+
+Follow up: Could you solve the problem without precalculating the values of the tree?
+
+
+
+# java
+
+
+class BSTIterator {
+  public BSTIterator(TreeNode root) {
+    pushLeftsUntilNull(root);
+  }
+
+  public boolean hasNext() {
+    return !nexts.isEmpty();
+  }
+
+  public int next() {
+    Pair<TreeNode, Boolean> pair = nexts.pop();
+    TreeNode root = pair.getKey();
+    boolean fromNext = pair.getValue();
+    if (fromNext)
+      pushLeftsUntilNull(root.right);
+    prevsAndCurr.push(root);
+    return root.val;
+  }
+
+  public boolean hasPrev() {
+    return prevsAndCurr.size() > 1;
+  }
+
+  public int prev() {
+    nexts.push(new Pair<>(prevsAndCurr.pop(), /*fromNext=*/false));
+    return prevsAndCurr.peek().val;
+  }
+
+  private void pushLeftsUntilNull(TreeNode root) {
+    while (root != null) {
+      nexts.push(new Pair<>(root, /*fromNext=*/true));
+      root = root.left;
+    }
+  }
+
+  private Deque<TreeNode> prevsAndCurr = new ArrayDeque<>();
+  private Deque<Pair<TreeNode, /*fromNext=*/Boolean>> nexts = new ArrayDeque<>();
+}
+
+
+
+or
+
+
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class BSTIterator {
+    private List<Integer> nums = new ArrayList<>();
+    private int i = -1;
+
+    public BSTIterator(TreeNode root) {
+        dfs(root);
+    }
+
+    public boolean hasNext() {
+        return i < nums.size() - 1;
+    }
+
+    public int next() {
+        return nums.get(++i);
+    }
+
+    public boolean hasPrev() {
+        return i > 0;
+    }
+
+    public int prev() {
+        return nums.get(--i);
+    }
+
+    private void dfs(TreeNode root) {
+        if (root == null) {
+            return;
+        }
+        dfs(root.left);
+        nums.add(root.val);
+        dfs(root.right);
+    }
+}
+
+/**
+ * Your BSTIterator object will be instantiated and called as such:
+ * BSTIterator obj = new BSTIterator(root);
+ * boolean param_1 = obj.hasNext();
+ * int param_2 = obj.next();
+ * boolean param_3 = obj.hasPrev();
+ * int param_4 = obj.prev();
+ */
+
+
