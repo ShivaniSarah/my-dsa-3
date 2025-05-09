@@ -1,0 +1,154 @@
+https://leetcode.com/problems/find-the-level-of-tree-with-minimum-sum/description/
+
+
+3157. Find the Level of Tree with Minimum Sum 🔒
+Description
+Given the root of a binary tree root where each node has a value, return the level of the tree that has the minimum sum of values among all the levels (in case of a tie, return the lowest level).
+
+Note that the root of the tree is at level 1 and the level of any other node is its distance from the root + 1.
+
+ 
+
+Example 1:
+
+Input: root = [50,6,2,30,80,7]
+
+Output: 2
+
+Explanation:
+
+
+
+Example 2:
+
+Input: root = [36,17,10,null,null,24]
+
+Output: 3
+
+Explanation:
+
+
+
+Example 3:
+
+Input: root = [5,null,5,null,5]
+
+Output: 1
+
+Explanation:
+
+
+
+ 
+
+Constraints:
+
+The number of nodes in the tree is in the range [1, 105].
+1 <= Node.val <= 109
+
+
+# java
+
+
+class Solution {
+  // Similar to 1161. Maximum Level Sum of a Binary Tree
+  public int minimumLevel(TreeNode root) {
+    int ans = 0;
+    long minLevelSum = Long.MAX_VALUE;
+    Queue<TreeNode> q = new LinkedList<>(Arrays.asList(root));
+
+    for (int level = 1; !q.isEmpty(); ++level) {
+      long levelSum = 0;
+      for (int sz = q.size(); sz > 0; --sz) {
+        TreeNode node = q.poll();
+        levelSum += node.val;
+        if (node.left != null)
+          q.offer(node.left);
+        if (node.right != null)
+          q.offer(node.right);
+      }
+      if (levelSum < minLevelSum) {
+        minLevelSum = levelSum;
+        ans = level;
+      }
+    }
+
+    return ans;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+  // Similar to 1161. Maximum Level Sum of a Binary Tree
+  public int minimumLevel(TreeNode root) {
+    // levelSums[i] := the sum of level (i + 1) (1-indexed)
+    List<Long> levelSums = new ArrayList<>();
+    dfs(root, 0, levelSums);
+    return 1 + IntStream.range(0, levelSums.size())
+                   .reduce(0, (a, b) -> levelSums.get(a) > levelSums.get(b) ? b : a);
+  }
+
+  private void dfs(TreeNode root, int level, List<Long> levelSums) {
+    if (root == null)
+      return;
+    if (levelSums.size() == level)
+      levelSums.add(0L);
+    levelSums.set(level, levelSums.get(level) + root.val);
+    dfs(root.left, level + 1, levelSums);
+    dfs(root.right, level + 1, levelSums);
+  }
+}
+
+
+
+or
+
+
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public int minimumLevel(TreeNode root) {
+        Deque<TreeNode> q = new ArrayDeque<>();
+        q.offer(root);
+        int ans = 0;
+        long s = Long.MAX_VALUE;
+        for (int level = 1; !q.isEmpty(); ++level) {
+            long t = 0;
+            for (int m = q.size(); m > 0; --m) {
+                TreeNode node = q.poll();
+                t += node.val;
+                if (node.left != null) {
+                    q.offer(node.left);
+                }
+                if (node.right != null) {
+                    q.offer(node.right);
+                }
+            }
+            if (s > t) {
+                s = t;
+                ans = level;
+            }
+        }
+        return ans;
+    }
+}
+
+
