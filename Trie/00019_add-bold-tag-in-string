@@ -1,0 +1,288 @@
+https://leetcode.com/problems/add-bold-tag-in-string/description/
+
+616. Add Bold Tag in String
+Description
+You are given a string s and an array of strings words.
+
+You should add a closed pair of bold tag <b> and </b> to wrap the substrings in s that exist in words.
+
+If two such substrings overlap, you should wrap them together with only one pair of closed bold-tag.
+If two substrings wrapped by bold tags are consecutive, you should combine them.
+Return s after adding the bold tags.
+
+ 
+
+Example 1:
+
+Input: s = "abcxyz123", words = ["abc","123"]
+Output: "<b>abc</b>xyz<b>123</b>"
+Explanation: The two strings of words are substrings of s as following: "abcxyz123".
+We add <b> before each substring and </b> after each substring.
+Example 2:
+
+Input: s = "aaabbb", words = ["aa","b"]
+Output: "<b>aaabbb</b>"
+Explanation: 
+"aa" appears as a substring two times: "aaabbb" and "aaabbb".
+"b" appears as a substring three times: "aaabbb", "aaabbb", and "aaabbb".
+We add <b> before each substring and </b> after each substring: "<b>a<b>a</b>a</b><b>b</b><b>b</b><b>b</b>".
+Since the first two <b>'s overlap, we merge them: "<b>aaa</b><b>b</b><b>b</b><b>b</b>".
+Since now the four <b>'s are consecutive, we merge them: "<b>aaabbb</b>".
+ 
+
+Constraints:
+
+1 <= s.length <= 1000
+0 <= words.length <= 100
+1 <= words[i].length <= 1000
+s and words[i] consist of English letters and digits.
+All the values of words are unique.
+ 
+
+Note: This question is the same as 758: https://leetcode.com/problems/bold-words-in-string/
+
+
+
+
+
+# jva
+
+
+
+
+
+class Trie {
+    Trie[] children = new Trie[128];
+    boolean isEnd;
+
+    public void insert(String word) {
+        Trie node = this;
+        for (char c : word.toCharArray()) {
+            if (node.children[c] == null) {
+                node.children[c] = new Trie();
+            }
+            node = node.children[c];
+        }
+        node.isEnd = true;
+    }
+}
+
+class Solution {
+    public String addBoldTag(String s, String[] words) {
+        Trie trie = new Trie();
+        for (String w : words) {
+            trie.insert(w);
+        }
+        List<int[]> pairs = new ArrayList<>();
+        int n = s.length();
+        for (int i = 0; i < n; ++i) {
+            Trie node = trie;
+            for (int j = i; j < n; ++j) {
+                int idx = s.charAt(j);
+                if (node.children[idx] == null) {
+                    break;
+                }
+                node = node.children[idx];
+                if (node.isEnd) {
+                    pairs.add(new int[] {i, j});
+                }
+            }
+        }
+        if (pairs.isEmpty()) {
+            return s;
+        }
+        List<int[]> t = new ArrayList<>();
+        int st = pairs.get(0)[0], ed = pairs.get(0)[1];
+        for (int j = 1; j < pairs.size(); ++j) {
+            int a = pairs.get(j)[0], b = pairs.get(j)[1];
+            if (ed + 1 < a) {
+                t.add(new int[] {st, ed});
+                st = a;
+                ed = b;
+            } else {
+                ed = Math.max(ed, b);
+            }
+        }
+        t.add(new int[] {st, ed});
+        int i = 0, j = 0;
+        StringBuilder ans = new StringBuilder();
+        while (i < n) {
+            if (j == t.size()) {
+                ans.append(s.substring(i));
+                break;
+            }
+            st = t.get(j)[0];
+            ed = t.get(j)[1];
+            if (i < st) {
+                ans.append(s.substring(i, st));
+            }
+            ++j;
+            ans.append("<b>");
+            ans.append(s.substring(st, ed + 1));
+            ans.append("</b>");
+            i = ed + 1;
+        }
+        return ans.toString();
+    }
+}
+
+
+
+or
+
+
+
+
+class Solution {
+  public String addBoldTag(String s, String[] words) {
+    final int n = s.length();
+    StringBuilder sb = new StringBuilder();
+    // bold[i] := true if s[i] should be bolded
+    boolean[] bold = new boolean[n];
+
+    int boldEnd = -1; // s[i:boldEnd] should be bolded
+    for (int i = 0; i < n; ++i) {
+      for (final String word : words)
+        if (s.substring(i).startsWith(word))
+          boldEnd = Math.max(boldEnd, i + word.length());
+      bold[i] = boldEnd > i;
+    }
+
+    // Construct the string with the bold tags.
+    int i = 0;
+    while (i < n)
+      if (bold[i]) {
+        int j = i;
+        while (j < n && bold[j])
+          ++j;
+        // s[i..j) should be bolded
+        sb.append("<b>").append(s.substring(i, j)).append("</b>");
+        i = j;
+      } else {
+        sb.append(s.charAt(i++));
+      }
+
+    return sb.toString();
+  }
+}
+
+
+
+or
+
+
+
+class TrieNode {
+  public TrieNode[] children = new TrieNode[128];
+  public boolean isWord = false;
+}
+
+class Solution {
+  public String addBoldTag(String s, String[] words) {
+    final int n = s.length();
+    StringBuilder sb = new StringBuilder();
+    // bold[i] := true if s[i] should be bolded
+    boolean[] bold = new boolean[n];
+
+    for (final String word : words)
+      insert(word);
+
+    int boldEnd = -1; // `s[i..boldEnd]` should be bolded.
+    for (int i = 0; i < n; ++i) {
+      boldEnd = Math.max(boldEnd, find(s, i));
+      bold[i] = boldEnd >= i;
+    }
+
+    // Construct the string with the bold tags.
+    int i = 0;
+    while (i < n)
+      if (bold[i]) {
+        int j = i;
+        while (j < n && bold[j])
+          ++j;
+        // s[i..j) should be bolded
+        sb.append("<b>").append(s.substring(i, j)).append("</b>");
+        i = j;
+      } else {
+        sb.append(s.charAt(i++));
+      }
+
+    return sb.toString();
+  }
+
+  private TrieNode root = new TrieNode();
+
+  private void insert(final String word) {
+    TrieNode node = root;
+    for (final char c : word.toCharArray()) {
+      if (node.children[c] == null)
+        node.children[c] = new TrieNode();
+      node = node.children[c];
+    }
+    node.isWord = true;
+  }
+
+  private int find(final String s, int i) {
+    TrieNode node = root;
+    int ans = -1;
+    for (int j = i; j < s.length(); ++j) {
+      if (node.children[s.charAt(j)] == null)
+        return ans;
+      node = node.children[s.charAt(j)];
+      if (node.isWord)
+        ans = j;
+    }
+    return ans;
+  }
+}
+
+
+
+or
+
+
+
+# c++
+
+// merge intervals
+
+class Solution {
+ public:
+  string addBoldTag(string s, vector<string>& words) {
+    string ans;
+    vector<pair<int, int>> intervals;
+    vector<pair<int, int>> merged;
+
+    for (const string& word : words) {
+      const int n = word.length();
+      for (int i = 0; i + n <= s.length(); ++i)
+        if (s.substr(i, n) == word)
+          intervals.emplace_back(i, i + n);
+    }
+
+    if (intervals.empty())
+      return s;
+
+    ranges::sort(intervals);
+
+    for (const pair<int, int>& interval : intervals)
+      if (merged.empty() || merged.back().second < interval.first)
+        merged.push_back(interval);
+      else
+        merged.back().second = max(merged.back().second, interval.second);
+
+    int prevEnd = 0;
+
+    for (const auto& [startIndex, endIndex] : merged) {
+      ans += s.substr(prevEnd, startIndex - prevEnd);
+      ans += "<b>" + s.substr(startIndex, endIndex - startIndex) + "</b>";
+      prevEnd = endIndex;
+    }
+
+    if (!merged.empty())
+      ans += s.substr(merged.back().second);
+
+    return ans;
+  }
+};
+
