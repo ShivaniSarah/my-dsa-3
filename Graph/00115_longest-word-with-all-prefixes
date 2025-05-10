@@ -1,0 +1,143 @@
+https://leetcode.com/problems/longest-word-with-all-prefixes/description/
+
+
+1858. Longest Word With All Prefixes
+Description
+Given an array of strings words, find the longest string in words such that every prefix of it is also in words.
+
+For example, let words = ["a", "app", "ap"]. The string "app" has prefixes "ap" and "a", all of which are in words.
+Return the string described above. If there is more than one string with the same length, return the lexicographically smallest one, and if no string exists, return "".
+
+ 
+
+Example 1:
+
+Input: words = ["k","ki","kir","kira", "kiran"]
+Output: "kiran"
+Explanation: "kiran" has prefixes "kira", "kir", "ki", and "k", and all of them appear in words.
+Example 2:
+
+Input: words = ["a", "banana", "app", "appl", "ap", "apply", "apple"]
+Output: "apple"
+Explanation: Both "apple" and "apply" have all their prefixes in words.
+However, "apple" is lexicographically smaller, so we return that.
+Example 3:
+
+Input: words = ["abc", "bc", "ab", "qwe"]
+Output: ""
+ 
+
+Constraints:
+
+1 <= words.length <= 105
+1 <= words[i].length <= 105
+1 <= sum(words[i].length) <= 105
+
+
+# java
+
+
+class TrieNode {
+  public TrieNode[] children = new TrieNode[26];
+  public boolean isWord = false;
+}
+
+class Solution {
+  public String longestWord(String[] words) {
+    String ans = "";
+
+    for (final String word : words)
+      insert(word);
+
+    for (final String word : words) {
+      if (!allPrefixed(word))
+        continue;
+      if (ans.length() < word.length() ||
+          (ans.length() == word.length() && ans.compareTo(word) > 0))
+        ans = word;
+    }
+
+    return ans;
+  }
+
+  private TrieNode root = new TrieNode();
+
+  private void insert(final String word) {
+    TrieNode node = root;
+    for (final char c : word.toCharArray()) {
+      final int i = c - 'a';
+      if (node.children[i] == null)
+        node.children[i] = new TrieNode();
+      node = node.children[i];
+    }
+    node.isWord = true;
+  }
+
+  private boolean allPrefixed(final String word) {
+    TrieNode node = root;
+    for (final char c : word.toCharArray()) {
+      final int i = c - 'a';
+      node = node.children[i];
+      if (!node.isWord)
+        return false;
+    }
+    return true;
+  }
+}
+
+
+
+or
+
+
+
+class Trie {
+    private Trie[] children = new Trie[26];
+    private boolean isEnd;
+
+    public Trie() {
+    }
+
+    public void insert(String w) {
+        Trie node = this;
+        for (char c : w.toCharArray()) {
+            int idx = c - 'a';
+            if (node.children[idx] == null) {
+                node.children[idx] = new Trie();
+            }
+            node = node.children[idx];
+        }
+        node.isEnd = true;
+    }
+
+    public boolean search(String w) {
+        Trie node = this;
+        for (char c : w.toCharArray()) {
+            int idx = c - 'a';
+            node = node.children[idx];
+            if (!node.isEnd) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+class Solution {
+    public String longestWord(String[] words) {
+        Trie trie = new Trie();
+        for (String w : words) {
+            trie.insert(w);
+        }
+        String ans = "";
+        for (String w : words) {
+            if ((w.length() > ans.length() || (w.length() == ans.length() && w.compareTo(ans) < 0))
+                && trie.search(w)) {
+                ans = w;
+            }
+        }
+        return ans;
+    }
+}
+
+
