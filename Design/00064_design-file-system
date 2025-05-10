@@ -1,0 +1,167 @@
+https://leetcode.com/problems/design-file-system/description/
+https://leetcode.ca/2019-02-08-1166-Design-File-System/
+
+
+1166. Design File System
+Description
+You are asked to design a file system that allows you to create new paths and associate them with different values.
+
+The format of a path is one or more concatenated strings of the form: / followed by one or more lowercase English letters. For example, "/leetcode" and "/leetcode/problems" are valid paths while an empty string "" and "/" are not.
+
+Implement the FileSystem class:
+
+bool createPath(string path, int value) Creates a new path and associates a value to it if possible and returns true. Returns false if the path already exists or its parent path doesn't exist.
+int get(string path) Returns the value associated with path or returns -1 if the path doesn't exist.
+ 
+
+Example 1:
+
+Input: 
+["FileSystem","createPath","get"]
+[[],["/a",1],["/a"]]
+Output: 
+[null,true,1]
+Explanation: 
+FileSystem fileSystem = new FileSystem();
+
+fileSystem.createPath("/a", 1); // return true
+fileSystem.get("/a"); // return 1
+Example 2:
+
+Input: 
+["FileSystem","createPath","createPath","get","createPath","get"]
+[[],["/leet",1],["/leet/code",2],["/leet/code"],["/c/d",1],["/c"]]
+Output: 
+[null,true,true,2,false,-1]
+Explanation: 
+FileSystem fileSystem = new FileSystem();
+
+fileSystem.createPath("/leet", 1); // return true
+fileSystem.createPath("/leet/code", 2); // return true
+fileSystem.get("/leet/code"); // return 2
+fileSystem.createPath("/c/d", 1); // return false because the parent path "/c" doesn't exist.
+fileSystem.get("/c"); // return -1 because this path doesn't exist.
+ 
+
+Constraints:
+
+2 <= path.length <= 100
+1 <= value <= 109
+Each path is valid and consists of lowercase English letters and '/'.
+At most 104 calls in total will be made to createPath and get.
+
+
+
+# java
+
+
+
+class TrieNode {
+  public Map<String, TrieNode> children = new HashMap<>();
+  public int value;
+  public TrieNode(int value) {
+    this.value = value;
+  }
+}
+
+class FileSystem {
+  public boolean createPath(String path, int value) {
+    final String[] subpaths = path.split("/");
+    TrieNode node = root;
+
+    for (int i = 1; i < subpaths.length - 1; ++i) {
+      if (!node.children.containsKey(subpaths[i]))
+        return false;
+      node = node.children.get(subpaths[i]);
+    }
+
+    final String lastSubpath = subpaths[subpaths.length - 1];
+    if (node.children.containsKey(lastSubpath))
+      return false;
+    node.children.put(lastSubpath, new TrieNode(value));
+    return true;
+  }
+
+  public int get(String path) {
+    final String[] subpaths = path.split("/");
+    TrieNode node = root;
+    for (int i = 1; i < subpaths.length; ++i) {
+      if (!node.children.containsKey(subpaths[i]))
+        return -1;
+      node = node.children.get(subpaths[i]);
+    }
+    return node.value;
+  }
+
+  private TrieNode root = new TrieNode(0);
+}
+
+
+
+or
+
+
+
+class Trie {
+    Map<String, Trie> children = new HashMap<>();
+    int v;
+
+    Trie(int v) {
+        this.v = v;
+    }
+
+    boolean insert(String w, int v) {
+        Trie node = this;
+        var ps = w.split("/");
+        for (int i = 1; i < ps.length - 1; ++i) {
+            var p = ps[i];
+            if (!node.children.containsKey(p)) {
+                return false;
+            }
+            node = node.children.get(p);
+        }
+        if (node.children.containsKey(ps[ps.length - 1])) {
+            return false;
+        }
+        node.children.put(ps[ps.length - 1], new Trie(v));
+        return true;
+    }
+
+    int search(String w) {
+        Trie node = this;
+        var ps = w.split("/");
+        for (int i = 1; i < ps.length; ++i) {
+            var p = ps[i];
+            if (!node.children.containsKey(p)) {
+                return -1;
+            }
+            node = node.children.get(p);
+        }
+        return node.v;
+    }
+}
+
+class FileSystem {
+    private Trie trie = new Trie(-1);
+
+    public FileSystem() {
+    }
+
+    public boolean createPath(String path, int value) {
+        return trie.insert(path, value);
+    }
+
+    public int get(String path) {
+        return trie.search(path);
+    }
+}
+
+/**
+ * Your FileSystem object will be instantiated and called as such:
+ * FileSystem obj = new FileSystem();
+ * boolean param_1 = obj.createPath(path,value);
+ * int param_2 = obj.get(path);
+ */
+
+
+
