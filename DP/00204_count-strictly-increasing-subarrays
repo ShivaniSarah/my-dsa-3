@@ -1,0 +1,80 @@
+https://leetcode.com/problems/count-strictly-increasing-subarrays/description/
+
+
+2393. Count Strictly Increasing Subarrays
+Description
+You are given an array nums consisting of positive integers.
+
+Return the number of subarrays of nums that are in strictly increasing order.
+
+A subarray is a contiguous part of an array.
+
+ 
+
+Example 1:
+
+Input: nums = [1,3,5,4,4,6]
+Output: 10
+Explanation: The strictly increasing subarrays are the following:
+- Subarrays of length 1: [1], [3], [5], [4], [4], [6].
+- Subarrays of length 2: [1,3], [3,5], [4,6].
+- Subarrays of length 3: [1,3,5].
+The total number of subarrays is 6 + 3 + 1 = 10.
+Example 2:
+
+Input: nums = [1,2,3,4,5]
+Output: 15
+Explanation: Every subarray is strictly increasing. There are 15 possible subarrays that we can take.
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+1 <= nums[i] <= 106
+
+
+
+# java
+
+
+
+
+class Solution {
+  public long countSubarrays(int[] nums) {
+    long ans = 0;
+
+    for (int i = 0, j = -1; i < nums.length; ++i) {
+      if (i > 0 && nums[i] <= nums[i - 1])
+        j = i - 1;
+      ans += i - j;
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+class Solution {
+    public long countSubarrays(int[] nums) {
+        long ans = 0;
+        int i = 0, n = nums.length;
+        while (i < n) {
+            int j = i + 1;
+            while (j < n && nums[j] > nums[j - 1]) {
+                ++j;
+            }
+            long cnt = j - i;
+            ans += (1 + cnt) * cnt / 2;
+            i = j;
+        }
+        return ans;
+    }
+}
+
+
+
+
