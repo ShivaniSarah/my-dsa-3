@@ -1,0 +1,106 @@
+https://leetcode.com/problems/the-number-of-ways-to-make-the-sum/description/
+
+
+3183. The Number of Ways to Make the Sum 🔒
+Description
+You have an infinite number of coins with values 1, 2, and 6, and only 2 coins with value 4.
+
+Given an integer n, return the number of ways to make the sum of n with the coins you have.
+
+Since the answer may be very large, return it modulo 109 + 7.
+
+Note that the order of the coins doesn't matter and [2, 2, 3] is the same as [2, 3, 2].
+
+ 
+
+Example 1:
+
+Input: n = 4
+
+Output: 4
+
+Explanation:
+
+Here are the four combinations: [1, 1, 1, 1], [1, 1, 2], [2, 2], [4].
+
+Example 2:
+
+Input: n = 12
+
+Output: 22
+
+Explanation:
+
+Note that [4, 4, 4] is not a valid combination since we cannot use 4 three times.
+
+Example 3:
+
+Input: n = 5
+
+Output: 4
+
+Explanation:
+
+Here are the four combinations: [1, 1, 1, 1, 1], [1, 1, 1, 2], [1, 2, 2], [1, 4].
+
+ 
+
+Constraints:
+
+1 <= n <= 105
+
+
+
+# java
+
+
+
+class Solution {
+  public int numberOfWays(int n) {
+    final int MOD = 1_000_000_007;
+    // dp[i] := the number of ways to make the sum of i using coins 1, 2, and 6
+    int[] dp = new int[n + 1];
+    dp[0] = 1;
+
+    for (final int coin : new int[] {1, 2, 6})
+      for (int i = coin; i <= n; ++i)
+        dp[i] = (dp[i] + dp[i - coin]) % MOD;
+
+    int ans = dp[n];
+    if (n - 4 >= 0)
+      ans = (ans + dp[n - 4]) % MOD;
+    if (n - 8 >= 0)
+      ans = (ans + dp[n - 8]) % MOD;
+    return ans;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int numberOfWays(int n) {
+        final int mod = (int) 1e9 + 7;
+        int[] coins = {1, 2, 6};
+        int[] f = new int[n + 1];
+        f[0] = 1;
+        for (int x : coins) {
+            for (int j = x; j <= n; ++j) {
+                f[j] = (f[j] + f[j - x]) % mod;
+            }
+        }
+        int ans = f[n];
+        if (n >= 4) {
+            ans = (ans + f[n - 4]) % mod;
+        }
+        if (n >= 8) {
+            ans = (ans + f[n - 8]) % mod;
+        }
+        return ans;
+    }
+}
+
+
