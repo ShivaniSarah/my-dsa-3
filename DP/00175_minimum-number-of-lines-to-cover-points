@@ -1,0 +1,154 @@
+https://leetcode.com/problems/minimum-number-of-lines-to-cover-points/description/
+
+2152. Minimum Number of Lines to Cover Points
+Description
+You are given an array points where points[i] = [xi, yi] represents a point on an X-Y plane.
+
+Straight lines are going to be added to the X-Y plane, such that every point is covered by at least one line.
+
+Return the minimum number of straight lines needed to cover all the points.
+
+ 
+
+Example 1:
+
+
+
+Input: points = [[0,1],[2,3],[4,5],[4,3]]
+Output: 2
+Explanation: The minimum number of straight lines needed is two. One possible solution is to add:
+- One line connecting the point at (0, 1) to the point at (4, 5).
+- Another line connecting the point at (2, 3) to the point at (4, 3).
+Example 2:
+
+
+
+Input: points = [[0,2],[-2,-2],[1,4]]
+Output: 1
+Explanation: The minimum number of straight lines needed is one. The only solution is to add:
+- One line connecting the point at (-2, -2) to the point at (1, 4).
+ 
+
+Constraints:
+
+1 <= points.length <= 10
+points[i].length == 2
+-100 <= xi, yi <= 100
+All the points are unique.
+
+
+
+# java
+
+
+
+
+class Solution {
+  public int minimumLines(int[][] points) {
+    final int allCovered = (1 << points.length) - 1;
+    int[] mem = new int[allCovered];
+    Arrays.fill(mem, -1);
+    return dfs(points, 0, allCovered, mem);
+  }
+
+  private int dfs(int[][] points, int covered, int allCovered, int[] mem) {
+    if (covered == allCovered)
+      return 0;
+    if (mem[covered] != -1)
+      return mem[covered];
+
+    final int n = points.length;
+    int ans = n / 2 + ((n & 1) == 1 ? 1 : 0);
+
+    for (int i = 0; i < n; ++i) {
+      if ((covered >> i & 1) == 1)
+        continue;
+      for (int j = 0; j < n; ++j) {
+        if (i == j)
+          continue;
+        // Connect the points[i] with the points[j].
+        int newCovered = covered | 1 << i | 1 << j;
+        // Mark the points covered by this line.
+        Pair<Integer, Integer> slope = getSlope(points[i], points[j]);
+        for (int k = 0; k < n; ++k)
+          if (getSlope(points[i], points[k]).equals(slope))
+            newCovered |= 1 << k;
+        ans = Math.min(ans, 1 + dfs(points, newCovered, allCovered, mem));
+      }
+    }
+
+    return mem[covered] = ans;
+  }
+
+  private Pair<Integer, Integer> getSlope(int[] p, int[] q) {
+    final int dx = p[0] - q[0];
+    final int dy = p[1] - q[1];
+    if (dx == 0)
+      return new Pair<>(0, p[0]);
+    if (dy == 0)
+      return new Pair<>(p[1], 0);
+    final int d = gcd(dx, dy);
+    final int x = dx / d;
+    final int y = dy / d;
+    return x > 0 ? new Pair<>(x, y) : new Pair<>(-x, -y);
+  }
+
+  private int gcd(int a, int b) {
+    return b == 0 ? a : gcd(b, a % b);
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    private int[] f;
+    private int[][] points;
+    private int n;
+
+    public int minimumLines(int[][] points) {
+        n = points.length;
+        this.points = points;
+        f = new int[1 << n];
+        return dfs(0);
+    }
+
+    private int dfs(int state) {
+        if (state == (1 << n) - 1) {
+            return 0;
+        }
+        if (f[state] != 0) {
+            return f[state];
+        }
+        int ans = 1 << 30;
+        for (int i = 0; i < n; ++i) {
+            if (((state >> i) & 1) == 0) {
+                for (int j = i + 1; j < n; ++j) {
+                    int nxt = state | 1 << i | 1 << j;
+                    for (int k = j + 1; k < n; ++k) {
+                        if (((state >> k) & 1) == 0 && check(i, j, k)) {
+                            nxt |= 1 << k;
+                        }
+                    }
+                    ans = Math.min(ans, dfs(nxt) + 1);
+                }
+                if (i == n - 1) {
+                    ans = Math.min(ans, dfs(state | 1 << i) + 1);
+                }
+            }
+        }
+        return f[state] = ans;
+    }
+
+    private boolean check(int i, int j, int k) {
+        int x1 = points[i][0], y1 = points[i][1];
+        int x2 = points[j][0], y2 = points[j][1];
+        int x3 = points[k][0], y3 = points[k][1];
+        return (x2 - x1) * (y3 - y1) == (x3 - x1) * (y2 - y1);
+    }
+}
+
+
