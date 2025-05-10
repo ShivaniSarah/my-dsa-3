@@ -1,0 +1,94 @@
+https://leetcode.com/problems/maximum-alternating-subarray-sum/description/
+
+
+2036. Maximum Alternating Subarray Sum
+Description
+A subarray of a 0-indexed integer array is a contiguous non-empty sequence of elements within an array.
+
+The alternating subarray sum of a subarray that ranges from index i to j (inclusive, 0 <= i <= j < nums.length) is nums[i] - nums[i+1] + nums[i+2] - ... +/- nums[j].
+
+Given a 0-indexed integer array nums, return the maximum alternating subarray sum of any subarray of nums.
+
+ 
+
+Example 1:
+
+Input: nums = [3,-1,1,2]
+Output: 5
+Explanation:
+The subarray [3,-1,1] has the largest alternating subarray sum.
+The alternating subarray sum is 3 - (-1) + 1 = 5.
+Example 2:
+
+Input: nums = [2,2,2,2,2]
+Output: 2
+Explanation:
+The subarrays [2], [2,2,2], and [2,2,2,2,2] have the largest alternating subarray sum.
+The alternating subarray sum of [2] is 2.
+The alternating subarray sum of [2,2,2] is 2 - 2 + 2 = 2.
+The alternating subarray sum of [2,2,2,2,2] is 2 - 2 + 2 - 2 + 2 = 2.
+Example 3:
+
+Input: nums = [1]
+Output: 1
+Explanation:
+There is only one non-empty subarray, which is [1].
+The alternating subarray sum is 1.
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+-105 <= nums[i] <= 105
+
+
+
+# java
+
+
+
+class Solution {
+  public long maximumAlternatingSubarraySum(int[] nums) {
+    long ans = Integer.MIN_VALUE;
+    long even = 0; // the subarray sum starting from an even index
+    long odd = 0;  // the subarray sum starting from an odd index
+
+    for (int i = 0; i < nums.length; ++i) {
+      if (i % 2 == 0) // Must pick.
+        even += nums[i];
+      else // Start a fresh subarray or subtract `nums[i]`.
+        even = Math.max(0, even - nums[i]);
+      ans = Math.max(ans, even);
+    }
+
+    for (int i = 1; i < nums.length; ++i) {
+      if (i % 2 == 1) // Must pick.
+        odd += nums[i];
+      else // Start a fresh subarray or subtract `nums[i]`.
+        odd = Math.max(0, odd - nums[i]);
+      ans = Math.max(ans, odd);
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public long maximumAlternatingSubarraySum(int[] nums) {
+        final long inf = 1L << 60;
+        long ans = -inf, f = -inf, g = -inf;
+        for (int x : nums) {
+            long ff = Math.max(g, 0) + x;
+            g = f - x;
+            f = ff;
+            ans = Math.max(ans, Math.max(f, g));
+        }
+        return ans;
+    }
+}
