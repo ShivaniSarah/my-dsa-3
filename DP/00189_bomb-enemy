@@ -1,0 +1,143 @@
+https://leetcode.com/problems/bomb-enemy/description/
+
+
+361. Bomb Enemy
+Description
+Given an m x n matrix grid where each cell is either a wall 'W', an enemy 'E' or empty '0', return the maximum enemies you can kill using one bomb. You can only place the bomb in an empty cell.
+
+The bomb kills all the enemies in the same row and column from the planted point until it hits the wall since it is too strong to be destroyed.
+
+ 
+
+Example 1:
+
+
+
+Input: grid = [["0","E","0","0"],["E","0","W","E"],["0","E","0","0"]]
+Output: 3
+Example 2:
+
+
+
+Input: grid = [["W","W","W"],["0","0","0"],["E","E","E"]]
+Output: 1
+ 
+
+Constraints:
+
+m == grid.length
+n == grid[i].length
+1 <= m, n <= 500
+grid[i][j] is either 'W', 'E', or '0'.
+
+
+
+# java
+
+
+class Solution {
+  public int maxKilledEnemies(char[][] grid) {
+    if (grid.length == 0 || grid[0].length == 0)
+      return 0;
+
+    final int m = grid.length;
+    final int n = grid[0].length;
+    // dp[i][j] := the maximum enemies grid[i][j] can kill
+    int[][] dp = new int[m][n];
+
+    // Extend the four directions, if meet 'W', need to start over from 0.
+    for (int i = 0; i < m; ++i) {
+      enemyCount = 0;
+      for (int j = 0; j < n; ++j)
+        update(grid, i, j, dp);
+      enemyCount = 0;
+      for (int j = n - 1; j >= 0; --j)
+        update(grid, i, j, dp);
+    }
+
+    for (int j = 0; j < n; ++j) {
+      enemyCount = 0;
+      for (int i = 0; i < m; ++i)
+        update(grid, i, j, dp);
+      enemyCount = 0;
+      for (int i = m - 1; i >= 0; --i)
+        update(grid, i, j, dp);
+    }
+
+    return Arrays.stream(dp).flatMapToInt(Arrays::stream).max().getAsInt();
+  }
+
+  private int enemyCount = 0;
+
+  private void update(char[][] grid, int i, int j, int[][] dp) {
+    if (grid[i][j] == '0')
+      dp[i][j] += enemyCount;
+    else if (grid[i][j] == 'E')
+      ++enemyCount;
+    else // grid[i][j] == 'W'
+      enemyCount = 0;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int maxKilledEnemies(char[][] grid) {
+        int m = grid.length;
+        int n = grid[0].length;
+        int[][] g = new int[m][n];
+        for (int i = 0; i < m; ++i) {
+            int t = 0;
+            for (int j = 0; j < n; ++j) {
+                if (grid[i][j] == 'W') {
+                    t = 0;
+                } else if (grid[i][j] == 'E') {
+                    ++t;
+                }
+                g[i][j] += t;
+            }
+            t = 0;
+            for (int j = n - 1; j >= 0; --j) {
+                if (grid[i][j] == 'W') {
+                    t = 0;
+                } else if (grid[i][j] == 'E') {
+                    ++t;
+                }
+                g[i][j] += t;
+            }
+        }
+        for (int j = 0; j < n; ++j) {
+            int t = 0;
+            for (int i = 0; i < m; ++i) {
+                if (grid[i][j] == 'W') {
+                    t = 0;
+                } else if (grid[i][j] == 'E') {
+                    ++t;
+                }
+                g[i][j] += t;
+            }
+            t = 0;
+            for (int i = m - 1; i >= 0; --i) {
+                if (grid[i][j] == 'W') {
+                    t = 0;
+                } else if (grid[i][j] == 'E') {
+                    ++t;
+                }
+                g[i][j] += t;
+            }
+        }
+        int ans = 0;
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (grid[i][j] == '0') {
+                    ans = Math.max(ans, g[i][j]);
+                }
+            }
+        }
+        return ans;
+    }
+}
+
+
