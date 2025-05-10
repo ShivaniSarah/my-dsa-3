@@ -1,0 +1,142 @@
+https://leetcode.com/problems/number-of-distinct-substrings-in-a-string/description/
+
+
+1698. Number of Distinct Substrings in a String
+Description
+Given a string s, return the number of distinct substrings of s.
+
+A substring of a string is obtained by deleting any number of characters (possibly zero) from the front of the string and any number (possibly zero) from the back of the string.
+
+ 
+
+Example 1:
+
+Input: s = "aabbaba"
+Output: 21
+Explanation: The set of distinct strings is ["a","b","aa","bb","ab","ba","aab","abb","bab","bba","aba","aabb","abba","bbab","baba","aabba","abbab","bbaba","aabbab","abbaba","aabbaba"]
+Example 2:
+
+Input: s = "abcdefg"
+Output: 28
+ 
+
+Constraints:
+
+1 <= s.length <= 500
+s consists of lowercase English letters.
+ 
+
+Follow up: Can you solve this problem in O(n) time complexity?
+
+
+
+# java
+
+
+
+class Solution {
+  public int countDistinct(String s) {
+    final int n = s.length();
+    int ans = 0;
+    long[] pow = new long[n + 1];    // pow[i] := BASE^i
+    long[] hashes = new long[n + 1]; // hashes[i] := the hash of s[0..i)
+
+    pow[0] = 1;
+    for (int i = 1; i <= n; ++i) {
+      pow[i] = pow[i - 1] * BASE % HASH;
+      hashes[i] = (hashes[i - 1] * BASE + val(s.charAt(i - 1))) % HASH;
+    }
+
+    for (int length = 1; length <= n; ++length) {
+      Set<Long> seen = new HashSet<>();
+      for (int i = 0; i + length <= n; ++i)
+        seen.add(getHash(i, i + length, hashes, pow));
+      ans += seen.size();
+    }
+
+    return ans;
+  }
+
+  private static final int BASE = 26;
+  private static final int HASH = 1_000_000_007;
+
+  private static int val(char c) {
+    return c - 'a';
+  }
+
+  // Returns the hash of s[l..r).
+  private long getHash(int l, int r, long[] hashes, long[] pow) {
+    final long hash = (hashes[r] - hashes[l] * pow[r - l]) % HASH;
+    return hash < 0 ? hash + HASH : hash;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int countDistinct(String s) {
+        Set<String> ss = new HashSet<>();
+        int n = s.length();
+        for (int i = 0; i < n; ++i) {
+            for (int j = i + 1; j <= n; ++j) {
+                ss.add(s.substring(i, j));
+            }
+        }
+        return ss.size();
+    }
+}
+
+//////
+
+class Solution:
+    def countDistinct(self, s: str) -> int:
+        base = 131
+        n = len(s)
+        p = [0] * (n + 10)
+        h = [0] * (n + 10)
+        p[0] = 1
+        for i, c in enumerate(s):
+            p[i + 1] = p[i] * base
+            h[i + 1] = h[i] * base + ord(c)
+        ss = set()
+        for i in range(1, n + 1):
+            for j in range(i, n + 1):
+                t = h[j] - h[i - 1] * p[j - i + 1]
+                ss.add(t)
+        return len(ss)
+
+
+//////
+
+public class Solution {
+    class Trie {
+        Trie[] children = new Trie[26];
+    }
+
+    public int countDistinct(String s) {
+        Trie root = new Trie();
+        Trie current;
+        int count = 0;
+        for (int i = 0; i < s.length(); i++) {
+            current = root;
+            for (int j = i; j < s.length(); j++) {
+
+                if (current.children[s.charAt(j) - 'a'] == null) {
+                    current.children[s.charAt(j) - 'a'] = new Trie();
+                    count++;
+                }
+
+                current = current.children[s.charAt(j) - 'a'];
+            }
+        }
+
+        return count;
+    }
+}
+
+
+
