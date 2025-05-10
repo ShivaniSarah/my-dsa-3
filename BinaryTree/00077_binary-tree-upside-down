@@ -1,0 +1,115 @@
+https://leetcode.com/problems/binary-tree-upside-down/description/
+
+156. Binary Tree Upside Down
+Description
+Given the root of a binary tree, turn the tree upside down and return the new root.
+
+You can turn a binary tree upside down with the following steps:
+
+The original left child becomes the new root.
+The original root becomes the new right child.
+The original right child becomes the new left child.
+
+
+The mentioned steps are done level by level. It is guaranteed that every right node has a sibling (a left node with the same parent) and has no children.
+
+ 
+
+Example 1:
+
+
+
+Input: root = [1,2,3,4,5]
+Output: [4,5,2,null,null,3,1]
+Example 2:
+
+Input: root = []
+Output: []
+Example 3:
+
+Input: root = [1]
+Output: [1]
+ 
+
+Constraints:
+
+The number of nodes in the tree will be in the range [0, 10].
+1 <= Node.val <= 10
+Every right node in the tree has a sibling (a left node that shares the same parent).
+Every right node in the tree has no children.
+
+
+# java
+
+
+
+class Solution {
+  public TreeNode upsideDownBinaryTree(TreeNode root) {
+    if (root == null || root.left == null)
+      return root;
+
+    TreeNode newRoot = upsideDownBinaryTree(root.left);
+    root.left.left = root.right; // 2's left = 3 (root's right)
+    root.left.right = root;      // 2's right = 1 (root)
+    root.left = null;
+    root.right = null;
+    return newRoot;
+  }
+}
+
+
+or
+
+
+class Solution {
+  public TreeNode upsideDownBinaryTree(TreeNode root) {
+    TreeNode prevRoot = null;
+    TreeNode prevRightChild = null;
+
+    while (root != null) {
+      TreeNode nextRoot = root.left; // Cache the next root.
+      root.left = prevRightChild;
+      prevRightChild = root.right;
+      root.right = prevRoot;
+      prevRoot = root; // Record the previous root.
+      root = nextRoot; // Update the root.
+    }
+
+    return prevRoot;
+  }
+}
+
+
+or
+
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public TreeNode upsideDownBinaryTree(TreeNode root) {
+        if (root == null || root.left == null) {
+            return root;
+        }
+        TreeNode newRoot = upsideDownBinaryTree(root.left);
+        root.left.right = root;
+        root.left.left = root.right;
+        root.left = null;
+        root.right = null;
+        return newRoot;
+    }
+}
+
+
