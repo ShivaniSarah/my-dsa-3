@@ -1,0 +1,131 @@
+https://leetcode.com/problems/maximum-number-of-accepted-invitations/description/
+
+https://leetcode.ca/2020-11-23-1820-Maximum-Number-of-Accepted-Invitations/
+
+
+1820. Maximum Number of Accepted Invitations
+Description
+There are m boys and n girls in a class attending an upcoming party.
+
+You are given an m x n integer matrix grid, where grid[i][j] equals 0 or 1. If grid[i][j] == 1, then that means the ith boy can invite the jth girl to the party. A boy can invite at most one girl, and a girl can accept at most one invitation from a boy.
+
+Return the maximum possible number of accepted invitations.
+
+ 
+
+Example 1:
+
+Input: grid = [[1,1,1],
+               [1,0,1],
+               [0,0,1]]
+Output: 3
+Explanation: The invitations are sent as follows:
+- The 1st boy invites the 2nd girl.
+- The 2nd boy invites the 1st girl.
+- The 3rd boy invites the 3rd girl.
+Example 2:
+
+Input: grid = [[1,0,1,0],
+               [1,0,0,0],
+               [0,0,1,0],
+               [1,1,1,0]]
+Output: 3
+Explanation: The invitations are sent as follows:
+-The 1st boy invites the 3rd girl.
+-The 2nd boy invites the 1st girl.
+-The 3rd boy invites no one.
+-The 4th boy invites the 2nd girl.
+ 
+
+Constraints:
+
+grid.length == m
+grid[i].length == n
+1 <= m, n <= 200
+grid[i][j] is either 0 or 1.
+
+
+
+# java
+
+
+
+// 1: Hungarian Algorithm
+
+
+class Solution {
+    private int[][] grid;
+    private boolean[] vis;
+    private int[] match;
+    private int n;
+
+    public int maximumInvitations(int[][] grid) {
+        int m = grid.length;
+        n = grid[0].length;
+        this.grid = grid;
+        vis = new boolean[n];
+        match = new int[n];
+        Arrays.fill(match, -1);
+        int ans = 0;
+        for (int i = 0; i < m; ++i) {
+            Arrays.fill(vis, false);
+            if (find(i)) {
+                ++ans;
+            }
+        }
+        return ans;
+    }
+
+    private boolean find(int i) {
+        for (int j = 0; j < n; ++j) {
+            if (grid[i][j] == 1 && !vis[j]) {
+                vis[j] = true;
+                if (match[j] == -1 || find(match[j])) {
+                    match[j] = i;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+}
+
+
+
+or
+
+
+
+class Solution {
+  public int maximumInvitations(int[][] grid) {
+    final int m = grid.length;
+    final int n = grid[0].length;
+    int ans = 0;
+    int[] mates = new int[n]; // mates[i] := the i-th girl's mate
+
+    Arrays.fill(mates, -1);
+
+    for (int i = 0; i < m; ++i)
+      if (canInvite(grid, i, new boolean[n], mates))
+        ++ans;
+
+    return ans;
+  }
+
+  // Returns true if the i-th boy can make an invitation.
+  private boolean canInvite(int[][] grid, int i, boolean[] seen, int[] mates) {
+    // The i-th boy asks each girl.
+    for (int j = 0; j < seen.length; ++j) {
+      if (grid[i][j] == 0 || seen[j])
+        continue;
+      seen[j] = true;
+      if (mates[j] == -1 || canInvite(grid, mates[j], seen, mates)) {
+        mates[j] = i; // Match the j-th girl with i-th boy.
+        return true;
+      }
+    }
+
+    return false;
+  }
+}
+
