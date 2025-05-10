@@ -1,0 +1,106 @@
+https://leetcode.com/problems/count-univalue-subtrees/description/
+
+
+250. Count Univalue Subtrees
+Description
+Given the root of a binary tree, return the number of uni-value subtrees.
+
+A uni-value subtree means all nodes of the subtree have the same value.
+
+ 
+
+Example 1:
+
+
+
+Input: root = [5,1,5,5,5,null,5]
+Output: 4
+Example 2:
+
+Input: root = []
+Output: 0
+Example 3:
+
+Input: root = [5,5,5,5,5,null,5]
+Output: 6
+ 
+
+Constraints:
+
+The number of the node in the tree will be in the range [0, 1000].
+-1000 <= Node.val <= 1000
+
+
+
+# java
+
+
+
+class Solution {
+  public int countUnivalSubtrees(TreeNode root) {
+    isUnival(root, Integer.MAX_VALUE);
+    return ans;
+  }
+
+  private int ans = 0;
+
+  private boolean isUnival(TreeNode root, int val) {
+    if (root == null)
+      return true;
+
+    if (isUnival(root.left, root.val) & isUnival(root.right, root.val)) {
+      ++ans;
+      return root.val == val;
+    }
+
+    return false;
+  }
+}
+
+
+or
+
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    private int ans;
+
+    public int countUnivalSubtrees(TreeNode root) {
+        dfs(root);
+        return ans;
+    }
+
+    private boolean dfs(TreeNode root) {
+        if (root == null) {
+            return true;
+        }
+        boolean l = dfs(root.left);
+        boolean r = dfs(root.right);
+        if (!l || !r) {
+            return false;
+        }
+        int a = root.left == null ? root.val : root.left.val;
+        int b = root.right == null ? root.val : root.right.val;
+        if (a == b && b == root.val) {
+            ++ans;
+            return true;
+        }
+        return false;
+    }
+}
+
+
