@@ -1,0 +1,110 @@
+https://leetcode.com/problems/permutations-iii/description/
+
+https://leetcode.ca/2025-02-19-3437-Permutations-III/
+
+3437. Permutations III 🔒
+Description
+Given an integer n, an alternating permutation is a permutation of the first n positive integers such that no two adjacent elements are both odd or both even.
+
+Return all such alternating permutations sorted in lexicographical order.
+
+ 
+
+Example 1:
+
+Input: n = 4
+
+Output: [[1,2,3,4],[1,4,3,2],[2,1,4,3],[2,3,4,1],[3,2,1,4],[3,4,1,2],[4,1,2,3],[4,3,2,1]]
+
+Example 2:
+
+Input: n = 2
+
+Output: [[1,2],[2,1]]
+
+Example 3:
+
+Input: n = 3
+
+Output: [[1,2,3],[3,2,1]]
+
+ 
+
+Constraints:
+
+1 <= n <= 10
+
+
+# java
+
+
+
+
+class Solution {
+  public int[][] permute(int n) {
+    List<List<Integer>> ans = new ArrayList<>();
+    dfs(n, new boolean[n + 1], new ArrayList<>(), ans);
+    return ans.stream()
+        .map(A -> A.stream().mapToInt(Integer::intValue).toArray())
+        .toArray(int[][] ::new);
+  }
+
+  private void dfs(int n, boolean[] used, List<Integer> path, List<List<Integer>> ans) {
+    if (path.size() == n) {
+      ans.add(new ArrayList<>(path));
+      return;
+    }
+
+    for (int num = 1; num <= n; ++num) {
+      if (used[num])
+        continue;
+      if (!path.isEmpty() && path.get(path.size() - 1) % 2 == num % 2)
+        continue;
+      used[num] = true;
+      path.add(num);
+      dfs(n, used, path, ans);
+      path.remove(path.size() - 1);
+      used[num] = false;
+    }
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    private List<int[]> ans = new ArrayList<>();
+    private boolean[] vis;
+    private int[] t;
+    private int n;
+
+    public int[][] permute(int n) {
+        this.n = n;
+        t = new int[n];
+        vis = new boolean[n + 1];
+        dfs(0);
+        return ans.toArray(new int[0][]);
+    }
+
+    private void dfs(int i) {
+        if (i >= n) {
+            ans.add(t.clone());
+            return;
+        }
+        for (int j = 1; j <= n; ++j) {
+            if (!vis[j] && (i == 0 || t[i - 1] % 2 != j % 2)) {
+                vis[j] = true;
+                t[i] = j;
+                dfs(i + 1);
+                vis[j] = false;
+            }
+        }
+    }
+}
+
+
+
+
