@@ -1,0 +1,103 @@
+https://leetcode.com/problems/longest-line-of-consecutive-one-in-matrix/description/
+
+562. Longest Line of Consecutive One in Matrix
+Description
+Given an m x n binary matrix mat, return the length of the longest line of consecutive one in the matrix.
+
+The line could be horizontal, vertical, diagonal, or anti-diagonal.
+
+ 
+
+Example 1:
+
+
+
+Input: mat = [[0,1,1,0],[0,1,1,0],[0,0,0,1]]
+Output: 3
+Example 2:
+
+
+
+Input: mat = [[1,1,1,1],[0,1,1,0],[0,0,0,1]]
+Output: 4
+ 
+
+Constraints:
+
+m == mat.length
+n == mat[i].length
+1 <= m, n <= 104
+1 <= m * n <= 104
+mat[i][j] is either 0 or 1.
+
+
+
+
+# java
+
+
+class Solution {
+  public int longestLine(int[][] mat) {
+    final int m = mat.length;
+    final int n = mat[0].length;
+    int ans = 0;
+    // dp[i][j][0] := horizontal
+    // dp[i][j][1] := vertical
+    // dp[i][j][2] := diagonal
+    // dp[i][j][3] := anti-diagonal
+    int[][][] dp = new int[m][n][4];
+
+    for (int i = 0; i < m; ++i)
+      for (int j = 0; j < n; ++j)
+        if (mat[i][j] == 1) {
+          dp[i][j][0] = j > 0 ? dp[i][j - 1][0] + 1 : 1;
+          dp[i][j][1] = i > 0 ? dp[i - 1][j][1] + 1 : 1;
+          dp[i][j][2] = (i > 0 && j > 0) ? dp[i - 1][j - 1][2] + 1 : 1;
+          dp[i][j][3] = (i > 0 && j < n - 1) ? dp[i - 1][j + 1][3] + 1 : 1;
+          for (int k = 0; k < 4; ++k)
+            ans = Math.max(ans, dp[i][j][k]);
+        }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int longestLine(int[][] mat) {
+        int m = mat.length, n = mat[0].length;
+        int[][] a = new int[m + 2][n + 2];
+        int[][] b = new int[m + 2][n + 2];
+        int[][] c = new int[m + 2][n + 2];
+        int[][] d = new int[m + 2][n + 2];
+        int ans = 0;
+        for (int i = 1; i <= m; ++i) {
+            for (int j = 1; j <= n; ++j) {
+                if (mat[i - 1][j - 1] == 1) {
+                    a[i][j] = a[i - 1][j] + 1;
+                    b[i][j] = b[i][j - 1] + 1;
+                    c[i][j] = c[i - 1][j - 1] + 1;
+                    d[i][j] = d[i - 1][j + 1] + 1;
+                    ans = max(ans, a[i][j], b[i][j], c[i][j], d[i][j]);
+                }
+            }
+        }
+        return ans;
+    }
+
+    private int max(int... arr) {
+        int ans = 0;
+        for (int v : arr) {
+            ans = Math.max(ans, v);
+        }
+        return ans;
+    }
+}
+
+
+
