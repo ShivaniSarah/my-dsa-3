@@ -1,0 +1,114 @@
+https://leetcode.com/problems/find-leaves-of-binary-tree/description/
+
+
+
+366. Find Leaves of Binary Tree
+Description
+Given the root of a binary tree, collect a tree's nodes as if you were doing this:
+
+Collect all the leaf nodes.
+Remove all the leaf nodes.
+Repeat until the tree is empty.
+ 
+
+Example 1:
+
+
+
+Input: root = [1,2,3,4,5]
+Output: [[4,5,3],[2],[1]]
+Explanation:
+[[3,5,4],[2],[1]] and [[3,4,5],[2],[1]] are also considered correct answers since per each level it does not matter the order on which elements are returned.
+Example 2:
+
+Input: root = [1]
+Output: [[1]]
+ 
+
+Constraints:
+
+The number of nodes in the tree is in the range [1, 100].
+-100 <= Node.val <= 100
+
+
+
+# java
+
+
+
+
+class Solution {
+  public List<List<Integer>> findLeaves(TreeNode root) {
+    List<List<Integer>> ans = new ArrayList<>();
+    depth(root, ans);
+    return ans;
+  }
+
+  // Returns the depth of the root (0-indexed).
+  private int depth(TreeNode root, List<List<Integer>> ans) {
+    if (root == null)
+      return -1;
+
+    final int l = depth(root.left, ans);
+    final int r = depth(root.right, ans);
+    final int h = 1 + Math.max(l, r);
+    if (ans.size() == h) // Meet a leaf.
+      ans.add(new ArrayList<>());
+
+    ans.get(h).add(root.val);
+    return h;
+  }
+}
+
+
+
+or
+
+
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public List<List<Integer>> findLeaves(TreeNode root) {
+        List<List<Integer>> res = new ArrayList<>();
+        TreeNode prev = new TreeNode(0, root, null);
+        while (prev.left != null) {
+            List<Integer> t = new ArrayList<>();
+            dfs(prev.left, prev, t);
+            res.add(t);
+        }
+        return res;
+    }
+
+    private void dfs(TreeNode root, TreeNode prev, List<Integer> t) {
+        if (root == null) {
+            return;
+        }
+        if (root.left == null && root.right == null) {
+            t.add(root.val);
+            if (prev.left == root) {
+                prev.left = null;
+            } else {
+                prev.right = null;
+            }
+        }
+        dfs(root.left, root, t);
+        dfs(root.right, root, t);
+    }
+}
+
+
+
