@@ -1,0 +1,140 @@
+https://leetcode.com/problems/minimum-cost-to-separate-sentence-into-rows/description/
+
+2052. Minimum Cost to Separate Sentence Into Rows
+Description
+You are given a string sentence containing words separated by spaces, and an integer k. Your task is to separate sentence into rows where the number of characters in each row is at most k. You may assume that sentence does not begin or end with a space, and the words in sentence are separated by a single space.
+
+You can split sentence into rows by inserting line breaks between words in sentence. A word cannot be split between two rows. Each word must be used exactly once, and the word order cannot be rearranged. Adjacent words in a row should be separated by a single space, and rows should not begin or end with spaces.
+
+The cost of a row with length n is (k - n)2, and the total cost is the sum of the costs for all rows except the last one.
+
+For example if sentence = "i love leetcode" and k = 12:
+Separating sentence into "i", "love", and "leetcode" has a cost of (12 - 1)2 + (12 - 4)2 = 185.
+Separating sentence into "i love", and "leetcode" has a cost of (12 - 6)2 = 36.
+Separating sentence into "i", and "love leetcode" is not possible because the length of "love leetcode" is greater than k.
+Return the minimum possible total cost of separating sentence into rows.
+
+ 
+
+Example 1:
+
+Input: sentence = "i love leetcode", k = 12
+Output: 36
+Explanation:
+Separating sentence into "i", "love", and "leetcode" has a cost of (12 - 1)2 + (12 - 4)2 = 185.
+Separating sentence into "i love", and "leetcode" has a cost of (12 - 6)2 = 36.
+Separating sentence into "i", "love leetcode" is not possible because "love leetcode" has length 13.
+36 is the minimum possible total cost so return it.
+Example 2:
+
+Input: sentence = "apples and bananas taste great", k = 7
+Output: 21
+Explanation
+Separating sentence into "apples", "and", "bananas", "taste", and "great" has a cost of (7 - 6)2 + (7 - 3)2 + (7 - 7)2 + (7 - 5)2 = 21.
+21 is the minimum possible total cost so return it.
+Example 3:
+
+Input: sentence = "a", k = 5
+Output: 0
+Explanation:
+The cost of the last row is not included in the total cost, and since there is only one row, return 0.
+ 
+
+Constraints:
+
+1 <= sentence.length <= 5000
+1 <= k <= 5000
+The length of each word in sentence is at most k.
+sentence consists of only lowercase English letters and spaces.
+sentence does not begin or end with a space.
+Words in sentence are separated by a single space.
+
+
+
+# java
+
+
+
+
+class Solution {
+  public int minimumCost(String sentence, int k) {
+    if (sentence.length() <= k)
+      return 0;
+
+    String[] words = sentence.split(" ");
+    // dp[i] := the minimum cost of the first i words
+    int[] dp = new int[words.length + 1];
+
+    for (int i = 1; i <= words.length; ++i) {
+      int n = words[i - 1].length(); // the length of the current row
+      dp[i] = dp[i - 1] + (k - n) * (k - n);
+      // Gradually add words[j - 1], words[j - 2], ....
+      for (int j = i - 1; j > 0; --j) {
+        n += words[j - 1].length() + 1;
+        if (n > k)
+          break;
+        dp[i] = Math.min(dp[i], dp[j - 1] + (k - n) * (k - n));
+      }
+    }
+
+    int lastRowLen = words[words.length - 1].length();
+    int i = words.length - 2;
+
+    while (i > 0 && lastRowLen + words[i].length() + 1 <= k)
+      lastRowLen += words[i--].length();
+
+    return Arrays.stream(dp, i + 1, words.length).min().getAsInt();
+  }
+}
+
+
+
+
+
+
+or
+
+
+
+
+
+class Solution {
+    private static final int INF = Integer.MAX_VALUE;
+    private int[] memo;
+    private int[] s;
+    private int n;
+
+    public int minimumCost(String sentence, int k) {
+        String[] words = sentence.split(" ");
+        n = words.length;
+        s = new int[n + 1];
+        for (int i = 0; i < n; ++i) {
+            s[i + 1] = s[i] + words[i].length();
+        }
+        memo = new int[n];
+        Arrays.fill(memo, INF);
+        return dfs(0, k);
+    }
+
+    private int dfs(int i, int k) {
+        if (memo[i] != INF) {
+            return memo[i];
+        }
+        if (s[n] - s[i] + n - i - 1 <= k) {
+            memo[i] = 0;
+            return 0;
+        }
+        int ans = INF;
+        for (int j = i + 1; j < n; ++j) {
+            int t = s[j] - s[i] + j - i - 1;
+            if (t <= k) {
+                ans = Math.min(ans, (k - t) * (k - t) + dfs(j, k));
+            }
+        }
+        memo[i] = ans;
+        return ans;
+    }
+}
+
+
+
