@@ -1,0 +1,125 @@
+https://leetcode.ca/2016-08-02-246-Strobogrammatic-Number/
+
+https://leetcode.com/problems/strobogrammatic-number/description/
+
+
+246
+
+Given a string num which represents an integer, return true if num is a strobogrammatic number.
+
+A strobogrammatic number is a number that looks the same when rotated 180 degrees (looked at upside down).
+
+ 
+
+Example 1:
+
+Input: num = "69"
+Output: true
+Example 2:
+
+Input: num = "88"
+Output: true
+Example 3:
+
+Input: num = "962"
+Output: false
+ 
+
+Constraints:
+
+1 <= num.length <= 50
+num consists of only digits.
+num does not contain any leading zeros except for zero itself.
+
+
+
+# java
+
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class Strobogrammatic_Number {
+
+
+    class Solution {
+        public boolean isStrobogrammatic(String num) {
+            Map<Character, Character> m = new HashMap<Character, Character>(){ {
+                put('0', '0');
+                put('1', '1');
+                put('8', '8');
+                put('6', '9');
+                put('9', '6');
+            } };
+
+            for (int i = 0; i <= num.length() / 2; ++i) {
+                if (m.get(num.charAt(i)) != num.charAt(num.length() - i - 1)) return false;
+            }
+            return true;
+
+        }
+    }
+
+    class Solution_noExtraSpace {
+        public boolean isStrobogrammatic(String num) {
+            if (num == null || num.length() == 0) {
+                return true;
+            }
+            if (num.length() == 1) {
+                return num.equals("0") || num.equals("1") || num.equals("8");
+            }
+
+            int l = 0, r = num.length() - 1;
+            while (l <= r) {
+                if (num.charAt(l) == num.charAt(r)) {
+                    if (num.charAt(l) != '1' && num.charAt(l) != '0' && num.charAt(l) != '8'){
+                        return false;
+                    }
+                } else {
+                    if ((num.charAt(l) != '6' || num.charAt(r) != '9') && (num.charAt(l) != '9' || num.charAt(r) != '6')) {
+                        return false;
+                    }
+                }
+                ++l; --r;
+            }
+
+            return true;
+        }
+    }
+
+}
+
+############
+
+class Solution {
+    public boolean isStrobogrammatic(String num) {
+        int[] d = new int[] {0, 1, -1, -1, -1, -1, 9, -1, 8, 6};
+        for (int i = 0, j = num.length() - 1; i <= j; ++i, --j) {
+            int a = num.charAt(i) - '0', b = num.charAt(j) - '0';
+            if (d[a] != b) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+  public boolean isStrobogrammatic(String num) {
+    final char[] rotated = {'0', '1', 'x', 'x', 'x', 'x', '9', 'x', '8', '6'};
+    int l = 0;
+    int r = num.length() - 1;
+
+    while (l <= r)
+      if (num.charAt(l++) != rotated[num.charAt(r--) - '0'])
+        return false;
+
+    return true;
+  }
+}
+
