@@ -1,0 +1,197 @@
+https://leetcode.com/problems/remove-all-ones-with-row-and-column-flips-ii/description/
+
+
+2174. Remove All Ones With Row and Column Flips II
+Description
+You are given a 0-indexed m x n binary matrix grid.
+
+In one operation, you can choose any i and j that meet the following conditions:
+
+0 <= i < m
+0 <= j < n
+grid[i][j] == 1
+and change the values of all cells in row i and column j to zero.
+
+Return the minimum number of operations needed to remove all 1's from grid.
+
+ 
+
+Example 1:
+
+
+
+Input: grid = [[1,1,1],[1,1,1],[0,1,0]]
+Output: 2
+Explanation:
+In the first operation, change all cell values of row 1 and column 1 to zero.
+In the second operation, change all cell values of row 0 and column 0 to zero.
+Example 2:
+
+
+
+Input: grid = [[0,1,0],[1,0,1],[0,1,0]]
+Output: 2
+Explanation:
+In the first operation, change all cell values of row 1 and column 0 to zero.
+In the second operation, change all cell values of row 2 and column 1 to zero.
+Note that we cannot perform an operation using row 1 and column 1 because grid[1][1] != 1.
+Example 3:
+
+
+
+Input: grid = [[0,0],[0,0]]
+Output: 0
+Explanation:
+There are no 1's to remove so return 0.
+ 
+
+Constraints:
+
+m == grid.length
+n == grid[i].length
+1 <= m, n <= 15
+1 <= m * n <= 15
+grid[i][j] is either 0 or 1.
+
+
+
+# java
+
+
+
+class Solution {
+  public int removeOnes(int[][] grid) {
+    final int m = grid.length;
+    final int n = grid[0].length;
+    int[] mem = new int[1 << m * n];
+    Arrays.fill(mem, Integer.MAX_VALUE);
+    return removeOnes(encode(grid, m, n), m, n, mem);
+  }
+
+  // Returns the minimum number of operations to remove all 1s from the grid,
+  // where `mask` is the bitmask of the state of the grid.
+  private int removeOnes(int mask, int m, int n, int[] mem) {
+    if (mask == 0)
+      return 0;
+    if (mem[mask] < Integer.MAX_VALUE)
+      return mem[mask];
+
+    for (int i = 0; i < m; ++i)
+      for (int j = 0; j < n; ++j)
+        if ((mask >> i * n + j & 1) == 1) { // grid[i][j] == 1
+          int newMask = mask;
+          // Set the cells in the same row with 0.
+          for (int k = 0; k < n; ++k)
+            newMask &= ~(1 << i * n + k);
+          // Set the cells in the same column with 0.
+          for (int k = 0; k < m; ++k)
+            newMask &= ~(1 << k * n + j);
+          mem[mask] = Math.min(mem[mask], 1 + removeOnes(newMask, m, n, mem));
+        }
+
+    return mem[mask];
+  }
+
+  private int encode(int[][] grid, int m, int n) {
+    int encoded = 0;
+    for (int i = 0; i < m; ++i)
+      for (int j = 0; j < n; ++j)
+        if (grid[i][j] == 1)
+          encoded |= 1 << i * n + j;
+    return encoded;
+  }
+}
+
+
+or
+
+class Solution {
+  public int removeOnes(int[][] grid) {
+    final int m = grid.length;
+    final int n = grid[0].length;
+    final int maxMask = 1 << m * n;
+    // dp[i] := the minimum number of operations to remove all 1s from the grid,
+    // where `i` is the bitmask of the state of the grid
+    int[] dp = new int[1 << m * n];
+    Arrays.fill(dp, Integer.MAX_VALUE / 2);
+    dp[0] = 0;
+
+    for (int mask = 0; mask < maxMask; ++mask)
+      for (int i = 0; i < m; ++i)
+        for (int j = 0; j < n; ++j)
+          if (grid[i][j] == 1) {
+            int newMask = mask;
+            // Set the cells in the same row with 0.
+            for (int k = 0; k < n; ++k)
+              newMask &= ~(1 << i * n + k);
+            // Set the cells in the same column with 0.
+            for (int k = 0; k < m; ++k)
+              newMask &= ~(1 << k * n + j);
+            dp[mask] = Math.min(dp[mask], 1 + dp[newMask]);
+          }
+
+    return dp[encode(grid, m, n)];
+  }
+
+  private int encode(int[][] grid, int m, int n) {
+    int encoded = 0;
+    for (int i = 0; i < m; ++i)
+      for (int j = 0; j < n; ++j)
+        if (grid[i][j] == 1)
+          encoded |= 1 << i * n + j;
+    return encoded;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int removeOnes(int[][] grid) {
+        int m = grid.length, n = grid[0].length;
+        int state = 0;
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (grid[i][j] == 1) {
+                    state |= 1 << (i * n + j);
+                }
+            }
+        }
+        Deque<Integer> q = new ArrayDeque<>();
+        q.offer(state);
+        Set<Integer> vis = new HashSet<>();
+        vis.add(state);
+        int ans = 0;
+        while (!q.isEmpty()) {
+            for (int k = q.size(); k > 0; --k) {
+                state = q.poll();
+                if (state == 0) {
+                    return ans;
+                }
+                for (int i = 0; i < m; ++i) {
+                    for (int j = 0; j < n; ++j) {
+                        if (grid[i][j] == 0) {
+                            continue;
+                        }
+                        int nxt = state;
+                        for (int r = 0; r < m; ++r) {
+                            nxt &= ~(1 << (r * n + j));
+                        }
+                        for (int c = 0; c < n; ++c) {
+                            nxt &= ~(1 << (i * n + c));
+                        }
+                        if (!vis.contains(nxt)) {
+                            vis.add(nxt);
+                            q.offer(nxt);
+                        }
+                    }
+                }
+            }
+            ++ans;
+        }
+        return -1;
+    }
+}
+
+
