@@ -1,0 +1,198 @@
+https://leetcode.com/problems/invalid-transactions/description/
+
+
+1169. Invalid Transactions
+Medium
+Topics
+Companies
+Hint
+A transaction is possibly invalid if:
+
+the amount exceeds $1000, or;
+if it occurs within (and including) 60 minutes of another transaction with the same name in a different city.
+You are given an array of strings transaction where transactions[i] consists of comma-separated values representing the name, time (in minutes), amount, and city of the transaction.
+
+Return a list of transactions that are possibly invalid. You may return the answer in any order.
+
+ 
+
+Example 1:
+
+Input: transactions = ["alice,20,800,mtv","alice,50,100,beijing"]
+Output: ["alice,20,800,mtv","alice,50,100,beijing"]
+Explanation: The first transaction is invalid because the second transaction occurs within a difference of 60 minutes, have the same name and is in a different city. Similarly the second one is invalid too.
+Example 2:
+
+Input: transactions = ["alice,20,800,mtv","alice,50,1200,mtv"]
+Output: ["alice,50,1200,mtv"]
+Example 3:
+
+Input: transactions = ["alice,20,800,mtv","bob,50,1200,mtv"]
+Output: ["bob,50,1200,mtv"]
+ 
+
+Constraints:
+
+transactions.length <= 1000
+Each transactions[i] takes the form "{name},{time},{amount},{city}"
+Each {name} and {city} consist of lowercase English letters, and have lengths between 1 and 10.
+Each {time} consist of digits, and represent an integer between 0 and 1000.
+Each {amount} consist of digits, and represent an integer between 0 and 2000.
+
+
+
+# java
+
+
+class Solution {
+  public List<String> invalidTransactions(String[] transactions) {
+    List<String> ans = new ArrayList<>();
+    Map<String, List<Trans>> nameToTrans = new HashMap<>();
+
+    for (final String t : transactions) {
+      Trans trans = getTrans(t);
+      nameToTrans.putIfAbsent(trans.name, new ArrayList<>());
+      nameToTrans.get(trans.name).add(trans);
+    }
+
+    for (final String t : transactions) {
+      Trans currTrans = getTrans(t);
+      if (currTrans.amount > 1000) {
+        ans.add(t);
+      } else if (nameToTrans.containsKey(currTrans.name)) {
+        // Iterate through all the transactions with the same name, check if
+        // they're within 60 minutes in a different city.
+        for (Trans trans : nameToTrans.get(currTrans.name))
+          if (Math.abs(trans.time - currTrans.time) <= 60 && !trans.city.equals(currTrans.city)) {
+            ans.add(t);
+            break;
+          }
+      }
+    }
+
+    return ans;
+  }
+
+  private record Trans(String name, int time, int amount, String city) {}
+
+  private Trans getTrans(final String t) {
+    String[] s = t.split(","); // [name, time, amount, city]
+    return new Trans(s[0], Integer.parseInt(s[1]), Integer.parseInt(s[2]), s[3]);
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public List<String> invalidTransactions(String[] transactions) {
+        Map<String, List<Item>> d = new HashMap<>();
+        Set<Integer> idx = new HashSet<>();
+        for (int i = 0; i < transactions.length; ++i) {
+            var e = transactions[i].split(",");
+            String name = e[0];
+            int time = Integer.parseInt(e[1]);
+            int amount = Integer.parseInt(e[2]);
+            String city = e[3];
+            d.computeIfAbsent(name, k -> new ArrayList<>()).add(new Item(time, city, i));
+            if (amount > 1000) {
+                idx.add(i);
+            }
+            for (Item item : d.get(name)) {
+                if (!city.equals(item.city) && Math.abs(time - item.t) <= 60) {
+                    idx.add(i);
+                    idx.add(item.i);
+                }
+            }
+        }
+        List<String> ans = new ArrayList<>();
+        for (int i : idx) {
+            ans.add(transactions[i]);
+        }
+        return ans;
+    }
+}
+
+class Item {
+    int t;
+    String city;
+    int i;
+
+    Item(int t, String city, int i) {
+        this.t = t;
+        this.city = city;
+        this.i = i;
+    }
+}
+
+
+or
+
+// best
+
+// Approach - 2
+class Solution {
+    public List<String> invalidTransactions(String[] transactions) {
+        List<String> invalid = new ArrayList<>();
+        Map<String, List<Transaction>> map = new HashMap<>();
+
+        // Process all transactions in a single pass
+        for (int i = 0; i < transactions.length; i++) {
+            Transaction tran = new Transaction(transactions[i], i);
+            map.computeIfAbsent(tran.name, k -> new ArrayList<>()).add(tran);
+
+            // Check if the transaction is invalid due to amount
+            if (tran.amount > 1000) {
+                invalid.add(transactions[i]);
+            }
+        }
+
+        // Check for invalid transactions due to time and city
+        for (List<Transaction> userTransactions : map.values()) {
+            for (Transaction tran : userTransactions) {
+                if (!tran.isAlreadyInvalid && isInvalidDueToTimeAndCity(userTransactions, tran)) {
+                    invalid.add(transactions[tran.index]);
+                }
+            }
+        }
+
+        return invalid;
+    }
+
+    private boolean isInvalidDueToTimeAndCity(List<Transaction> transactions, Transaction current) {
+        for (Transaction other : transactions) {
+            if (current != other && current.invalidTransaction(other.city, other.time)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    class Transaction {
+        String name;
+        int time;
+        int amount;
+        String city;
+        int index;
+        boolean isAlreadyInvalid;
+
+        Transaction(String transaction, int index) {
+            String[] t = transaction.split(",");
+            this.name = t[0];
+            this.time = Integer.parseInt(t[1]);
+            this.amount = Integer.parseInt(t[2]);
+            this.city = t[3];
+            this.index = index;
+            this.isAlreadyInvalid = (this.amount > 1000);
+        }
+
+        public boolean invalidTransaction(String city, int time) {
+            return !this.city.equals(city) && Math.abs(this.time - time) <= 60;
+        }
+    }
+}
+
+
