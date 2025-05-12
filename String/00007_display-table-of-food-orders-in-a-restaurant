@@ -1,0 +1,185 @@
+https://leetcode.com/problems/display-table-of-food-orders-in-a-restaurant/description/
+
+1418. Display Table of Food Orders in a Restaurant
+Solved
+Medium
+Topics
+Companies
+Hint
+Given the array orders, which represents the orders that customers have done in a restaurant. More specifically orders[i]=[customerNamei,tableNumberi,foodItemi] where customerNamei is the name of the customer, tableNumberi is the table customer sit at, and foodItemi is the item customer orders.
+
+Return the restaurant's “display table”. The “display table” is a table whose row entries denote how many of each food item each table ordered. The first column is the table number and the remaining columns correspond to each food item in alphabetical order. The first row should be a header whose first column is “Table”, followed by the names of the food items. Note that the customer names are not part of the table. Additionally, the rows should be sorted in numerically increasing order.
+
+ 
+
+Example 1:
+
+Input: orders = [["David","3","Ceviche"],["Corina","10","Beef Burrito"],["David","3","Fried Chicken"],["Carla","5","Water"],["Carla","5","Ceviche"],["Rous","3","Ceviche"]]
+Output: [["Table","Beef Burrito","Ceviche","Fried Chicken","Water"],["3","0","2","1","0"],["5","0","1","0","1"],["10","1","0","0","0"]] 
+Explanation:
+The displaying table looks like:
+Table,Beef Burrito,Ceviche,Fried Chicken,Water
+3    ,0           ,2      ,1            ,0
+5    ,0           ,1      ,0            ,1
+10   ,1           ,0      ,0            ,0
+For the table 3: David orders "Ceviche" and "Fried Chicken", and Rous orders "Ceviche".
+For the table 5: Carla orders "Water" and "Ceviche".
+For the table 10: Corina orders "Beef Burrito". 
+Example 2:
+
+Input: orders = [["James","12","Fried Chicken"],["Ratesh","12","Fried Chicken"],["Amadeus","12","Fried Chicken"],["Adam","1","Canadian Waffles"],["Brianna","1","Canadian Waffles"]]
+Output: [["Table","Canadian Waffles","Fried Chicken"],["1","2","0"],["12","0","3"]] 
+Explanation: 
+For the table 1: Adam and Brianna order "Canadian Waffles".
+For the table 12: James, Ratesh and Amadeus order "Fried Chicken".
+Example 3:
+
+Input: orders = [["Laura","2","Bean Burrito"],["Jhon","2","Beef Burrito"],["Melissa","2","Soda"]]
+Output: [["Table","Bean Burrito","Beef Burrito","Soda"],["2","1","1","1"]]
+ 
+
+Constraints:
+
+1 <= orders.length <= 5 * 10^4
+orders[i].length == 3
+1 <= customerNamei.length, foodItemi.length <= 20
+customerNamei and foodItemi consist of lowercase and uppercase English letters and the space character.
+tableNumberi is a valid integer between 1 and 500.
+
+
+
+# java
+
+
+class Solution {
+    public List<List<String>> displayTable(List<List<String>> orders) {
+        Set<Integer> tables = new HashSet<>();
+        Set<String> foods = new HashSet<>();
+        Map<String, Integer> mp = new HashMap<>();
+        for (List<String> order : orders) {
+            int table = Integer.parseInt(order.get(1));
+            String food = order.get(2);
+            tables.add(table);
+            foods.add(food);
+            String key = table + "." + food;
+            mp.put(key, mp.getOrDefault(key, 0) + 1);
+        }
+        List<Integer> t = new ArrayList<>(tables);
+        List<String> f = new ArrayList<>(foods);
+        Collections.sort(t);
+        Collections.sort(f);
+        List<List<String>> res = new ArrayList<>();
+        List<String> title = new ArrayList<>();
+        title.add("Table");
+        title.addAll(f);
+        res.add(title);
+        for (int table : t) {
+            List<String> tmp = new ArrayList<>();
+            tmp.add(String.valueOf(table));
+            for (String food : f) {
+                tmp.add(String.valueOf(mp.getOrDefault(table + "." + food, 0)));
+            }
+            res.add(tmp);
+        }
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public List<List<String>> displayTable(List<List<String>> orders) {
+        List<List<String>> res = new ArrayList<List<String>>();
+        TreeMap<Integer, TreeMap<String,Integer>> map = new TreeMap<>();
+        TreeMap<String, Integer> ord = new TreeMap<>();
+        for(List<String> l: orders)
+        {
+            String str = l.get(2);
+            int id = Integer.parseInt(l.get(1));
+            if(map.containsKey(id))
+            {
+                
+                    map.get(id).put(str, map.get(id).getOrDefault(str,0) + 1);
+                    ord.put(str,0);
+            }
+            else
+            {
+                TreeMap<String, Integer> temp = new TreeMap<>();
+                map.put(id, temp);
+                    map.get(id).put(str, map.get(id).getOrDefault(str,0) + 1);
+                    ord.put(str,0);
+            }
+        }
+        ArrayList<String> les = new ArrayList<>();
+        les.add("Table");
+        for(String s: ord.keySet())
+        {
+            les.add(s);
+        }
+        res.add(les);
+        
+        for(int i: map.keySet())
+        {
+            ArrayList<String> l1 = new ArrayList<>();
+            String no = String.valueOf(i);
+            l1.add(no);
+            
+            for(String s: ord.keySet())
+            {
+                l1.add(String.valueOf(map.get(i).getOrDefault(s , 0)));
+            }
+            res.add(l1);
+            
+        }
+        return res;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public List<List<String>> displayTable(final List<List<String>> orders) {
+        final TreeMap<Integer, Map<String, Integer>> tables = new TreeMap<>();
+        final TreeSet<String> meals = new TreeSet<>();
+
+        for(final List<String> order : orders) {
+            final int tableNum = Integer.valueOf(order.get(1));
+
+            tables.putIfAbsent(tableNum, new HashMap<>());
+
+            final Map<String, Integer> table = tables.get(tableNum);
+
+            table.put(order.get(2), table.getOrDefault(order.get(2), 0) + 1);
+
+            meals.add(order.get(2));
+        }
+
+        final List<List<String>> result = new ArrayList<>();
+
+        result.add(new ArrayList<>());
+        result.get(0).add("Table");
+        result.get(0).addAll(meals);
+
+        for(final int tableNum : tables.keySet()) {
+            final List<String> tableOrders = new ArrayList<>();
+            tableOrders.add(String.valueOf(tableNum));
+
+            final Map<String, Integer> table = tables.get(tableNum);
+
+            for(int i = 1; i < result.get(0).size(); ++i) {
+                final String meal = result.get(0).get(i);
+
+                tableOrders.add(table.containsKey(meal) ? String.valueOf(table.get(meal)) : "0");
+            }
+
+            result.add(tableOrders);
+        }
+
+        return result;
+    }
+}
+
