@@ -1,0 +1,66 @@
+https://leetcode.com/problems/multiply-strings/description/
+
+
+43. Multiply Strings
+Medium
+Topics
+Companies
+Given two non-negative integers num1 and num2 represented as strings, return the product of num1 and num2, also represented as a string.
+
+Note: You must not use any built-in BigInteger library or convert the inputs to integer directly.
+
+ 
+
+Example 1:
+
+Input: num1 = "2", num2 = "3"
+Output: "6"
+Example 2:
+
+Input: num1 = "123", num2 = "456"
+Output: "56088"
+ 
+
+Constraints:
+
+1 <= num1.length, num2.length <= 200
+num1 and num2 consist of digits only.
+Both num1 and num2 do not contain any leading zero, except the number 0 itself.
+
+
+
+# jva
+
+
+
+
+
+class Solution {
+    public String multiply(String num1, String num2) {
+        if ("0".equals(num1) || "0".equals(num2)) {
+            return "0";
+        }
+        int m = num1.length(), n = num2.length();
+        int[] arr = new int[m + n];
+        for (int i = m - 1; i >= 0; --i) {
+            int a = num1.charAt(i) - '0';
+            for (int j = n - 1; j >= 0; --j) {
+                int b = num2.charAt(j) - '0';
+                arr[i + j + 1] += a * b;
+            }
+        }
+        for (int i = arr.length - 1; i > 0; --i) {
+            arr[i - 1] += arr[i] / 10;
+            arr[i] %= 10;
+        }
+        int i = arr[0] == 0 ? 1 : 0;
+        StringBuilder ans = new StringBuilder();
+        for (; i < arr.length; ++i) {
+            ans.append(arr[i]);
+        }
+        return ans.toString();
+    }
+}
+
+
+
