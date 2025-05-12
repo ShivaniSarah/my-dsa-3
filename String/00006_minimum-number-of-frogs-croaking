@@ -1,0 +1,99 @@
+https://leetcode.com/problems/minimum-number-of-frogs-croaking/
+
+class Solution {
+  public int minNumberOfFrogs(String croakOfFrogs) {
+    final String CROAK = "croak";
+    int ans = 0;
+    int frogs = 0;
+    int[] count = new int[5];
+
+    for (final char c : croakOfFrogs.toCharArray()) {
+      ++count[CROAK.indexOf(c)];
+      for (int i = 1; i < 5; ++i)
+        if (count[i] > count[i - 1])
+          return -1;
+      if (c == 'c')
+        ++frogs;
+      else if (c == 'k')
+        --frogs;
+      ans = Math.max(ans, frogs);
+    }
+
+    return frogs == 0 ? ans : -1;
+  }
+}
+
+
+or
+
+
+
+class Solution {
+    public int minNumberOfFrogs(String croakOfFrogs) {
+        int n = croakOfFrogs.length();
+        if (n % 5 != 0) {
+            return -1;
+        }
+        int[] idx = new int[26];
+        String s = "croak";
+        for (int i = 0; i < 5; ++i) {
+            idx[s.charAt(i) - 'a'] = i;
+        }
+        int[] cnt = new int[5];
+        int ans = 0, x = 0;
+        for (int k = 0; k < n; ++k) {
+            int i = idx[croakOfFrogs.charAt(k) - 'a'];
+            ++cnt[i];
+            if (i == 0) {
+                ans = Math.max(ans, ++x);
+            } else {
+                if (--cnt[i - 1] < 0) {
+                    return -1;
+                }
+                if (i == 4) {
+                    --x;
+                }
+            }
+        }
+        return x > 0 ? -1 : ans;
+    }
+}
+
+
+or
+
+
+class Solution {
+    public int minNumberOfFrogs(String croakOfFrogs) {
+	int[] letterCounts = new int[26]; 
+	int count = 0;
+	int maxCount = 0;
+	
+	for (char c : croakOfFrogs.toCharArray()) {
+		letterCounts[c - 'a'] ++; 
+		// do boundary count 
+		if (c == 'c') { // left boundary
+			count++;
+			maxCount = Math.max(maxCount, count);
+		} else {
+			if (!isValid(c, letterCounts)) return -1; 
+			if (c == 'k') { // right boundary 
+				count--;
+			}
+		}
+	}
+	// check if the string is finished
+	return count == 0 ? maxCount : -1;
+}
+
+// check string validity
+private boolean isValid(char c, int[] counts) {
+	char prevChar;
+	if (c == 'r') prevChar = 'c';
+	else if (c == 'o') prevChar = 'r';
+	else if (c == 'a') prevChar = 'o';
+	else prevChar = 'a'; 
+
+	return counts[prevChar - 'a'] >= counts[c - 'a']; 
+}
+}
