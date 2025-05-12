@@ -1,0 +1,123 @@
+https://leetcode.com/problems/substring-xor-queries/description/
+
+
+2564. Substring XOR Queries
+Medium
+Topics
+Companies
+Hint
+You are given a binary string s, and a 2D integer array queries where queries[i] = [firsti, secondi].
+
+For the ith query, find the shortest substring of s whose decimal value, val, yields secondi when bitwise XORed with firsti. In other words, val ^ firsti == secondi.
+
+The answer to the ith query is the endpoints (0-indexed) of the substring [lefti, righti] or [-1, -1] if no such substring exists. If there are multiple answers, choose the one with the minimum lefti.
+
+Return an array ans where ans[i] = [lefti, righti] is the answer to the ith query.
+
+A substring is a contiguous non-empty sequence of characters within a string.
+
+ 
+
+Example 1:
+
+Input: s = "101101", queries = [[0,5],[1,2]]
+Output: [[0,2],[2,3]]
+Explanation: For the first query the substring in range [0,2] is "101" which has a decimal value of 5, and 5 ^ 0 = 5, hence the answer to the first query is [0,2]. In the second query, the substring in range [2,3] is "11", and has a decimal value of 3, and 3 ^ 1 = 2. So, [2,3] is returned for the second query. 
+
+Example 2:
+
+Input: s = "0101", queries = [[12,8]]
+Output: [[-1,-1]]
+Explanation: In this example there is no substring that answers the query, hence [-1,-1] is returned.
+Example 3:
+
+Input: s = "1", queries = [[4,5]]
+Output: [[0,0]]
+Explanation: For this example, the substring in range [0,0] has a decimal value of 1, and 1 ^ 4 = 5. So, the answer is [0,0].
+ 
+
+Constraints:
+
+1 <= s.length <= 104
+s[i] is either '0' or '1'.
+1 <= queries.length <= 105
+0 <= firsti, secondi <= 109
+
+
+# java
+
+
+
+class Solution {
+  public int[][] substringXorQueries(String s, int[][] queries) {
+    final int MAX_BIT = 30;
+    int[][] ans = new int[queries.length][2];
+    // {val: (left, right)} := s[left..right]'s decimal value = val
+    Map<Integer, Pair<Integer, Integer>> valToLeftAndRight = new HashMap<>();
+
+    for (int left = 0; left < s.length(); ++left) {
+      int val = 0;
+      if (s.charAt(left) == '0') {
+        // edge case: Save the index of the first 0.
+        if (!valToLeftAndRight.containsKey(0))
+          valToLeftAndRight.put(val, new Pair<>(left, left));
+        continue;
+      }
+      final int maxRight = Math.min(s.length(), left + MAX_BIT);
+      for (int right = left; right < maxRight; ++right) {
+        val = val * 2 + s.charAt(right) - '0';
+        if (!valToLeftAndRight.containsKey(val))
+          valToLeftAndRight.put(val, new Pair<>(left, right));
+      }
+    }
+
+    for (int i = 0; i < queries.length; ++i) {
+      final int first = queries[i][0];
+      final int second = queries[i][1];
+      final int val = first ^ second;
+      Pair<Integer, Integer> leftAndRight = valToLeftAndRight.get(val);
+      if (leftAndRight == null) {
+        ans[i] = new int[] {-1, -1};
+      } else {
+        final int left = leftAndRight.getKey();
+        final int right = leftAndRight.getValue();
+        ans[i] = new int[] {left, right};
+      }
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int[][] substringXorQueries(String s, int[][] queries) {
+        Map<Integer, int[]> d = new HashMap<>();
+        int n = s.length();
+        for (int i = 0; i < n; ++i) {
+            int x = 0;
+            for (int j = 0; j < 32 && i + j < n; ++j) {
+                x = x << 1 | (s.charAt(i + j) - '0');
+                d.putIfAbsent(x, new int[] {i, i + j});
+                if (x == 0) {
+                    break;
+                }
+            }
+        }
+        int m = queries.length;
+        int[][] ans = new int[m][2];
+        for (int i = 0; i < m; ++i) {
+            int first = queries[i][0], second = queries[i][1];
+            int val = first ^ second;
+            ans[i] = d.getOrDefault(val, new int[] {-1, -1});
+        }
+        return ans;
+    }
+}
+
+
