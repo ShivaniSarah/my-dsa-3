@@ -1,0 +1,127 @@
+https://leetcode.com/problems/solve-the-equation/description/
+
+640. Solve the Equation
+Medium
+Topics
+Companies
+Solve a given equation and return the value of 'x' in the form of a string "x=#value". The equation contains only '+', '-' operation, the variable 'x' and its coefficient. You should return "No solution" if there is no solution for the equation, or "Infinite solutions" if there are infinite solutions for the equation.
+
+If there is exactly one solution for the equation, we ensure that the value of 'x' is an integer.
+
+ 
+
+Example 1:
+
+Input: equation = "x+5-3+x=6+x-2"
+Output: "x=2"
+Example 2:
+
+Input: equation = "x=x"
+Output: "Infinite solutions"
+Example 3:
+
+Input: equation = "2x=x"
+Output: "x=0"
+ 
+
+Constraints:
+
+3 <= equation.length <= 1000
+equation has exactly one '='.
+equation consists of integers with an absolute value in the range [0, 100] without any leading zeros, and the variable 'x'.
+The input is generated that if there is a single solution, it will be an integer.
+
+
+
+# java
+
+
+
+
+class Solution {
+  public String solveEquation(String equation) {
+    String[] equations = equation.split("=");
+    int[] lhs = calculate(equations[0]);
+    int[] rhs = calculate(equations[1]);
+    int coefficient = lhs[0] - rhs[0];
+    int constant = rhs[1] - lhs[1];
+
+    if (coefficient == 0 && constant == 0)
+      return "Infinite solutions";
+    if (coefficient == 0 && constant != 0)
+      return "No solution";
+    return "x=" + constant / coefficient;
+  }
+
+  private int[] calculate(final String s) {
+    int coefficient = 0;
+    int constant = 0;
+    int num = 0;
+    int sign = 1;
+
+    for (int i = 0; i < s.length(); ++i) {
+      char c = s.charAt(i);
+      if (Character.isDigit(c))
+        num = num * 10 + (c - '0');
+      else if (c == '+' || c == '-') {
+        constant += sign * num;
+        sign = c == '+' ? 1 : -1;
+        num = 0;
+      } else {
+        if (i > 0 && num == 0 && s.charAt(i - 1) == '0')
+          continue;
+        coefficient += num == 0 ? sign : sign * num;
+        num = 0;
+      }
+    }
+
+    return new int[] {coefficient, constant + sign * num};
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public String solveEquation(String equation) {
+        String[] es = equation.split("=");
+        int[] a = f(es[0]), b = f(es[1]);
+        int x1 = a[0], y1 = a[1];
+        int x2 = b[0], y2 = b[1];
+        if (x1 == x2) {
+            return y1 == y2 ? "Infinite solutions" : "No solution";
+        }
+        return "x=" + (y2 - y1) / (x1 - x2);
+    }
+
+    private int[] f(String s) {
+        int x = 0, y = 0;
+        if (s.charAt(0) != '-') {
+            s = "+" + s;
+        }
+        int i = 0, n = s.length();
+        while (i < n) {
+            int sign = s.charAt(i) == '+' ? 1 : -1;
+            ++i;
+            int j = i;
+            while (j < n && s.charAt(j) != '+' && s.charAt(j) != '-') {
+                ++j;
+            }
+            String v = s.substring(i, j);
+            if (s.charAt(j - 1) == 'x') {
+                x += sign * (v.length() > 1 ? Integer.parseInt(v.substring(0, v.length() - 1)) : 1);
+            } else {
+                y += sign * Integer.parseInt(v);
+            }
+            i = j;
+        }
+        return new int[] {x, y};
+    }
+}
+
+
+
+
