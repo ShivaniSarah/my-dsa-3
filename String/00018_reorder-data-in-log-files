@@ -1,0 +1,104 @@
+https://leetcode.com/problems/reorder-data-in-log-files/description/
+
+
+937. Reorder Data in Log Files
+Medium
+Topics
+Companies
+You are given an array of logs. Each log is a space-delimited string of words, where the first word is the identifier.
+
+There are two types of logs:
+
+Letter-logs: All words (except the identifier) consist of lowercase English letters.
+Digit-logs: All words (except the identifier) consist of digits.
+Reorder these logs so that:
+
+The letter-logs come before all digit-logs.
+The letter-logs are sorted lexicographically by their contents. If their contents are the same, then sort them lexicographically by their identifiers.
+The digit-logs maintain their relative ordering.
+Return the final order of the logs.
+
+ 
+
+Example 1:
+
+Input: logs = ["dig1 8 1 5 1","let1 art can","dig2 3 6","let2 own kit dig","let3 art zero"]
+Output: ["let1 art can","let3 art zero","let2 own kit dig","dig1 8 1 5 1","dig2 3 6"]
+Explanation:
+The letter-log contents are all different, so their ordering is "art can", "art zero", "own kit dig".
+The digit-logs have a relative order of "dig1 8 1 5 1", "dig2 3 6".
+Example 2:
+
+Input: logs = ["a1 9 2 3 1","g1 act car","zo4 4 7","ab1 off key dog","a8 act zoo"]
+Output: ["g1 act car","a8 act zoo","ab1 off key dog","a1 9 2 3 1","zo4 4 7"]
+ 
+
+Constraints:
+
+1 <= logs.length <= 100
+3 <= logs[i].length <= 100
+All the tokens of logs[i] are separated by a single space.
+logs[i] is guaranteed to have an identifier and at least one word after the identifier.
+
+
+
+# java
+
+
+class Solution {
+  public String[] reorderLogFiles(String[] logs) {
+    List<String> ans = new ArrayList<>();
+    List<String> digitLogs = new ArrayList<>();
+    List<String[]> letterLogs = new ArrayList<>();
+
+    for (final String log : logs) {
+      final int i = log.indexOf(' ');
+      if (Character.isDigit(log.charAt(i + 1)))
+        digitLogs.add(log);
+      else
+        letterLogs.add(new String[] {log.substring(0, i), log.substring(i + 1)});
+    }
+
+    Collections.sort(letterLogs, Comparator.comparing((String[] letterLog) -> letterLog[1])
+                                     .thenComparing((String[] letterLog) -> letterLog[0]));
+
+    for (String[] letterLog : letterLogs)
+      ans.add(letterLog[0] + " " + letterLog[1]);
+
+    for (final String digitLog : digitLogs)
+      ans.add(digitLog);
+
+    return ans.toArray(new String[0]);
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public String[] reorderLogFiles(String[] logs) {
+        Arrays.sort(logs, this::cmp);
+        return logs;
+    }
+
+    private int cmp(String a, String b) {
+        String[] t1 = a.split(" ", 2);
+        String[] t2 = b.split(" ", 2);
+        boolean d1 = Character.isDigit(t1[1].charAt(0));
+        boolean d2 = Character.isDigit(t2[1].charAt(0));
+        if (!d1 && !d2) {
+            int v = t1[1].compareTo(t2[1]);
+            return v == 0 ? t1[0].compareTo(t2[0]) : v;
+        }
+        if (d1 && d2) {
+            return 0;
+        }
+        return d1 ? 1 : -1;
+    }
+}
+
+
+
