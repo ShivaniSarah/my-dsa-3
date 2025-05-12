@@ -1,0 +1,54 @@
+https://leetcode.com/problems/count-substrings-starting-and-ending-with-given-character/description/
+
+3084. Count Substrings Starting and Ending with Given Character
+Medium
+Topics
+Companies
+Hint
+You are given a string s and a character c. Return the total number of substrings of s that start and end with c.
+
+ 
+
+Example 1:
+
+Input: s = "abada", c = "a"
+
+Output: 6
+
+Explanation: Substrings starting and ending with "a" are: "abada", "abada", "abada", "abada", "abada", "abada".
+
+Example 2:
+
+Input: s = "zzz", c = "z"
+
+Output: 6
+
+Explanation: There are a total of 6 substrings in s and all start and end with "z".
+
+ 
+
+Constraints:
+
+1 <= s.length <= 105
+s and c consist only of lowercase English letters.
+
+
+# java
+
+
+class Solution {
+  public long countSubstrings(String s, char c) {
+    final long freq = s.chars().filter(ch -> ch == c).count();
+    return freq * (freq + 1) / 2;
+  }
+}
+
+or
+
+
+class Solution {
+    public long countSubstrings(String s, char c) {
+        long cnt = s.chars().filter(ch -> ch == c).count();
+        return cnt + cnt * (cnt - 1) / 2;
+    }
+}
