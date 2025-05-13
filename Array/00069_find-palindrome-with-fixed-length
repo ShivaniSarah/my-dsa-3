@@ -1,0 +1,103 @@
+https://leetcode.com/problems/find-palindrome-with-fixed-length/description/
+
+
+2217. Find Palindrome With Fixed Length
+Medium
+Topics
+Companies
+Hint
+Given an integer array queries and a positive integer intLength, return an array answer where answer[i] is either the queries[i]th smallest positive palindrome of length intLength or -1 if no such palindrome exists.
+
+A palindrome is a number that reads the same backwards and forwards. Palindromes cannot have leading zeros.
+
+ 
+
+Example 1:
+
+Input: queries = [1,2,3,4,5,90], intLength = 3
+Output: [101,111,121,131,141,999]
+Explanation:
+The first few palindromes of length 3 are:
+101, 111, 121, 131, 141, 151, 161, 171, 181, 191, 202, ...
+The 90th palindrome of length 3 is 999.
+Example 2:
+
+Input: queries = [2,4,6], intLength = 4
+Output: [1111,1331,1551]
+Explanation:
+The first six palindromes of length 4 are:
+1001, 1111, 1221, 1331, 1441, and 1551.
+ 
+
+Constraints:
+
+1 <= queries.length <= 5 * 104
+1 <= queries[i] <= 109
+1 <= intLength <= 15
+
+
+# java
+
+
+
+class Solution {
+  public long[] kthPalindrome(int[] queries, int intLength) {
+    final int start = (int) Math.pow(10, (intLength + 1) / 2 - 1);
+    final int end = (int) Math.pow(10, (intLength + 1) / 2);
+    final int mul = (int) Math.pow(10, intLength / 2);
+    long[] ans = new long[queries.length];
+
+    for (int i = 0; i < queries.length; ++i)
+      if (start + queries[i] > end)
+        ans[i] = -1;
+      else
+        ans[i] = getKthPalindrome(queries[i], start, mul, intLength);
+
+    return ans;
+  }
+
+  private long getKthPalindrome(int q, int start, int mul, int intLength) {
+    final long prefix = start + q - 1;
+    return prefix * mul + reverse(intLength % 2 == 0 ? prefix : prefix / 10);
+  }
+
+  long reverse(long num) {
+    long res = 0;
+    while (num > 0) {
+      res = res * 10 + num % 10;
+      num /= 10;
+    }
+    return res;
+  }
+}
+
+
+
+
+
+or
+
+
+
+class Solution {
+    public long[] kthPalindrome(int[] queries, int intLength) {
+        int n = queries.length;
+        long[] ans = new long[n];
+        int l = (intLength + 1) >> 1;
+        long start = (long) Math.pow(10, l - 1);
+        long end = (long) Math.pow(10, l) - 1;
+        for (int i = 0; i < n; ++i) {
+            long v = start + queries[i] - 1;
+            if (v > end) {
+                ans[i] = -1;
+                continue;
+            }
+            String s = "" + v;
+            s += new StringBuilder(s).reverse().substring(intLength % 2);
+            ans[i] = Long.parseLong(s);
+        }
+        return ans;
+    }
+}
+
+
