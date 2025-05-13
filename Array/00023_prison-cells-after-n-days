@@ -1,0 +1,113 @@
+https://leetcode.com/problems/prison-cells-after-n-days/
+
+
+957. Prison Cells After N Days
+Solved
+Medium
+Topics
+Companies
+There are 8 prison cells in a row and each cell is either occupied or vacant.
+
+Each day, whether the cell is occupied or vacant changes according to the following rules:
+
+If a cell has two adjacent neighbors that are both occupied or both vacant, then the cell becomes occupied.
+Otherwise, it becomes vacant.
+Note that because the prison is a row, the first and the last cells in the row can't have two adjacent neighbors.
+
+You are given an integer array cells where cells[i] == 1 if the ith cell is occupied and cells[i] == 0 if the ith cell is vacant, and you are given an integer n.
+
+Return the state of the prison after n days (i.e., n such changes described above).
+
+ 
+
+Example 1:
+
+Input: cells = [0,1,0,1,1,0,0,1], n = 7
+Output: [0,0,1,1,0,0,0,0]
+Explanation: The following table summarizes the state of the prison on each day:
+Day 0: [0, 1, 0, 1, 1, 0, 0, 1]
+Day 1: [0, 1, 1, 0, 0, 0, 0, 0]
+Day 2: [0, 0, 0, 0, 1, 1, 1, 0]
+Day 3: [0, 1, 1, 0, 0, 1, 0, 0]
+Day 4: [0, 0, 0, 0, 0, 1, 0, 0]
+Day 5: [0, 1, 1, 1, 0, 1, 0, 0]
+Day 6: [0, 0, 1, 0, 1, 1, 0, 0]
+Day 7: [0, 0, 1, 1, 0, 0, 0, 0]
+Example 2:
+
+Input: cells = [1,0,0,1,0,0,1,0], n = 1000000000
+Output: [0,0,1,1,1,1,1,0]
+ 
+
+Constraints:
+
+cells.length == 8
+cells[i] is either 0 or 1.
+1 <= n <= 109
+
+
+
+# jvaa
+
+
+class Solution {
+  public int[] prisonAfterNDays(int[] cells, int n) {
+    int[] firstDayCells = new int[cells.length];
+    int[] nextDayCells = new int[cells.length];
+
+    for (int day = 0; n-- > 0; cells = nextDayCells.clone(), ++day) {
+      for (int i = 1; i + 1 < cells.length; ++i)
+        nextDayCells[i] = cells[i - 1] == cells[i + 1] ? 1 : 0;
+      if (day == 0)
+        firstDayCells = nextDayCells.clone();
+      else if (Arrays.equals(nextDayCells, firstDayCells))
+        n %= day;
+    }
+
+    return cells;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int[] prisonAfterNDays(int[] cells, int N) {
+        Map<String, Integer> stateDayMap = new HashMap<String, Integer>();
+        Map<Integer, int[]> dayStateMap = new HashMap<Integer, int[]>();
+        int[] prevCells = new int[8];
+        System.arraycopy(cells, 0, prevCells, 0, 8);
+        int days = 0;
+        int cycle = 0;
+        while (days < N) {
+            days++;
+            int[] change = new int[8];
+            change[0] = 0;
+            change[7] = 0;
+            for (int i = 1; i < 7; i++) {
+                if (prevCells[i - 1] == prevCells[i + 1])
+                    change[i] = 1;
+            }
+            for (int i = 0; i < 8; i++)
+                prevCells[i] = change[i];
+            String arrayStr = Arrays.toString(change);
+            if (stateDayMap.containsKey(arrayStr)) {
+                int prevDay = stateDayMap.get(arrayStr);
+                cycle = days - prevDay;
+                break;
+            } else {
+                stateDayMap.put(arrayStr, days);
+                dayStateMap.put(days, change);
+            }
+        }
+        if (days == N)
+            return prevCells;
+        int remainder = N % cycle;
+        if (remainder == 0)
+            remainder = cycle;
+        return dayStateMap.get(remainder);
+    }
+}
+
+
