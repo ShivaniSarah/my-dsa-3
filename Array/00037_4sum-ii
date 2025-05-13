@@ -1,0 +1,72 @@
+https://leetcode.com/problems/4sum-ii/description/
+
+
+class Solution {
+  public int fourSumCount(int[] nums1, int[] nums2, int[] nums3, int[] nums4) {
+    int ans = 0;
+    Map<Integer, Integer> count = new HashMap<>();
+
+    for (final int a : nums1)
+      for (final int b : nums2)
+        count.merge(a + b, 1, Integer::sum);
+
+    for (final int c : nums3)
+      for (final int d : nums4)
+        if (count.containsKey(-c - d))
+          ans += count.get(-c - d);
+
+    return ans;
+  }
+}
+
+
+or
+
+
+class Solution {
+    public int fourSumCount(int[] A, int[] B, int[] C, int[] D) {
+        int count = 0;
+
+        // 2sum => occurence
+        Map<Integer, Integer> sumCountMap = new HashMap<Integer, Integer>();
+        int length = A.length;
+        for (int i = 0; i < length; i++) {
+            for (int j = 0; j < length; j++) {
+                int sumAB = A[i] + B[j];
+                int countAB = sumCountMap.getOrDefault(sumAB, 0);
+                countAB++;
+                sumCountMap.put(sumAB, countAB);
+            }
+        }
+        for (int i = 0; i < length; i++) {
+            for (int j = 0; j < length; j++) {
+                int sumCD = C[i] + D[j];
+                int curCount = sumCountMap.getOrDefault(-sumCD, 0);
+                count += curCount;
+            }
+        }
+        return count;
+    }
+}
+
+############
+
+class Solution {
+    public int fourSumCount(int[] nums1, int[] nums2, int[] nums3, int[] nums4) {
+        Map<Integer, Integer> counter = new HashMap<>();
+        for (int a : nums1) {
+            for (int b : nums2) {
+                counter.put(a + b, counter.getOrDefault(a + b, 0) + 1);
+            }
+        }
+        int ans = 0;
+        for (int c : nums3) {
+            for (int d : nums4) {
+                ans += counter.getOrDefault(-(c + d), 0);
+            }
+        }
+        return ans;
+    }
+}
+
+
