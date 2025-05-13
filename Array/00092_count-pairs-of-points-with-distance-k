@@ -1,0 +1,83 @@
+https://leetcode.com/problems/count-pairs-of-points-with-distance-k/description/
+
+
+2857. Count Pairs of Points With Distance k
+Medium
+Topics
+Companies
+Hint
+You are given a 2D integer array coordinates and an integer k, where coordinates[i] = [xi, yi] are the coordinates of the ith point in a 2D plane.
+
+We define the distance between two points (x1, y1) and (x2, y2) as (x1 XOR x2) + (y1 XOR y2) where XOR is the bitwise XOR operation.
+
+Return the number of pairs (i, j) such that i < j and the distance between points i and j is equal to k.
+
+ 
+
+Example 1:
+
+Input: coordinates = [[1,2],[4,2],[1,3],[5,2]], k = 5
+Output: 2
+Explanation: We can choose the following pairs:
+- (0,1): Because we have (1 XOR 4) + (2 XOR 2) = 5.
+- (2,3): Because we have (1 XOR 5) + (3 XOR 2) = 5.
+Example 2:
+
+Input: coordinates = [[1,3],[1,3],[1,3],[1,3],[1,3]], k = 0
+Output: 10
+Explanation: Any two chosen pairs will have a distance of 0. There are 10 ways to choose two pairs.
+ 
+
+Constraints:
+
+2 <= coordinates.length <= 50000
+0 <= xi, yi <= 106
+0 <= k <= 100
+
+
+# java
+
+
+class Solution {
+  public int countPairs(List<List<Integer>> coordinates, int k) {
+    int ans = 0;
+
+    for (int x = 0; x <= k; ++x) {
+      final int y = k - x;
+      Map<Pair<Integer, Integer>, Integer> count = new HashMap<>();
+      for (List<Integer> point : coordinates) {
+        final int xi = point.get(0);
+        final int yi = point.get(1);
+        ans += count.getOrDefault(new Pair<>(xi ^ x, yi ^ y), 0);
+        count.merge(new Pair<>(xi, yi), 1, Integer::sum);
+      }
+    }
+
+    return ans;
+  }
+}
+
+
+
+or
+
+
+
+class Solution {
+    public int countPairs(List<List<Integer>> coordinates, int k) {
+        Map<List<Integer>, Integer> cnt = new HashMap<>();
+        int ans = 0;
+        for (var c : coordinates) {
+            int x2 = c.get(0), y2 = c.get(1);
+            for (int a = 0; a <= k; ++a) {
+                int b = k - a;
+                int x1 = a ^ x2, y1 = b ^ y2;
+                ans += cnt.getOrDefault(List.of(x1, y1), 0);
+            }
+            cnt.merge(c, 1, Integer::sum);
+        }
+        return ans;
+    }
+}
+
+
