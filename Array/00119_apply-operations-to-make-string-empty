@@ -1,0 +1,90 @@
+https://leetcode.com/problems/apply-operations-to-make-string-empty/description/
+
+
+3039. Apply Operations to Make String Empty
+Medium
+Topics
+Companies
+Hint
+You are given a string s.
+
+Consider performing the following operation until s becomes empty:
+
+For every alphabet character from 'a' to 'z', remove the first occurrence of that character in s (if it exists).
+For example, let initially s = "aabcbbca". We do the following operations:
+
+Remove the underlined characters s = "aabcbbca". The resulting string is s = "abbca".
+Remove the underlined characters s = "abbca". The resulting string is s = "ba".
+Remove the underlined characters s = "ba". The resulting string is s = "".
+Return the value of the string s right before applying the last operation. In the example above, answer is "ba".
+
+ 
+
+Example 1:
+
+Input: s = "aabcbbca"
+Output: "ba"
+Explanation: Explained in the statement.
+Example 2:
+
+Input: s = "abcd"
+Output: "abcd"
+Explanation: We do the following operation:
+- Remove the underlined characters s = "abcd". The resulting string is s = "".
+The string just before the last operation is "abcd".
+ 
+
+Constraints:
+
+1 <= s.length <= 5 * 105
+s consists only of lowercase English letters.
+
+
+# java
+
+
+class Solution {
+  public String lastNonEmptyString(String s) {
+    StringBuilder sb = new StringBuilder();
+    int[] count = new int[26];
+
+    for (final char c : s.toCharArray())
+      ++count[c - 'a'];
+
+    final int maxFreq = Arrays.stream(count).max().getAsInt();
+
+    for (int i = s.length() - 1; i >= 0; --i)
+      if (count[s.charAt(i) - 'a']-- == maxFreq)
+        sb.append(s.charAt(i));
+
+    return sb.reverse().toString();
+  }
+}
+
+
+or
+
+
+class Solution {
+    public String lastNonEmptyString(String s) {
+        int[] cnt = new int[26];
+        int[] last = new int[26];
+        int n = s.length();
+        int mx = 0;
+        for (int i = 0; i < n; ++i) {
+            int c = s.charAt(i) - 'a';
+            mx = Math.max(mx, ++cnt[c]);
+            last[c] = i;
+        }
+        StringBuilder ans = new StringBuilder();
+        for (int i = 0; i < n; ++i) {
+            int c = s.charAt(i) - 'a';
+            if (cnt[c] == mx && last[c] == i) {
+                ans.append(s.charAt(i));
+            }
+        }
+        return ans.toString();
+    }
+}
+
+
