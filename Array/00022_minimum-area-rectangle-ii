@@ -1,0 +1,132 @@
+https://leetcode.com/problems/minimum-area-rectangle-ii/description/
+
+
+
+963. Minimum Area Rectangle II
+Medium
+Topics
+Companies
+You are given an array of points in the X-Y plane points where points[i] = [xi, yi].
+
+Return the minimum area of any rectangle formed from these points, with sides not necessarily parallel to the X and Y axes. If there is not any such rectangle, return 0.
+
+Answers within 10-5 of the actual answer will be accepted.
+
+ 
+
+Example 1:
+
+
+Input: points = [[1,2],[2,1],[1,0],[0,1]]
+Output: 2.00000
+Explanation: The minimum area rectangle occurs at [1,2],[2,1],[1,0],[0,1], with an area of 2.
+Example 2:
+
+
+Input: points = [[0,1],[2,1],[1,1],[1,0],[2,0]]
+Output: 1.00000
+Explanation: The minimum area rectangle occurs at [1,0],[1,1],[2,1],[2,0], with an area of 1.
+Example 3:
+
+
+Input: points = [[0,3],[1,2],[3,1],[1,3],[2,1]]
+Output: 0
+Explanation: There is no possible rectangle to form from these points.
+ 
+
+Constraints:
+
+1 <= points.length <= 50
+points[i].length == 2
+0 <= xi, yi <= 4 * 104
+All the given points are unique.
+
+
+
+# java
+
+
+class Solution {
+    public double minAreaFreeRect(int[][] points) {
+        int n = points.length;
+        Set<Integer> s = new HashSet<>(n);
+        for (int[] p : points) {
+            s.add(f(p[0], p[1]));
+        }
+        double ans = Double.MAX_VALUE;
+        for (int i = 0; i < n; ++i) {
+            int x1 = points[i][0], y1 = points[i][1];
+            for (int j = 0; j < n; ++j) {
+                if (j != i) {
+                    int x2 = points[j][0], y2 = points[j][1];
+                    for (int k = j + 1; k < n; ++k) {
+                        if (k != i) {
+                            int x3 = points[k][0], y3 = points[k][1];
+                            int x4 = x2 - x1 + x3, y4 = y2 - y1 + y3;
+                            if (s.contains(f(x4, y4))) {
+                                if ((x2 - x1) * (x3 - x1) + (y2 - y1) * (y3 - y1) == 0) {
+                                    int ww = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+                                    int hh = (x3 - x1) * (x3 - x1) + (y3 - y1) * (y3 - y1);
+                                    ans = Math.min(ans, Math.sqrt(1L * ww * hh));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return ans == Double.MAX_VALUE ? 0 : ans;
+    }
+
+    private int f(int x, int y) {
+        return x * 40001 + y;
+    }
+}
+
+
+or
+
+
+
+class Solution {
+  public double minAreaFreeRect(int[][] points) {
+    long ans = Long.MAX_VALUE;
+    // For each A, B pair points, {hash(A, B): (ax, ay, bx, by)}.
+    Map<Integer, List<int[]>> centerToPoints = new HashMap<>();
+
+    for (int[] A : points)
+      for (int[] B : points) {
+        int center = hash(A, B);
+        if (centerToPoints.get(center) == null)
+          centerToPoints.put(center, new ArrayList<>());
+        centerToPoints.get(center).add(new int[] {A[0], A[1], B[0], B[1]});
+      }
+
+    // For all pair points "that share the same center".
+    for (List<int[]> pointPairs : centerToPoints.values())
+      for (int[] ab : pointPairs)
+        for (int[] cd : pointPairs) {
+          final int ax = ab[0], ay = ab[1];
+          final int cx = cd[0], cy = cd[1];
+          final int dx = cd[2], dy = cd[3];
+          // AC is perpendicular to AD.
+          // AC dot AD = (cx - ax, cy - ay) dot (dx - ax, dy - ay) == 0.
+          if ((cx - ax) * (dx - ax) + (cy - ay) * (dy - ay) == 0) {
+            final long squaredArea = dist(ax, ay, cx, cy) * dist(ax, ay, dx, dy);
+            if (squaredArea > 0)
+              ans = Math.min(ans, squaredArea);
+          }
+        }
+
+    return ans == Long.MAX_VALUE ? 0 : Math.sqrt(ans);
+  }
+
+  private int hash(int[] p, int[] q) {
+    return ((p[0] + q[0]) << 16) + (p[1] + q[1]);
+  }
+
+  private long dist(long px, long py, long qx, long qy) {
+    return (px - qx) * (px - qx) + (py - qy) * (py - qy);
+  }
+}
+
