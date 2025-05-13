@@ -36,7 +36,7 @@ Each integer in nums will appear twice, only two integers will appear once.
 
 # java
 
-
+// all test case not passing
 
 class Solution {
   public int[] singleNumber(int[] nums) {
@@ -58,7 +58,7 @@ class Solution {
 
 or
 
-
+// bets
 class Solution {
     public int[] singleNumber(int[] nums) {
         int xs = 0;
